@@ -20,7 +20,7 @@ PACKAGE = "lapidarium"
 SRC_PATHS = "src"
 TEST_PATHS = "tests"
 SCRIPT_PATHS = ""
-TOML_PATHS = "*.toml .taplo.toml docker/*.toml"
+TOML_PATHS = "*.toml .taplo.toml .vekna.toml docker/*.toml"
 
 [task_config]
 includes = ["tasks.toml", "python_tasks.toml"]

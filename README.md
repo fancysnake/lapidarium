@@ -33,6 +33,17 @@ mise tasks            # everything else
 
 Personal overrides go in `mise.local.toml`, which is gitignored.
 
+### Rituals
+
+`vekna cast` runs [cabinet](https://cabinet.fancysnake.dev)'s pull request
+rituals (`.vekna.toml`): `refresh`, `cover`, `review`, `labels`. They push over
+HTTPS with `gh` as the credential helper, so they look for a remote named
+`https-origin`. Add it once per clone:
+
+```bash
+git remote add https-origin https://github.com/fancysnake/lapidarium.git
+```
+
 ## License
 
 [MIT](LICENSE).

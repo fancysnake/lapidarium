@@ -8,6 +8,7 @@ Plan and content model: `PLAN.md` (local, untracked). Spec: `docs/content-model.
 `mise tasks` is the source of truth. The commit gate is `mise run fullcheck`.
 Narrow first: `mise run lint:ruff`, `mise run test:unit`, `mise run test:int`.
 PostgreSQL must be running (`mise run db`) for integration tests and the server.
+Pull request rituals: `vekna cast refresh|cover|review|labels` (cabinet, `.vekna.toml`).
 
 ## Architecture
 

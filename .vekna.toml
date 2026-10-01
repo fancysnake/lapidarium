@@ -1,0 +1,24 @@
+# Pull request maintenance rituals from the cabinet tome: `vekna cast refresh`,
+# `cover`, `review`, `labels`. Only what differs from cabinet's defaults is set,
+# so a cabinet bump is not frozen out by a copied value.
+[rituals]
+modules = ["cabinet.rituals"]
+
+[cabinet]
+# The https twin of `origin`: a cast has no terminal for an ssh passphrase.
+remote = "https-origin"
+gate = "mise run fullcheck"
+# One suite, seconds long: the full measurement and the fast one are the same.
+coverage = "mise run test:py:cov:diff"
+fast_coverage = "mise run test:py:cov:diff"
+# Casts run unattended at night; nobody is there to unlock a signing key.
+sign_commits = false
+
+# Job names in .github/workflows/ci.yml, matched by prefix.
+[cabinet.ci]
+gate_checks = ["lint", "test"]
+cover_checks = ["test"]
+
+[cabinet.agent]
+# A single test file or case is a quick check; linters and sweeps stay the ritual's.
+may_run = ["mise run test:unit", "mise run test:int"]

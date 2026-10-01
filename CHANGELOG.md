@@ -11,3 +11,5 @@ All notable changes to this project are documented here. The format follows
 - Project skeleton: Poetry package, mise tasks, GLIMPSE layers with import
   contracts, Django settings from the environment, django-unfold admin,
   `/healthz/`, Docker image, CI.
+- cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
+  `.vekna.toml`.
