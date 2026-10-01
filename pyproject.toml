@@ -235,8 +235,6 @@ testpaths = ["tests"]
 include_external_packages = "True"
 root_package = "lapidarium"
 
-# <source_modules> can't import <forbidden_modules>
-
 [[tool.importlinter.contracts]]
 name = "gates"
 type = "forbidden"
@@ -265,7 +263,11 @@ forbidden_modules = [
 name = "inits"
 type = "forbidden"
 source_modules = ["lapidarium.inits"]
-forbidden_modules = ["lapidarium.edges"]
+forbidden_modules = [
+    "lapidarium.specs",
+    "lapidarium.edges",
+]
+allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "mills"
@@ -318,6 +320,21 @@ forbidden_modules = [
     "lapidarium.pacts",
     "lapidarium.specs",
 ]
+
+[[tool.importlinter.contracts]]
+name = "inside-gates"
+type = "independence"
+modules = ["lapidarium.gates.*"]
+
+[[tool.importlinter.contracts]]
+name = "inside-links"
+type = "independence"
+modules = ["lapidarium.links.*"]
+
+[[tool.importlinter.contracts]]
+name = "inside-edges"
+type = "independence"
+modules = ["lapidarium.edges.*"]
 
 # VULTURE
 
