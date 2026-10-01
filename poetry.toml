@@ -1,0 +1,5 @@
+# The virtualenv lives next to the code, where mise.toml's `_.python.venv`
+# already points every task; letting Poetry own it keeps the layout the same on
+# laptops, in CI and in the Docker build.
+[virtualenvs]
+in-project = true

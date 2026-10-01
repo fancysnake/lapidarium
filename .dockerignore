@@ -1,0 +1,19 @@
+# Ignore everything by default
+*
+
+# Allow what the build needs
+!docker/mise.toml
+!poetry.lock
+!pyproject.toml
+!README.md
+!src/
+
+# But still ignore these inside allowed directories
+**/__pycache__/
+**/*.py[cod]
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+**/*.sqlite3
+**/staticfiles/
+**/media/

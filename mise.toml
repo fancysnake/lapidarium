@@ -1,0 +1,26 @@
+[settings]
+experimental = true
+# Tasks listed in `depends` run in parallel; `run = [...]` is sequential.
+jobs = 8
+
+[hooks]
+enter = "poetry install"
+
+[tools]
+pipx = "1.17.6"
+"pipx:poetry" = "2.5.1"
+python = "3.14.7"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+_.file = "env/development.env"
+PYTHONPATH = "src"
+# Consumed by python_tasks.toml (vendored from shared-configs).
+PACKAGE = "lapidarium"
+SRC_PATHS = "src"
+TEST_PATHS = "tests"
+SCRIPT_PATHS = ""
+TOML_PATHS = "*.toml .taplo.toml docker/*.toml"
+
+[task_config]
+includes = ["tasks.toml", "python_tasks.toml"]

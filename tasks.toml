@@ -1,0 +1,52 @@
+# Project tasks. Python format/lint/test tasks live in python_tasks.toml.
+
+[dj]
+description = "Run any django-admin subcommand against the dev settings"
+run = "django-admin"
+
+[start]
+description = "Start the Django dev server on :8000 (needs `mise run db`)"
+run = "django-admin runserver 0.0.0.0:8000"
+
+[db]
+description = "Start the local PostgreSQL container"
+run = "docker compose -f docker/compose/local.yaml up -d"
+
+["db:down"]
+description = "Stop the local PostgreSQL container (data volume is kept)"
+run = "docker compose -f docker/compose/local.yaml down"
+
+[dc]
+description = "Run docker compose for a target environment (local or prod)"
+usage = '''
+arg "<environment>" help="Target environment" {
+  choices "local" "prod"
+}
+arg "[dc_args]" var=#true double_dash="optional"
+'''
+run = 'docker compose -f docker/compose/{{ usage.environment }}.yaml {{arg(name="dc_args")}}'
+
+[update]
+description = "Update all dependencies: mise tools, pip, Poetry packages"
+run = [
+    "mise upgrade --bump --exclude python --minimum-release-age=7d",
+    "mise install",
+    { task = "dep:upgrade:py" },
+]
+
+[check]
+description = "Format, then lint (autofix where the tool can)"
+run = [{ task = "format:py" }, { task = "lint:py" }]
+
+[fullcheck]
+description = "The commit gate: format, lint, every test with coverage, diff coverage"
+run = [
+    "poetry install",
+    { task = "format:py" },
+    { task = "lint:py" },
+    { task = "test:unit:cov" },
+    { task = "test:py:cov", args = ["-xvv"] },
+    "coverage xml",
+    "diff-cover coverage.xml --compare-branch=main --fail-under=100",
+    { task = "lint:tingle" },
+]

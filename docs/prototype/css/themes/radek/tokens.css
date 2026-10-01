@@ -1,0 +1,19 @@
+/* Motyw instancji: „Ekran MG”, kolor per aktywność.
+   Nadpisuje tylko to, co różni się od motywu bazowego (ładowany po nim). */
+:root {
+  --color-link: #006400;
+  --color-link-hover: #004700;
+
+  /* Marka: zieleń z logo (office green) */
+  --color-brand: #008000;
+  --color-brand-contrast: #FFFFFF;
+
+  /* Rodzaje aktywności — każdy ≥ 4.5:1 na białym */
+  --color-type-session: #6B3FA0;    --color-type-session-tint: #F3EEF9;
+  --color-type-song: #C2410C;       --color-type-song-tint: #FDF0E9;
+  --color-type-game: #1D5FA8;       --color-type-game-tint: #EBF2FA;
+  --color-type-graphic: #A16207;    --color-type-graphic-tint: #FBF3E4;
+  --color-type-event: #BE185D;      --color-type-event-tint: #FCEDF3;
+  /* Artykuły: do ustalenia, na razie neutralnie */
+  --color-type-article: #151515;    --color-type-article-tint: #F1F1EE;
+}
