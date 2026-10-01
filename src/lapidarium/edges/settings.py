@@ -17,7 +17,6 @@ env = environ.Env(
     AWS_STORAGE_BUCKET_NAME=(str, ""),
     DEBUG=(bool, False),
     ENV=(str, "production"),
-    IN_TESTS=(bool, False),
     LANGUAGE_CODE=(str, "pl"),
     MEDIA_ROOT=(str, "media"),
     MEDIA_URL=(str, "/media/"),
@@ -29,7 +28,6 @@ env = environ.Env(
 
 ENV = env("ENV")
 IS_PRODUCTION = ENV == "production"
-IN_TESTS = env("IN_TESTS")
 DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
@@ -66,27 +64,18 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "lapidarium.gates.web.django.urls"
 
-_BASE_TEMPLATE_LOADERS = [
-    "django.template.loaders.filesystem.Loader",
-    "django.template.loaders.app_directories.Loader",
-]
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
         "OPTIONS": {
-            "loaders": (
-                [("django.template.loaders.cached.Loader", _BASE_TEMPLATE_LOADERS)]
-                if IS_PRODUCTION
-                else _BASE_TEMPLATE_LOADERS
-            ),
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "debug": DEBUG or IN_TESTS,
+            "debug": DEBUG or ENV == "test",
         },
     }
 ]

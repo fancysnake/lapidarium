@@ -11,7 +11,8 @@ submit it. You keep your copyright. There is no CLA.
 
 ## Before a pull request
 
-Run `mise run fullcheck`. CI runs the same.
+Run `mise run fullcheck`. CI runs only the linters and the full test suite
+with coverage, so diff coverage and the debt budget are checked locally.
 
 ## Bugs
 

@@ -44,10 +44,7 @@ run = [
     "poetry install",
     { task = "format:py" },
     { task = "lint:py" },
-    { task = "test:unit:cov" },
-    { task = "test:py:cov", args = ["-xvv"] },
-    "coverage xml",
-    "diff-cover coverage.xml --compare-branch=main --fail-under=100",
+    { task = "test:py:cov:diff" },
 ]
 
 [fullcheck]

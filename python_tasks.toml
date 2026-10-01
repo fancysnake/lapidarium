@@ -45,7 +45,7 @@ run = "mypy {{ env.SRC_PATHS }}"
 env = { _.file = 'env/test.env' }
 
 ["lint:pylint"]
-description = "Run Pylint on source and tests (duplicate-code disabled for tests)"
+description = "Run Pylint on source and tests"
 run = ["pylint -j 0 {{ env.SRC_PATHS }} {{ env.SCRIPT_PATHS }} {{ env.TEST_PATHS }}"]
 
 ["lint:ruff"]
@@ -61,7 +61,7 @@ run = "tingle check"
 
 ["lint:vulture"]
 description = "Find dead Python code"
-run = "! vulture --config=pyproject.toml {{ env.SRC_PATHS }} {{ env.SCRIPT_PATHS }} | grep -v unused.variable"
+run = "vulture --config=pyproject.toml {{ env.SRC_PATHS }} {{ env.SCRIPT_PATHS }}"
 
 ["lint:py"]
 description = "Run all linters"
@@ -99,7 +99,7 @@ run = "pytest -n auto {{ env.TEST_PATHS }}/unit"
 env = { _.file = 'env/test.env' }
 
 ["test:unit:cov"]
-description = "Run unit tests"
+description = "Run unit tests with coverage of the mills layer"
 run = { task = "test:unit", args = ["--cov=tests.unit", "--cov={{env.PACKAGE}}.mills"] }
 env = { _.file = 'env/test.env' }
 
@@ -118,7 +118,7 @@ run = "pytest -n auto {{ env.TEST_PATHS }}/integration"
 env = { _.file = 'env/test.env' }
 
 ["test:int:cov"]
-description = "Run integration tests"
+description = "Run integration tests with coverage of the whole package"
 run = { task = "test:int", args = ["--cov=tests.integration", "--cov={{env.PACKAGE}}"] }
 env = { _.file = 'env/test.env' }
 
@@ -137,12 +137,12 @@ run = "pytest -n auto {{ env.TEST_PATHS }}/integration {{ env.TEST_PATHS }}/unit
 env = { _.file = 'env/test.env' }
 
 ["test:py:cov"]
-description = "Run all Python tests"
+description = "Run all Python tests with coverage"
 run = { task = "test:py", args = ["--cov"] }
 env = { _.file = 'env/test.env' }
 
 ["test:py:cov:diff"]
-description = "Show test coverage of integration tests for lines changed since main"
+description = "Show test coverage of all tests for lines changed since main"
 run = [
     { task = "test:py:cov" },
     "coverage xml",

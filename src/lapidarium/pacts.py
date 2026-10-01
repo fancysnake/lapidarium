@@ -10,5 +10,4 @@ class ServicesProtocol(Protocol):
 class RootRequestProtocol(Protocol):
     """The slice of the framework request the middleware touches."""
 
-    path: str
     services: ServicesProtocol

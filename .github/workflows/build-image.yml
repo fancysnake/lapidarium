@@ -30,7 +30,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           # sha-<sha> is the deploy-addressable tag; semver tags on releases;
-          # latest tracks main.
+          # latest tracks main only, so tagging an old commit never moves it.
+          flavor: latest=false
           tags: |
             type=sha,format=long
             type=semver,pattern={{version}}

@@ -167,7 +167,6 @@ module = [
     "lapidarium.edges.settings",
     "lapidarium.links.db.django.*",
     "lapidarium.gates.web.django.*",
-    "lapidarium.inits",
 ]
 disallow_any_expr = false
 
@@ -332,7 +331,8 @@ ignore_names = [
     "*Middleware",
     "Meta",
     "application",
-    "default_auto_field",
+    "label",
+    "name",
     "ready",
     "urlpatterns",
 ]
