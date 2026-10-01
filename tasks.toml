@@ -38,8 +38,8 @@ run = [
 description = "Format, then lint (autofix where the tool can)"
 run = [{ task = "format:py" }, { task = "lint:py" }]
 
-[fullcheck]
-description = "The commit gate: format, lint, every test with coverage, diff coverage"
+[pr-fix]
+description = "The absolute gate the rituals repair until green: format, lint, every test with coverage, diff coverage"
 run = [
     "poetry install",
     { task = "format:py" },
@@ -48,5 +48,8 @@ run = [
     { task = "test:py:cov", args = ["-xvv"] },
     "coverage xml",
     "diff-cover coverage.xml --compare-branch=main --fail-under=100",
-    { task = "lint:tingle" },
 ]
+
+[fullcheck]
+description = "The commit gate for people: pr-fix plus the debt budget, which needs judgement when it fails"
+run = [{ task = "pr-fix" }, { task = "lint:tingle" }]

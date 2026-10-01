@@ -5,7 +5,9 @@ Plan and content model: `PLAN.md` (local, untracked). Spec: `docs/content-model.
 
 ## Commands
 
-`mise tasks` is the source of truth. The commit gate is `mise run fullcheck`.
+`mise tasks` is the source of truth. The commit gate is `mise run fullcheck`;
+`mise run pr-fix` is the same without the tingle debt budget, and is what the
+rituals repair until green.
 Narrow first: `mise run lint:ruff`, `mise run test:unit`, `mise run test:int`.
 PostgreSQL must be running (`mise run db`) for integration tests and the server.
 Pull request rituals: `vekna cast refresh|cover|review|labels` (cabinet, `.vekna.toml`).

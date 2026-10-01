@@ -7,7 +7,9 @@ modules = ["cabinet.rituals"]
 [cabinet]
 # The https twin of `origin`: a cast has no terminal for an ssh passphrase.
 remote = "https-origin"
-gate = "mise run fullcheck"
+# The gate stays at the default, `mise run pr-fix`: absolute checks only. The
+# debt budget (tingle) is in `fullcheck`, for people, because it can flag a
+# justified addition and a ritual would then "fix" what should stay.
 # One suite, seconds long: the full measurement and the fast one are the same.
 coverage = "mise run test:py:cov:diff"
 fast_coverage = "mise run test:py:cov:diff"
