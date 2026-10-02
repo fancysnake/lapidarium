@@ -239,7 +239,7 @@ Kontrakt motywu:
 
 Szablony nie używają tych tokenów bezpośrednio, tylko przez `--type-color` i `--type-tint` ustawiane na elemencie z `data-type="session"` itd. Dzięki temu karta, etykieta, link „wszystkie…”, wpis w „co nowego” i znacznik w menu kolorują się automatycznie według typu treści, a strona szczegółów przyjmuje kolor swojego typu. W motywie `base` wszystkie `--color-type-*` są czarne, a `-tint` jasnoszare.
 
-Reguły dostępności (sprawdzane przez system check motywu): każdy `--color-type-*` i `--color-brand` ma kontrast co najmniej 4.5:1 z `--color-bg`, a każdy `--color-type-*` także ze swoim `-tint` (tekst w kolorze typu na jego tle, np. etykieta `.read-aloud__label`); typ zawsze ma też etykietę tekstową, więc kolor nie jest jedynym nośnikiem informacji.
+Reguły dostępności (sprawdzane przez system check motywu): każdy `--color-type-*` i `--color-brand` ma kontrast co najmniej 4.5:1 z `--color-bg`, każdy `--color-type-*` także ze swoim `-tint` (tekst w kolorze typu na jego tle, np. etykieta `.read-aloud__label`), a `--color-brand-contrast` z `--color-brand` (tekst na kolorze marki, np. `.btn--primary`); typ zawsze ma też etykietę tekstową, więc kolor nie jest jedynym nośnikiem informacji.
 
 Motyw instancji autora: układ „Ekran MG” (Spectral / Spectral SC / Barlow Condensed), białe tło, marka `#008000`, kolory typów: sesje `#6B3FA0`, piosenki `#C2410C`, gry `#1D5FA8`, grafiki `#A16207`, wydarzenia `#BE185D`.
 
@@ -250,7 +250,7 @@ Django system check (`checks.register`) przy starcie:
 - `tokens.css` definiuje wszystkie wymagane tokeny (błąd, jeśli brakuje);
 - `theme.toml` deklaruje zgodną wersję silnika (ostrzeżenie, jeśli niezgodna);
 - nadpisane szablony istnieją w silniku (ostrzeżenie o szablonie, którego silnik już nie używa);
-- kontrast `--color-brand` i każdego `--color-type-*` względem `--color-bg` oraz każdego `--color-type-*` względem jego `-tint` wynosi co najmniej 4.5:1 (błąd, jeśli nie).
+- kontrast `--color-brand` i każdego `--color-type-*` względem `--color-bg`, każdego `--color-type-*` względem jego `-tint` oraz `--color-brand-contrast` względem `--color-brand` wynosi co najmniej 4.5:1 (błąd, jeśli nie).
 
 ---
 

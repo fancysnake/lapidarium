@@ -263,10 +263,7 @@ forbidden_modules = [
 name = "inits"
 type = "forbidden"
 source_modules = ["lapidarium.inits"]
-forbidden_modules = [
-    "lapidarium.specs",
-    "lapidarium.edges",
-]
+forbidden_modules = ["lapidarium.specs", "lapidarium.edges"]
 allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
