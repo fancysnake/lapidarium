@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from functools import cached_property
-from typing import TYPE_CHECKING, ClassVar, TypedDict, override
+from typing import TYPE_CHECKING, ClassVar, TypedDict, cast, override
 
 from django import forms
 from django.conf import settings
@@ -46,18 +45,18 @@ from lapidarium.links.db.django.models import (
 from lapidarium.links.db.django.repositories import entry_type_dto
 from lapidarium.pacts import (
     BUILTIN_DEFAULTS,
-    CONTAINER_ROLES,
     ROLE_BUILTINS,
     EntryStatus,
     FieldKind,
     MetadataValidationError,
     PartKind,
+    RelationEndDTO,
     RelationRole,
     TypeRole,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from django.contrib.admin.options import _FieldOpts, _FieldsetSpec
     from django.db.models import QuerySet
@@ -67,9 +66,9 @@ if TYPE_CHECKING:
     from django.utils.functional import _StrOrPromise
 
     from lapidarium.pacts import (
-        BuiltinValues,
         MetadataInput,
         PartData,
+        SchemaServiceProtocol,
         ServicesProtocol,
     )
 
@@ -357,8 +356,7 @@ def _metadata_field(field: FieldDefinition, entry: Entry | None) -> forms.Field:
     field_class, widget = _SCALAR_FIELDS[field.kind]
     return field_class(
         label=field.label,
-        # A switch left off is an answer, not a missing value.
-        required=field.required and field.kind != FieldKind.BOOL,
+        required=field.required and FieldKind(field.kind).can_be_missing,
         initial=(
             dt.date.fromisoformat(stored)
             if field.kind == FieldKind.DATE and stored
@@ -377,8 +375,8 @@ def _metadata_names(entry_type: EntryType) -> tuple[str, ...]:
 class EntryForm(EntryFormBase):
     """An entry with one `meta_<key>` field per field of its type's schema."""
 
-    # Carries the type of a new entry from the add page to its POST.
-    entry_type = forms.SlugField(required=False, widget=forms.HiddenInput)
+    # The type of a new entry; `EntryAdmin.get_form` sets it per request.
+    entry_type: ClassVar[EntryType]
 
     class Meta:
         model = Entry
@@ -394,8 +392,7 @@ class EntryForm(EntryFormBase):
     ) -> None:
         super().__init__(data, files, instance=instance, initial=initial)
         if instance is None:
-            key = self["entry_type"].value()
-            self.instance.type = get_object_or_404(EntryType, key=key)
+            self.instance.type = self.entry_type
         for field in self.instance.type.fields.exclude(kind=FieldKind.RELATION):
             self.fields[META_PREFIX + field.key] = _metadata_field(field, instance)
 
@@ -414,14 +411,9 @@ class EntryForm(EntryFormBase):
         self._check_status()
 
     def _check_builtins(self, services: ServicesProtocol) -> None:
-        data = self.cleaned_data
-        values: BuiltinValues = {
-            "date": data.get("date"),
-            "start_at": data.get("start_at"),
-            "end_at": data.get("end_at"),
-            "location": data.get("location", ""),
-            "is_online": data.get("is_online", False),
-            "outcome": data.get("outcome", ""),
+        values = {
+            key: self.cleaned_data.get(key, default)
+            for key, default in BUILTIN_DEFAULTS.items()
         }
         role = TypeRole(self.instance.type.role)
         for key, message in services.schema.check_builtins(role, values).items():
@@ -493,12 +485,6 @@ class PartFormSet(PartFormSetBase):
         if errors := schema.check_part_kinds(entry_type, kinds):
             raise forms.ValidationError(errors)
 
-    @override
-    def save(self, commit: bool = True) -> list[Part]:
-        parts = super().save(commit=commit)
-        self.instance.refresh_search_text()
-        return parts
-
 
 class PartInline(PartInlineBase):
     model = Part
@@ -510,38 +496,29 @@ class PartInline(PartInlineBase):
     fields = ("kind", "text", "url", "asset", "caption", "order")
 
 
-def _reaches(start: Entry, goal: Entry) -> bool:
-    """Whether `goal` is `start` or one of its `part_of` ancestors."""
-    seen: set[int] = set()
-    frontier = {start.pk}
-    while frontier:
-        if goal.pk in frontier:
-            return True
-        seen |= frontier
-        frontier = (
-            set(
-                Relation.objects.filter(
-                    from_entry__in=frontier, role=RelationRole.PART_OF
-                ).values_list("to_entry", flat=True)
-            )
-            - seen
-        )
-    return False
+def _containers(entries: set[int]) -> list[int]:
+    return list(
+        Relation.objects.filter(
+            from_entry__in=entries, role=RelationRole.PART_OF
+        ).values_list("to_entry", flat=True)
+    )
+
+
+def _relation_end(entry: Entry) -> RelationEndDTO:
+    return RelationEndDTO(
+        entry_type=entry_type_dto(entry.type), status=EntryStatus(entry.status)
+    )
 
 
 class RelationFormSet(RelationFormSetBase):
     """Built-in roles plus the relation fields of the entry's type."""
 
-    @cached_property
-    def schema_fields(self) -> dict[str, FieldDefinition]:
-        fields = self.instance.type.fields.filter(kind=FieldKind.RELATION)
-        return {field.key: field for field in fields.select_related("target_type")}
-
     @override
     def add_fields(self, form: forms.ModelForm[Relation], index: int | None) -> None:
         super().add_fields(form, index)
         builtin = [(role.value, role.value.replace("_", " ")) for role in RelationRole]
-        schema = [(f.key, f.label) for f in self.schema_fields.values()]
+        fields = self.instance.type.fields.filter(kind=FieldKind.RELATION)
+        schema = [(f.key, f.label) for f in fields]
         form.fields["role"] = forms.ChoiceField(
             label=_("role"), choices=builtin + schema, widget=UnfoldAdminSelectWidget
         )
@@ -549,43 +526,39 @@ class RelationFormSet(RelationFormSetBase):
     @override
     def clean(self) -> None:
         super().clean()
-        fields = self.schema_fields
-        linked: set[str] = set()
+        schema = build_services().schema
+        source = _relation_end(self.instance)
+        roles: list[str] = []
         for form in self.forms:
             data = form.cleaned_data
             if not data or data.get("DELETE") or "to_entry" not in data:
                 continue
-            linked.add(data["role"])
+            roles.append(data["role"])
             for message in self._target_errors(
-                data["role"], data["to_entry"], fields=fields
+                data["role"], data["to_entry"], schema=schema, source=source
             ):
                 form.add_error("to_entry", message)
-        if missing := [
-            f.label for f in fields.values() if f.required and f.key not in linked
-        ]:
-            raise forms.ValidationError(
-                _("Link at least one entry as: %(roles)s.")
-                % {"roles": ", ".join(missing)}
-            )
+        if errors := schema.check_relation_roles(source.entry_type, roles):
+            raise forms.ValidationError(errors)
 
     def _target_errors(
-        self, role: str, target: Entry, *, fields: dict[str, FieldDefinition]
+        self,
+        role: str,
+        target: Entry,
+        *,
+        schema: SchemaServiceProtocol,
+        source: RelationEndDTO,
     ) -> list[str]:
         entry = self.instance
         if entry.pk and target.pk == entry.pk:
             return []  # the relation_not_to_self constraint reports it
-        errors: list[str] = []
-        if role == RelationRole.PART_OF and target.type.role not in CONTAINER_ROLES:
-            errors.append(gettext("Only containers can hold entries."))
-        elif role == RelationRole.PART_OF and entry.pk and _reaches(target, entry):
-            errors.append(gettext("That makes a loop of containers."))
-        elif (field := fields.get(role)) and target.type_id != field.target_type_id:
-            errors.append(
-                gettext("%(role)s links to a %(type)s.")
-                % {"role": field.label, "type": field.target_type}
+        errors = schema.check_relation(
+            role, source=source, target=_relation_end(target)
+        )
+        if entry.pk:
+            errors += schema.check_loop(
+                role, entry=entry.pk, target=target.pk, containers=_containers
             )
-        if entry.status == EntryStatus.PUBLISHED != target.status:
-            errors.append(gettext("A published entry cannot link to a draft."))
         return errors
 
 
@@ -653,11 +626,29 @@ class EntryAdmin(EntryAdminBase):
         )
 
     @override
-    def get_changeform_initial_data(
-        self, request: HttpRequest
-    ) -> dict[str, str | list[str]]:
-        initial = super().get_changeform_initial_data(request)
-        return {**initial, "entry_type": request.GET.get("type", "")}
+    def save_related(  # pylint: disable=too-many-positional-arguments
+        self,
+        request: HttpRequest,
+        form: forms.ModelForm[Entry],
+        formsets: Sequence[forms.BaseFormSet[forms.BaseForm]],
+        change: bool,
+    ) -> None:
+        super().save_related(request, form, formsets, change)
+        # Tags and every inline are saved by now.
+        form.instance.refresh_search_text()
+
+    @override
+    def get_form(  # pylint: disable=too-many-positional-arguments
+        self,
+        request: HttpRequest,
+        obj: Entry | None = None,
+        change: bool = False,
+        **kwargs: object,
+    ) -> type[EntryForm]:
+        # The add form posts back to its own URL, `?type=` included.
+        form = super().get_form(request, obj, change=change, **kwargs)
+        attrs = {"entry_type": self._entry_type(request, obj)}
+        return cast("type[EntryForm]", type(form.__name__, (form,), attrs))
 
     @override
     def get_exclude(
@@ -684,7 +675,6 @@ class EntryAdmin(EntryAdminBase):
                 "status",
                 "featured",
                 "hide_from_whats_new",
-                *([] if obj else ["entry_type"]),
             ]
         }
         fieldsets: list[tuple[_StrOrPromise | None, _FieldOpts]] = [

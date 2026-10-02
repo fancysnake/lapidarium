@@ -241,13 +241,11 @@ def test_add_with_no_types_points_to_defining_one(admin):
 def test_add_form_follows_the_type_schema(admin):
     response = admin.get(f"{ENTRIES}add/?type=event")
 
-    form = response.context["adminform"].form
-    assert form.initial["entry_type"] == "event"
     fieldsets = response.context["adminform"].fieldsets
     fields = {name: list(opts["fields"]) for name, opts in fieldsets}
     assert list(fields) == ["Wydarzenie", "When and where", "Details", "Presentation"]
     assert fields["Wydarzenie"][0] == "title"
-    assert fields["Wydarzenie"][-1] == "entry_type"
+    assert fields["Wydarzenie"][-1] == "hide_from_whats_new"
     assert fields["When and where"] == ["start_at", "end_at", "location", "is_online"]
     assert fields["Details"] == ["meta_role"]
     roles = response.context["inline_admin_formsets"][1].formset.empty_form
@@ -259,9 +257,10 @@ def test_add_form_follows_the_type_schema(admin):
 
 @pytest.mark.usefixtures("demo")
 def test_add_post_needs_a_known_type(admin):
-    response = admin.post(f"{ENTRIES}add/?type=song", _entry(entry_type="nope"))
+    response = admin.post(f"{ENTRIES}add/?type=nope", _entry())
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.templates[0].name == "admin/lapidarium_db/entry/choose_type.html"
+    assert not Entry.objects.filter(slug="moose").exists()
 
 
 def test_choosing_a_type_needs_permission_to_add(client):
@@ -279,7 +278,6 @@ def test_add_saves_metadata_relations_and_search_text(admin):
     response = admin.post(
         f"{ENTRIES}add/?type=song",
         _entry(
-            entry_type="song",
             title="Walc hrabiego",
             slug="walc-hrabiego",
             status="published",
@@ -316,7 +314,7 @@ def test_add_saves_metadata_relations_and_search_text(admin):
 def test_add_checks_role_builtins_metadata_and_slug(admin):
     response = admin.post(
         f"{ENTRIES}add/?type=event",
-        _entry(entry_type="event", slug="pyrkon-2027", start_at_0="", meta_role=""),
+        _entry(slug="pyrkon-2027", start_at_0="", meta_role=""),
     )
 
     form_errors, _ = _errors(response)
@@ -332,7 +330,6 @@ def test_add_checks_parts_against_the_type(admin):
     response = admin.post(
         f"{ENTRIES}add/?type=session",
         _entry(
-            entry_type="session",
             meta_format="one-shot",
             parts=[_part("video", caption="Recording"), _part("image", 1)],
         ),
@@ -352,7 +349,7 @@ def test_add_checks_parts_against_the_type(admin):
 def test_add_checks_allowed_and_required_part_kinds(admin):
     response = admin.post(
         f"{ENTRIES}add/?type=session",
-        _entry(entry_type="session", parts=[_part("link", url="https://example.com")]),
+        _entry(parts=[_part("link", url="https://example.com")]),
     )
 
     _, inlines = _errors(response)
@@ -376,7 +373,6 @@ def test_published_entries_link_to_published_containers_only(admin):
     response = admin.post(
         f"{ENTRIES}add/?type=song",
         _entry(
-            entry_type="song",
             status="published",
             parts=[_part("audio", url="https://soundcloud.com/x/y")],
             relations=[
@@ -396,7 +392,7 @@ def test_published_entries_link_to_published_containers_only(admin):
             {"to_entry": ["This field is required."]},
             {
                 "to_entry": [
-                    "Zainspirowana przez links to a Sesja.",
+                    "Zainspirowana przez cannot link to a Projekt.",
                     "A published entry cannot link to a draft.",
                 ]
             },
@@ -411,9 +407,7 @@ def test_required_relation_fields_need_a_link(admin):
 
     response = admin.post(
         f"{ENTRIES}add/?type=song",
-        _entry(
-            entry_type="song", parts=[_part("audio", url="https://soundcloud.com/x/y")]
-        ),
+        _entry(parts=[_part("audio", url="https://soundcloud.com/x/y")]),
     )
 
     _, inlines = _errors(response)
@@ -689,8 +683,7 @@ def test_metadata_meaning_is_checked_after_its_format(admin):
     )
 
     response = admin.post(
-        f"{ENTRIES}add/?type=repo",
-        _entry(entry_type="repo", meta_source="https://gitlab.com/x/y"),
+        f"{ENTRIES}add/?type=repo", _entry(meta_source="https://gitlab.com/x/y")
     )
 
     form_errors, _ = _errors(response)
@@ -717,11 +710,7 @@ def test_change_offers_schema_roles_beside_built_in_ones(admin):
 def test_part_format_errors_come_before_part_kind_rules(admin):
     response = admin.post(
         f"{ENTRIES}add/?type=session",
-        _entry(
-            entry_type="session",
-            meta_format="one-shot",
-            parts=[_part("video", url="not a url")],
-        ),
+        _entry(meta_format="one-shot", parts=[_part("video", url="not a url")]),
     )
 
     _, inlines = _errors(response)

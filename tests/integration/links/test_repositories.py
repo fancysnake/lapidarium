@@ -3,7 +3,9 @@ from django.db import IntegrityError
 
 from lapidarium.links.db.django.models import (
     Entry,
+    EntryType,
     ExternalItem,
+    FieldDefinition,
     Link,
     MediaAsset,
     Profile,
@@ -13,7 +15,7 @@ from lapidarium.links.db.django.repositories import (
     MediaAssetRepository,
     ProfileRepository,
 )
-from lapidarium.pacts import NotFoundError
+from lapidarium.pacts import FIELD_DEFAULTS, TYPE_DEFAULTS, NotFoundError
 from tests.factories import entry_data
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
@@ -108,3 +110,16 @@ def test_an_entry_cannot_end_before_it_starts():
 
     with pytest.raises(IntegrityError):
         event.save()
+
+
+def _listed(defaults):
+    return {k: list(v) if isinstance(v, tuple) else v for k, v in defaults.items()}
+
+
+def test_new_types_and_fields_take_the_shared_defaults():
+    entry_type, field = EntryType(), FieldDefinition()
+
+    assert {k: getattr(entry_type, k) for k in TYPE_DEFAULTS} == _listed(TYPE_DEFAULTS)
+    settings = {k: v for k, v in FIELD_DEFAULTS.items() if k != "target_type"}
+    assert {k: getattr(field, k) for k in settings} == _listed(settings)
+    assert field.target_type is None

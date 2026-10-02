@@ -3,9 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from lapidarium.gates.cli.django.services import build_services
+from lapidarium.pacts import BundleValidationError
 
 if TYPE_CHECKING:
     from argparse import ArgumentParser
@@ -20,7 +21,10 @@ class Command(BaseCommand):
 
     @override
     def handle(self, *_args: str, **options: Path) -> None:
-        summary = build_services().content_export.export(options["destination"])
+        try:
+            summary = build_services().content_export.export(options["destination"])
+        except BundleValidationError as exc:
+            raise CommandError(str(exc)) from exc
         self.stdout.write(
             self.style.SUCCESS(
                 f"Exported {summary.types} types, {summary.entries} entries,"

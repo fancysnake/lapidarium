@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Protocol, TypedDict
 from pydantic import BaseModel, ConfigDict
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
     from contextlib import AbstractContextManager
     from pathlib import Path
 
@@ -47,6 +47,11 @@ class FieldKind(StrEnum):
     BOOL = "bool"
     CHOICE = "choice"
     RELATION = "relation"
+
+    @property
+    def can_be_missing(self) -> bool:
+        """A switch left off is an answer, not a missing value."""
+        return self is not FieldKind.BOOL
 
 
 class UrlKind(StrEnum):
@@ -96,6 +101,35 @@ ROLE_REQUIRED: Mapping[TypeRole, frozenset[str]] = {
     TypeRole.CONTAINER_OUTCOME: frozenset({"outcome"}),
 }
 CONTAINER_ROLES = frozenset({TypeRole.CONTAINER_OUTCOME, TypeRole.CONTAINER_TIMESPAN})
+
+# What a type or field setting is when left out, in the admin and in export files.
+type SettingDefault = str | int | bool | tuple[str, ...]
+DEFAULT_PARTS = (PartKind.TEXT,)
+TYPE_DEFAULTS: Mapping[str, SettingDefault] = {
+    "colour": "#000000",
+    "tint": "",
+    "icon": "",
+    "order": 0,
+    "in_menu": True,
+    "role": TypeRole.THING,
+    "layout": Layout.ARTICLE,
+    "allowed_parts": DEFAULT_PARTS,
+    "required_parts": (),
+    "door_enabled": False,
+    "door_label": "",
+    "door_pick": DoorPick.LATEST_FEATURED,
+    "door_min_entries": 1,
+    "list_filters": (),
+    "has_detail_page": True,
+}
+FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
+    "required": False,
+    "choices": (),
+    "url_kind": UrlKind.ANY_HOST,
+    "target_type": "",
+    "show_on_card": False,
+    "show_in_metadata_panel": True,
+}
 SUMMARY_MAX_LENGTH = 200
 EXPORT_FORMAT_VERSION = 1
 
@@ -120,7 +154,7 @@ class MetadataValidationError(Exception):
 
 
 class BundleValidationError(Exception):
-    """An export bundle that cannot be imported, messages grouped by file."""
+    """An export bundle that breaks the content rules, messages grouped by file."""
 
     def __init__(self, errors: Mapping[str, Sequence[str]]) -> None:
         super().__init__(
@@ -275,13 +309,11 @@ class FieldDefinitionDTO(BaseModel):
     target_type: str
     show_on_card: bool
     show_in_metadata_panel: bool
-    order: int
 
 
 class EntryTypeDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    pk: int
     key: str
     label: str
     label_plural: str
@@ -307,7 +339,6 @@ class EntryTypeDTO(BaseModel):
 class MediaAssetDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    pk: int
     path: str
     url: str
     alt: str
@@ -317,7 +348,6 @@ class PartDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     kind: PartKind
-    order: int
     text: str
     url: str
     asset: MediaAssetDTO | None
@@ -338,7 +368,6 @@ class RelationDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     role: str
-    order: int
     target: EntryRefDTO
 
 
@@ -352,7 +381,6 @@ class SyndicationLinkDTO(BaseModel):
 class EntryDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    pk: int
     type_key: str
     slug: str
     title: str
@@ -395,7 +423,15 @@ class LinkDTO(BaseModel):
     platform: str
     url: str
     label: str
-    order: int
+
+
+class RelationEndDTO(BaseModel):
+    """One end of a link between entries, as the relation rules see it."""
+
+    model_config = ConfigDict(frozen=True)
+
+    entry_type: EntryTypeDTO
+    status: EntryStatus
 
 
 class ContentSummaryDTO(BaseModel):
@@ -466,15 +502,14 @@ class ContentStoreProtocol(Protocol):
 
 
 class SchemaServiceProtocol(Protocol):
-    def check_url(self, url: str, url_kind: UrlKind) -> str | None:
-        """Error message, or `None` when the URL fits the kind."""
-
     def validate_metadata(
         self, entry_type: EntryTypeDTO, values: Mapping[str, MetadataInput]
     ) -> Metadata:
         """Return cleaned metadata, or raise `MetadataValidationError`."""
 
-    def check_builtins(self, role: TypeRole, values: BuiltinValues) -> dict[str, str]:
+    def check_builtins(
+        self, role: TypeRole, values: Mapping[str, object]
+    ) -> dict[str, str]:
         """Per-column errors for built-ins the role requires or does not use."""
 
     def check_part(self, part: PartData, asset_alt: str | None) -> list[str]:
@@ -483,6 +518,29 @@ class SchemaServiceProtocol(Protocol):
     def check_part_kinds(
         self, entry_type: EntryTypeDTO, kinds: Sequence[PartKind]
     ) -> list[str]: ...
+
+    def check_relation(
+        self, role: str, *, source: RelationEndDTO, target: RelationEndDTO
+    ) -> list[str]:
+        """Errors for one link from `source` to `target`; loops are `check_loop`'s."""
+
+    def check_loop[K: Hashable](
+        self,
+        role: str,
+        *,
+        entry: K,
+        target: K,
+        containers: Callable[[set[K]], Iterable[K]],
+    ) -> list[str]:
+        """Errors when linking `entry` to `target` as `role` closes a `part_of` loop.
+
+        `containers` maps a set of entries to every entry they are `part_of`.
+        """
+
+    def check_relation_roles(
+        self, entry_type: EntryTypeDTO, roles: Iterable[str]
+    ) -> list[str]:
+        """Errors for the type's required relation fields `roles` leaves unlinked."""
 
     def derive_tint(self, colour: str) -> str: ...
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from typing import TYPE_CHECKING, ClassVar
 
 from django.core.validators import RegexValidator
@@ -10,7 +11,10 @@ from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
 from lapidarium.pacts import (
+    DEFAULT_PARTS,
+    FIELD_DEFAULTS,
     SUMMARY_MAX_LENGTH,
+    TYPE_DEFAULTS,
     DoorPick,
     EntryStatus,
     FieldKind,
@@ -64,43 +68,62 @@ class EntryType(models.Model):
         help_text=_("URL segment of the list, in the site language."),
     )
     colour = models.CharField(
-        _("colour"), max_length=7, validators=[HEX_COLOUR], default="#000000"
+        _("colour"),
+        max_length=7,
+        validators=[HEX_COLOUR],
+        default=TYPE_DEFAULTS["colour"],
     )
     tint = models.CharField(
         _("tint"),
         max_length=7,
         validators=[HEX_COLOUR],
         blank=True,
+        default=TYPE_DEFAULTS["tint"],
         help_text=_("Light background; derived from the colour when blank."),
     )
-    icon = models.CharField(_("icon"), max_length=_SHORT, blank=True)
-    order = models.PositiveIntegerField(_("order"), default=0)
-    in_menu = models.BooleanField(_("in menu"), default=True)
+    icon = models.CharField(
+        _("icon"), max_length=_SHORT, blank=True, default=TYPE_DEFAULTS["icon"]
+    )
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
+    in_menu = models.BooleanField(_("in menu"), default=TYPE_DEFAULTS["in_menu"])
     role = models.CharField(
         _("role"),
         max_length=32,
         choices=_choices(TypeRole),
-        default=TypeRole.THING.value,
+        default=TYPE_DEFAULTS["role"],
     )
     layout = models.CharField(
         _("layout"),
         max_length=32,
         choices=_choices(Layout),
-        default=Layout.ARTICLE.value,
+        default=TYPE_DEFAULTS["layout"],
     )
-    allowed_parts = models.JSONField(_("allowed parts"), default=list, blank=True)
+    allowed_parts = models.JSONField(
+        _("allowed parts"), default=partial(list, DEFAULT_PARTS), blank=True
+    )
     required_parts = models.JSONField(_("required parts"), default=list, blank=True)
-    door_enabled = models.BooleanField(_("door on the home page"), default=False)
-    door_label = models.CharField(_("door label"), max_length=_SHORT, blank=True)
+    door_enabled = models.BooleanField(
+        _("door on the home page"), default=TYPE_DEFAULTS["door_enabled"]
+    )
+    door_label = models.CharField(
+        _("door label"),
+        max_length=_SHORT,
+        blank=True,
+        default=TYPE_DEFAULTS["door_label"],
+    )
     door_pick = models.CharField(
         _("door pick"),
         max_length=32,
         choices=_choices(DoorPick),
-        default=DoorPick.LATEST_FEATURED.value,
+        default=TYPE_DEFAULTS["door_pick"],
     )
-    door_min_entries = models.PositiveIntegerField(_("door minimum entries"), default=1)
+    door_min_entries = models.PositiveIntegerField(
+        _("door minimum entries"), default=TYPE_DEFAULTS["door_min_entries"]
+    )
     list_filters = models.JSONField(_("list filters"), default=list, blank=True)
-    has_detail_page = models.BooleanField(_("has detail pages"), default=True)
+    has_detail_page = models.BooleanField(
+        _("has detail pages"), default=TYPE_DEFAULTS["has_detail_page"]
+    )
 
     class Meta:
         ordering: ClassVar = ["order", "label"]
@@ -123,7 +146,7 @@ class FieldDefinition(models.Model):
         choices=_choices(FieldKind),
         default=FieldKind.TEXT.value,
     )
-    required = models.BooleanField(_("required"), default=False)
+    required = models.BooleanField(_("required"), default=FIELD_DEFAULTS["required"])
     choices = models.JSONField(
         _("choices"), default=list, blank=True, help_text=_("For choice fields.")
     )
@@ -131,7 +154,7 @@ class FieldDefinition(models.Model):
         _("URL validator"),
         max_length=32,
         choices=_choices(UrlKind),
-        default=UrlKind.ANY_HOST.value,
+        default=FIELD_DEFAULTS["url_kind"],
         help_text=_("For URL fields."),
     )
     target_type = models.ForeignKey(
@@ -143,11 +166,13 @@ class FieldDefinition(models.Model):
         verbose_name=_("target type"),
         help_text=_("For relation fields."),
     )
-    show_on_card = models.BooleanField(_("show on card"), default=False)
-    show_in_metadata_panel = models.BooleanField(
-        _("show in metadata panel"), default=True
+    show_on_card = models.BooleanField(
+        _("show on card"), default=FIELD_DEFAULTS["show_on_card"]
     )
-    order = models.PositiveIntegerField(_("order"), default=0)
+    show_in_metadata_panel = models.BooleanField(
+        _("show in metadata panel"), default=FIELD_DEFAULTS["show_in_metadata_panel"]
+    )
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
 
     class Meta:
         ordering: ClassVar = ["order", "pk"]
@@ -263,7 +288,7 @@ class Entry(models.Model):
 
 class Part(models.Model):
     entry = models.ForeignKey(Entry, on_delete=models.CASCADE, related_name="parts")
-    order = models.PositiveIntegerField(_("order"), default=0)
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
     kind = models.CharField(
         _("kind"),
         max_length=16,
@@ -303,7 +328,7 @@ class Relation(models.Model):
         verbose_name=_("entry"),
     )
     role = models.SlugField(_("role"), max_length=_SHORT)
-    order = models.PositiveIntegerField(_("order"), default=0)
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
 
     class Meta:
         ordering: ClassVar = ["order", "pk"]
@@ -369,7 +394,7 @@ class Link(models.Model):
     platform = models.CharField(_("platform"), max_length=_SHORT)
     url = models.URLField(_("URL"))
     label = models.CharField(_("label"), max_length=_SHORT)
-    order = models.PositiveIntegerField(_("order"), default=0)
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
 
     class Meta:
         ordering: ClassVar = ["order", "pk"]

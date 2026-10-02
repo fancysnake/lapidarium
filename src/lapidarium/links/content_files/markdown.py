@@ -28,6 +28,8 @@ from pydantic import TypeAdapter, ValidationError
 from lapidarium.pacts import (
     BUILTIN_DEFAULTS,
     EXPORT_FORMAT_VERSION,
+    FIELD_DEFAULTS,
+    TYPE_DEFAULTS,
     AssetData,
     BundleValidationError,
     ContentStoreProtocol,
@@ -40,9 +42,9 @@ from lapidarium.pacts import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Mapping
 
-    from lapidarium.pacts import ContentBundle
+    from lapidarium.pacts import ContentBundle, SettingDefault
 
 DEMOS = Path(__file__).resolve().parent / "demos"
 MANIFEST = "lapidarium.yaml"
@@ -52,32 +54,13 @@ ASSETS = "assets"
 
 type Json = str | int | float | bool | dt.date | list[Json] | dict[str, Json] | None
 
-_TYPE_DEFAULTS: dict[str, Json] = {
-    "colour": "#000000",
-    "tint": "",
-    "icon": "",
-    "order": 0,
-    "in_menu": True,
-    "role": "thing",
-    "layout": "article",
-    "allowed_parts": ["text"],
-    "required_parts": [],
-    "door_enabled": False,
-    "door_label": "",
-    "door_pick": "latest_featured",
-    "door_min_entries": 1,
-    "list_filters": [],
-    "has_detail_page": True,
-    "fields": [],
-}
-_FIELD_DEFAULTS: dict[str, Json] = {
-    "required": False,
-    "choices": [],
-    "url_kind": "any",
-    "target_type": "",
-    "show_on_card": False,
-    "show_in_metadata_panel": True,
-}
+
+def _as_json(defaults: Mapping[str, SettingDefault]) -> dict[str, Json]:
+    return {k: [*v] if isinstance(v, tuple) else v for k, v in defaults.items()}
+
+
+_TYPE_DEFAULTS = {**_as_json(TYPE_DEFAULTS), "fields": []}
+_FIELD_DEFAULTS = _as_json(FIELD_DEFAULTS)
 _ENTRY_DEFAULTS: dict[str, Json] = {
     **BUILTIN_DEFAULTS,
     "external_url": "",

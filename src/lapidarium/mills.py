@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import datetime as dt
 import math
+import re
 from typing import TYPE_CHECKING, override
 from urllib.parse import urlsplit
 
 from lapidarium.pacts import (
+    BUILTIN_DEFAULTS,
     CONTAINER_ROLES,
     ROLE_BUILTINS,
     ROLE_REQUIRED,
@@ -21,13 +23,13 @@ from lapidarium.pacts import (
     EntryStatus,
     EntryTypeData,
     EntryTypeDTO,
-    FieldDefinitionDTO,
     FieldKind,
     MetadataValidationError,
     PartData,
     PartKind,
     ProfileData,
     ProfileDTO,
+    RelationEndDTO,
     RelationRole,
     SchemaServiceProtocol,
     TypeRole,
@@ -37,19 +39,20 @@ from lapidarium.specs import (
     CONTRAST_FLOOR,
     GITHUB_HOSTS,
     ITCH_HOST,
+    SLUG_PATTERN,
     TINT_MIX,
     YOUTUBE_HOSTS,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
     from pathlib import Path
 
     from lapidarium.pacts import (
-        BuiltinValues,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
         EntryTypeRepositoryProtocol,
+        FieldDefinitionDTO,
         MediaAssetRepositoryProtocol,
         Metadata,
         MetadataInput,
@@ -60,6 +63,7 @@ if TYPE_CHECKING:
 
 _LINEAR_THRESHOLD = 0.04045
 _BLANK = frozenset({None, ""})
+type _EntryKey = tuple[str, str]
 
 
 def _rgb(colour: str) -> tuple[int, int, int]:
@@ -98,21 +102,56 @@ def _host(url: str) -> str | None:
     return parts.hostname
 
 
-def _clean_bool(value: str | float | dt.date) -> bool:
+def _url_error(url: str, url_kind: UrlKind) -> str | None:
+    if (host := _host(url)) is None:
+        return "Enter a full http(s) address."
+    match url_kind:
+        case UrlKind.YOUTUBE if host not in YOUTUBE_HOSTS:
+            return "Enter a YouTube address."
+        case UrlKind.ITCH if host != ITCH_HOST and not host.endswith(f".{ITCH_HOST}"):
+            return "Enter an itch.io address."
+        case UrlKind.GITHUB if host not in GITHUB_HOSTS:
+            return "Enter a GitHub address."
+        case _:
+            return None
+
+
+type _Given = str | float | dt.date
+
+
+def _clean_text(value: _Given, _field: FieldDefinitionDTO) -> str:
+    return str(value).strip()
+
+
+def _clean_url(value: _Given, field: FieldDefinitionDTO) -> str:
+    url = str(value).strip()
+    if error := _url_error(url, field.url_kind):
+        raise ValueError(error)
+    return url
+
+
+def _clean_choice(value: _Given, field: FieldDefinitionDTO) -> str:
+    if str(value) not in field.choices:
+        msg = f"Choose one of: {', '.join(field.choices)}."
+        raise ValueError(msg)
+    return str(value)
+
+
+def _clean_bool(value: _Given, _field: FieldDefinitionDTO) -> bool:
     if not isinstance(value, bool):
         msg = "Expected yes or no."
         raise TypeError(msg)
     return value
 
 
-def _clean_number(value: str | float | dt.date) -> int | float:
+def _clean_number(value: _Given, _field: FieldDefinitionDTO) -> int | float:
     if isinstance(value, bool) or not isinstance(value, int | float):
         msg = "Expected a number."
         raise TypeError(msg)
     return int(value) if float(value).is_integer() else value
 
 
-def _clean_date(value: str | float | dt.date) -> str:
+def _clean_date(value: _Given, _field: FieldDefinitionDTO) -> str:
     if isinstance(value, dt.date):
         return value.isoformat()
     try:
@@ -122,11 +161,32 @@ def _clean_date(value: str | float | dt.date) -> str:
         raise ValueError(msg) from None
 
 
-_CLEANERS: Mapping[FieldKind, Callable[[str | float | dt.date], MetadataValue]] = {
-    FieldKind.BOOL: _clean_bool,
-    FieldKind.NUMBER: _clean_number,
+# Every kind but `relation`, whose values are links rather than metadata.
+_CLEANERS: Mapping[FieldKind, Callable[[_Given, FieldDefinitionDTO], MetadataValue]] = {
+    FieldKind.TEXT: _clean_text,
+    FieldKind.LONG_TEXT: _clean_text,
+    FieldKind.URL: _clean_url,
     FieldKind.DATE: _clean_date,
+    FieldKind.NUMBER: _clean_number,
+    FieldKind.BOOL: _clean_bool,
+    FieldKind.CHOICE: _clean_choice,
 }
+
+
+def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str | None:
+    """Why entries of `source` cannot link to `target` as `role`, if they cannot."""
+    if role == RelationRole.PART_OF:
+        if target.role in CONTAINER_ROLES:
+            return None
+        return "Only containers can hold entries."
+    if role in RelationRole:
+        return None
+    fields = (f for f in source.fields if f.kind == FieldKind.RELATION)
+    if (field := next((f for f in fields if f.key == role), None)) is None:
+        return f"Unknown relation role {role!r}."
+    if target.key != field.target_type:
+        return f"{field.label} cannot link to a {target.label}."
+    return None
 
 
 class SchemaService(SchemaServiceProtocol):
@@ -136,26 +196,10 @@ class SchemaService(SchemaServiceProtocol):
         self._background = background
 
     @override
-    def check_url(self, url: str, url_kind: UrlKind) -> str | None:
-        if (host := _host(url)) is None:
-            return "Enter a full http(s) address."
-        match url_kind:
-            case UrlKind.YOUTUBE if host not in YOUTUBE_HOSTS:
-                return "Enter a YouTube address."
-            case UrlKind.ITCH if host != ITCH_HOST and not host.endswith(
-                f".{ITCH_HOST}"
-            ):
-                return "Enter an itch.io address."
-            case UrlKind.GITHUB if host not in GITHUB_HOSTS:
-                return "Enter a GitHub address."
-            case _:
-                return None
-
-    @override
     def validate_metadata(
         self, entry_type: EntryTypeDTO, values: Mapping[str, MetadataInput]
     ) -> Metadata:
-        fields = {f.key: f for f in entry_type.fields if f.kind != FieldKind.RELATION}
+        fields = {f.key: f for f in entry_type.fields if f.kind in _CLEANERS}
         errors = {
             key: "Not a field of this type." for key in values if key not in fields
         }
@@ -163,52 +207,35 @@ class SchemaService(SchemaServiceProtocol):
         for key, field in fields.items():
             value = values.get(key)
             if value is None or not str(value):
-                if field.required and field.kind != FieldKind.BOOL:
+                if field.required and field.kind.can_be_missing:
                     errors[key] = "This field is required."
                 continue
             try:
-                cleaned[key] = self._clean_value(
-                    field.kind, value, choices=field.choices
-                )
+                cleaned[key] = _CLEANERS[field.kind](value, field)
             except (TypeError, ValueError) as exc:
                 errors[key] = str(exc)
-                continue
-            if field.kind == FieldKind.URL and (
-                error := self.check_url(str(cleaned[key]), field.url_kind)
-            ):
-                errors[key] = error
         if errors:
             raise MetadataValidationError(errors)
         return cleaned
 
-    @staticmethod
-    def _clean_value(
-        kind: FieldKind, value: str | float | dt.date, *, choices: Sequence[str]
-    ) -> MetadataValue:
-        if kind == FieldKind.CHOICE and str(value) not in choices:
-            msg = f"Choose one of: {', '.join(choices)}."
-            raise ValueError(msg)
-        cleaner = _CLEANERS.get(kind)
-        return cleaner(value) if cleaner else str(value).strip()
-
     @override
-    def check_builtins(self, role: TypeRole, values: BuiltinValues) -> dict[str, str]:
-        given: dict[str, dt.date | str | bool | None] = {
-            "date": values["date"],
-            "start_at": values["start_at"],
-            "end_at": values["end_at"],
-            "location": values["location"],
-            "is_online": values["is_online"],
-            "outcome": values["outcome"],
-        }
+    def check_builtins(
+        self, role: TypeRole, values: Mapping[str, object]
+    ) -> dict[str, str]:
         errors: dict[str, str] = {}
-        for key, value in given.items():
+        for key in BUILTIN_DEFAULTS:
+            value = values.get(key)
             if key not in ROLE_BUILTINS[role] and value not in {*_BLANK, False}:
                 errors[key] = f"Not used by the {role} role."
             elif key in ROLE_REQUIRED[role] and value in _BLANK:
                 errors[key] = "This field is required."
-        start, end = values["start_at"], values["end_at"]
-        if start and end and end < start and "end_at" not in errors:
+        start, end = values.get("start_at"), values.get("end_at")
+        if (
+            isinstance(start, dt.datetime)
+            and isinstance(end, dt.datetime)
+            and end < start
+            and "end_at" not in errors
+        ):
             errors["end_at"] = "Ends before it starts."
         return errors
 
@@ -249,6 +276,52 @@ class SchemaService(SchemaServiceProtocol):
             if kind not in kinds
         )
         return errors
+
+    @override
+    def check_relation(
+        self, role: str, *, source: RelationEndDTO, target: RelationEndDTO
+    ) -> list[str]:
+        errors: list[str] = []
+        if error := _role_error(
+            role, source=source.entry_type, target=target.entry_type
+        ):
+            errors.append(error)
+        if source.status == EntryStatus.PUBLISHED != target.status:
+            errors.append("A published entry cannot link to a draft.")
+        return errors
+
+    @override
+    def check_loop[K: Hashable](
+        self,
+        role: str,
+        *,
+        entry: K,
+        target: K,
+        containers: Callable[[set[K]], Iterable[K]],
+    ) -> list[str]:
+        if role != RelationRole.PART_OF:
+            return []
+        seen: set[K] = set()
+        frontier = {target}
+        while frontier:
+            if entry in frontier:
+                return ["That makes a loop of containers."]
+            seen |= frontier
+            frontier = set(containers(frontier)) - seen
+        return []
+
+    @override
+    def check_relation_roles(
+        self, entry_type: EntryTypeDTO, roles: Iterable[str]
+    ) -> list[str]:
+        linked = set(roles)
+        if missing := [
+            f.label
+            for f in entry_type.fields
+            if f.kind == FieldKind.RELATION and f.required and f.key not in linked
+        ]:
+            return [f"Link at least one entry as: {', '.join(missing)}."]
+        return []
 
     @override
     def derive_tint(self, colour: str) -> str:
@@ -307,7 +380,6 @@ def entry_to_data(entry: EntryDTO) -> EntryData:
                 "target_slug": relation.target.slug,
             }
             for relation in entry.relations
-            if relation.target.status == EntryStatus.PUBLISHED
         ],
         "syndication": [
             {"platform": link.platform, "url": link.url} for link in entry.syndication
@@ -377,6 +449,12 @@ class ContentExportService(ContentExportServiceProtocol):
     def export(self, root: Path) -> ContentSummaryDTO:
         profile = self._profile.get()
         published = self._entries.list_published()
+        if drafts := {
+            f"content/{entry.type_key}/{entry.slug}.md": messages
+            for entry in published
+            if (messages := _draft_links(entry))
+        }:
+            raise BundleValidationError(drafts)
         alts: dict[str, str] = {}
         if profile and profile.photo:
             alts[profile.photo.path] = profile.photo.alt
@@ -398,6 +476,22 @@ class ContentExportService(ContentExportServiceProtocol):
         }
         self._store.write(root, bundle)
         return _summary(bundle)
+
+
+def _slug_errors(name: str, value: str) -> list[str]:
+    """Keys and slugs become file names on export, so they stay plain slugs."""
+    if re.fullmatch(SLUG_PATTERN, value):
+        return []
+    return [f"{name} {value!r} may hold only letters, digits, - and _."]
+
+
+def _draft_links(entry: EntryDTO) -> list[str]:
+    """Links the relation rules forbid; only data written around them has any."""
+    return [
+        f"Links to the draft {r.target.type_key}/{r.target.slug}."
+        for r in entry.relations
+        if r.target.status != EntryStatus.PUBLISHED
+    ]
 
 
 def _profile_to_data(profile: ProfileDTO) -> ProfileData:
@@ -455,15 +549,15 @@ class ContentImportService(ContentImportServiceProtocol):
 
     def _load(self, bundle: ContentBundle) -> ContentSummaryDTO:
         types = [self._with_tint(t) for t in bundle["types"]]
-        schemas = {t["key"]: _type_dto(t, pk=pk) for pk, t in enumerate(types)}
-        self._check(schemas, bundle)
+        schemas = {t["key"]: EntryTypeDTO.model_validate(t) for t in types}
+        metadata = self._check(schemas, bundle)
         with self._transaction.atomic():
             for asset in bundle["assets"]:
                 self._assets.save(asset)
             self._types.save_all(types)
             for entry in bundle["entries"]:
-                schema = schemas[entry["type"]]
-                self._entries.save(self._with_clean_metadata(entry, schema))
+                key = (entry["type"], entry["slug"])
+                self._entries.save({**entry, "metadata": metadata[key]})
             for entry in bundle["entries"]:
                 self._entries.set_relations(
                     entry["type"], entry["slug"], relations=entry["relations"]
@@ -478,52 +572,98 @@ class ContentImportService(ContentImportServiceProtocol):
             return entry_type
         return {**entry_type, "tint": self._schema.derive_tint(entry_type["colour"])}
 
-    def _with_clean_metadata(
-        self, entry: EntryData, entry_type: EntryTypeDTO
-    ) -> EntryData:
-        metadata = self._schema.validate_metadata(entry_type, entry["metadata"])
-        return {**entry, "metadata": metadata}
-
     def _check(
         self, schemas: Mapping[str, EntryTypeDTO], bundle: ContentBundle
-    ) -> None:
-        errors: dict[str, list[str]] = {}
-        for entry_type in schemas.values():
-            if messages := self._schema.check_colours(
-                entry_type.colour, entry_type.tint
-            ):
-                errors[f"types/{entry_type.key}.yaml"] = messages
-        alts = {a["path"]: a["alt"] for a in bundle["assets"]}
-        slugs = {
-            (e["type"], e["slug"]) for e in bundle["entries"] if e["type"] in schemas
+    ) -> dict[_EntryKey, Metadata]:
+        """Each entry's cleaned metadata; `BundleValidationError` on any problem."""
+        errors = {
+            f"types/{type_key}.yaml": messages
+            for type_key, schema in schemas.items()
+            if (
+                messages := [
+                    *_slug_errors("Key", type_key),
+                    *self._schema.check_colours(schema.colour, schema.tint),
+                ]
+            )
         }
+        alts = {a["path"]: a["alt"] for a in bundle["assets"]}
+        entries = {
+            (e["type"], e["slug"]): e for e in bundle["entries"] if e["type"] in schemas
+        }
+        metadata: dict[_EntryKey, Metadata] = {}
         for entry in bundle["entries"]:
+            key = (entry["type"], entry["slug"])
             where = f"content/{entry['type']}/{entry['slug']}.md"
-            if messages := self._entry_errors(
-                entry, schemas=schemas, alts=alts, slugs=slugs
-            ):
+            if (entry_type := schemas.get(entry["type"])) is None:
+                errors[where] = [f"Unknown type {entry['type']!r}."]
+                continue
+            messages = []
+            try:
+                metadata[key] = self._schema.validate_metadata(
+                    entry_type, entry["metadata"]
+                )
+            except MetadataValidationError as exc:
+                messages.extend(f"metadata.{k}: {m}" for k, m in exc.errors.items())
+            messages.extend(self._entry_errors(entry, entry_type, alts=alts))
+            messages.extend(
+                self._relation_errors(key, schemas=schemas, entries=entries)
+            )
+            if messages:
                 errors[where] = messages
         profile = bundle["profile"]
         if profile and profile["photo"] and profile["photo"] not in alts:
             errors["profile.yaml"] = ["Photo is not among the assets."]
         if errors:
             raise BundleValidationError(errors)
+        return metadata
 
-    def _entry_errors(
+    def _relation_errors(
         self,
-        entry: EntryData,
+        key: _EntryKey,
         *,
         schemas: Mapping[str, EntryTypeDTO],
-        alts: Mapping[str, str],
-        slugs: set[tuple[str, str]],
+        entries: Mapping[_EntryKey, EntryData],
     ) -> list[str]:
-        if (entry_type := schemas.get(entry["type"])) is None:
-            return [f"Unknown type {entry['type']!r}."]
+        def containers(keys: set[_EntryKey]) -> list[_EntryKey]:
+            return [
+                (r["target_type"], r["target_slug"])
+                for k in keys
+                if k in entries
+                for r in entries[k]["relations"]
+                if r["role"] == RelationRole.PART_OF
+            ]
+
+        entry = entries[key]
+        source = RelationEndDTO(entry_type=schemas[key[0]], status=entry["status"])
+        links = [
+            (r["role"], (r["target_type"], r["target_slug"]))
+            for r in entry["relations"]
+        ]
         messages: list[str] = []
-        try:
-            self._schema.validate_metadata(entry_type, entry["metadata"])
-        except MetadataValidationError as exc:
-            messages.extend(f"metadata.{k}: {m}" for k, m in exc.errors.items())
+        for role, target in links:
+            if target == key:
+                messages.append("Relation to itself.")
+            elif (linked := entries.get(target)) is None:
+                messages.append(f"Relation to missing {'/'.join(target)}.")
+            else:
+                end = RelationEndDTO(
+                    entry_type=schemas[target[0]], status=linked["status"]
+                )
+                found = [
+                    *self._schema.check_relation(role, source=source, target=end),
+                    *self._schema.check_loop(
+                        role, entry=key, target=target, containers=containers
+                    ),
+                ]
+                messages.extend(f"Relation to {'/'.join(target)}: {m}" for m in found)
+        roles = [role for role, _ in links]
+        messages.extend(self._schema.check_relation_roles(source.entry_type, roles))
+        return messages
+
+    def _entry_errors(
+        self, entry: EntryData, entry_type: EntryTypeDTO, *, alts: Mapping[str, str]
+    ) -> list[str]:
+        messages = _slug_errors("Slug", entry["slug"])
         builtins = self._schema.check_builtins(entry_type.role, entry)
         messages.extend(f"{k}: {m}" for k, m in builtins.items())
         if entry["cover"] and entry["cover"] not in alts:
@@ -536,54 +676,4 @@ class ContentImportService(ContentImportServiceProtocol):
             messages.extend(self._schema.check_part(part, alt))
         kinds = [part["kind"] for part in entry["parts"]]
         messages.extend(self._schema.check_part_kinds(entry_type, kinds))
-        for relation in entry["relations"]:
-            target = (relation["target_type"], relation["target_slug"])
-            if target not in slugs:
-                messages.append(f"Relation to missing {'/'.join(target)}.")
-            elif (
-                relation["role"] == RelationRole.PART_OF
-                and schemas[target[0]].role not in CONTAINER_ROLES
-            ):
-                messages.append(f"part_of target {'/'.join(target)} is no container.")
         return messages
-
-
-def _type_dto(data: EntryTypeData, *, pk: int) -> EntryTypeDTO:
-    """Build the schema view of a type that so far exists only in a bundle."""
-    return EntryTypeDTO(
-        pk=pk,
-        key=data["key"],
-        label=data["label"],
-        label_plural=data["label_plural"],
-        route=data["route"],
-        colour=data["colour"],
-        tint=data["tint"],
-        icon=data["icon"],
-        order=data["order"],
-        in_menu=data["in_menu"],
-        role=data["role"],
-        layout=data["layout"],
-        allowed_parts=tuple(data["allowed_parts"]),
-        required_parts=tuple(data["required_parts"]),
-        door_enabled=data["door_enabled"],
-        door_label=data["door_label"],
-        door_pick=data["door_pick"],
-        door_min_entries=data["door_min_entries"],
-        list_filters=tuple(data["list_filters"]),
-        has_detail_page=data["has_detail_page"],
-        fields=tuple(
-            FieldDefinitionDTO(
-                key=field["key"],
-                label=field["label"],
-                kind=field["kind"],
-                required=field["required"],
-                choices=tuple(field["choices"]),
-                url_kind=field["url_kind"],
-                target_type=field["target_type"],
-                show_on_card=field["show_on_card"],
-                show_in_metadata_panel=field["show_in_metadata_panel"],
-                order=order,
-            )
-            for order, field in enumerate(data["fields"])
-        ),
-    )

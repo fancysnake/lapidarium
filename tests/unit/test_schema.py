@@ -4,11 +4,13 @@ import pytest
 
 from lapidarium.mills import SchemaService, contrast_ratio, mix
 from lapidarium.pacts import (
+    FIELD_DEFAULTS,
     EntryTypeDTO,
     FieldDefinitionDTO,
     FieldKind,
     MetadataValidationError,
     PartKind,
+    RelationEndDTO,
     TypeRole,
     UrlKind,
 )
@@ -19,22 +21,12 @@ BLACK = "#000000"
 
 
 def _field(key, kind, **overrides):
-    defaults = {
-        "label": key.title(),
-        "required": False,
-        "choices": (),
-        "url_kind": UrlKind.ANY_HOST,
-        "target_type": "",
-        "show_on_card": False,
-        "show_in_metadata_panel": True,
-        "order": 0,
-    }
+    defaults = {"label": key.title(), **FIELD_DEFAULTS}
     return FieldDefinitionDTO(key=key, kind=kind, **(defaults | overrides))
 
 
 def _type(*fields, allowed=(PartKind.TEXT,), required=()):
     return EntryTypeDTO(
-        pk=1,
         key="session",
         label="Session",
         label_plural="Sessions",
@@ -75,23 +67,39 @@ def test_mix_lays_a_share_of_one_colour_over_another():
 @pytest.mark.parametrize(
     "case",
     (
-        ("https://www.youtube.com/watch?v=x", UrlKind.YOUTUBE, None),
-        ("https://youtu.be/x", UrlKind.YOUTUBE, None),
+        ("https://www.youtube.com/watch?v=x", UrlKind.YOUTUBE),
+        ("https://youtu.be/x", UrlKind.YOUTUBE),
+        ("https://itch.io/games", UrlKind.ITCH),
+        ("https://someone.itch.io/game", UrlKind.ITCH),
+        ("https://github.com/x/y", UrlKind.GITHUB),
+        ("https://example.com", UrlKind.ANY_HOST),
+    ),
+)
+def test_validate_metadata_accepts_urls_on_the_kind_host(schema, case):
+    url, kind = case
+    entry_type = _type(_field("link", FieldKind.URL, url_kind=kind))
+
+    assert schema.validate_metadata(entry_type, {"link": url}) == {"link": url}
+
+
+@pytest.mark.parametrize(
+    "case",
+    (
         ("https://vimeo.com/1", UrlKind.YOUTUBE, "Enter a YouTube address."),
-        ("https://itch.io/games", UrlKind.ITCH, None),
-        ("https://someone.itch.io/game", UrlKind.ITCH, None),
         ("https://notitch.io/game", UrlKind.ITCH, "Enter an itch.io address."),
-        ("https://github.com/x/y", UrlKind.GITHUB, None),
         ("https://gitlab.com/x/y", UrlKind.GITHUB, "Enter a GitHub address."),
-        ("https://example.com", UrlKind.ANY_HOST, None),
         ("ftp://example.com", UrlKind.ANY_HOST, "Enter a full http(s) address."),
         ("example.com", UrlKind.ANY_HOST, "Enter a full http(s) address."),
     ),
 )
-def test_check_url(schema, case):
+def test_validate_metadata_rejects_urls_off_the_kind_host(schema, case):
     url, kind, error = case
+    entry_type = _type(_field("link", FieldKind.URL, url_kind=kind))
 
-    assert schema.check_url(url, kind) == error
+    with pytest.raises(MetadataValidationError) as caught:
+        schema.validate_metadata(entry_type, {"link": url})
+
+    assert caught.value.errors == {"link": error}
 
 
 def test_validate_metadata_cleans_every_kind(schema):
@@ -266,6 +274,88 @@ def test_check_part_kinds(schema):
         "Session does not allow image parts.",
         "Session needs at least one text part.",
     ]
+
+
+SESSION = _type(_field("inspired_by", FieldKind.RELATION, target_type="session"))
+PROJECT = _type().model_copy(
+    update={"key": "project", "label": "Project", "role": TypeRole.CONTAINER_OUTCOME}
+)
+
+
+def _end(entry_type, status="published"):
+    return RelationEndDTO(entry_type=entry_type, status=status)
+
+
+@pytest.mark.parametrize(
+    "case",
+    (
+        ("part_of", _end(PROJECT), []),
+        ("part_of", _end(SESSION), ["Only containers can hold entries."]),
+        ("related", _end(SESSION), []),
+        ("inspired_by", _end(SESSION), []),
+        ("inspired_by", _end(PROJECT), ["Inspired_By cannot link to a Project."]),
+        ("sequel_of", _end(SESSION), ["Unknown relation role 'sequel_of'."]),
+        (
+            "related",
+            _end(SESSION, "draft"),
+            ["A published entry cannot link to a draft."],
+        ),
+    ),
+)
+def test_check_relation(schema, case):
+    role, target, errors = case
+
+    assert schema.check_relation(role, source=_end(SESSION), target=target) == errors
+
+
+def test_check_relation_lets_drafts_link_anywhere(schema):
+    source, target = _end(SESSION, "draft"), _end(SESSION, "draft")
+
+    assert schema.check_relation("related", source=source, target=target) == []
+
+
+def test_check_loop_walks_the_part_of_chain(schema):
+    part_of = {"arc": ["saga"], "saga": ["campaign"]}
+
+    def containers(keys):
+        return [c for key in keys for c in part_of.get(key, ())]
+
+    loop = ["That makes a loop of containers."]
+    assert (
+        schema.check_loop(
+            "part_of", entry="campaign", target="arc", containers=containers
+        )
+        == loop
+    )
+    assert (
+        schema.check_loop("part_of", entry="arc", target="arc", containers=containers)
+        == loop
+    )
+    assert (
+        schema.check_loop(
+            "part_of", entry="arc", target="campaign", containers=containers
+        )
+        == []
+    )
+    assert (
+        schema.check_loop(
+            "related", entry="campaign", target="arc", containers=containers
+        )
+        == []
+    )
+
+
+def test_check_relation_roles_wants_required_fields_linked(schema):
+    entry_type = _type(
+        _field("inspired_by", FieldKind.RELATION, required=True),
+        _field("sequel_of", FieldKind.RELATION, required=True),
+        _field("system", FieldKind.TEXT, required=True),
+    )
+
+    assert schema.check_relation_roles(entry_type, ["part_of"]) == [
+        "Link at least one entry as: Inspired_By, Sequel_Of."
+    ]
+    assert schema.check_relation_roles(entry_type, ["inspired_by", "sequel_of"]) == []
 
 
 def test_derive_tint_is_a_light_mix_with_the_background(schema):

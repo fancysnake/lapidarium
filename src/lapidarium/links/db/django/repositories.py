@@ -69,14 +69,12 @@ def field_dto(field: FieldDefinition) -> FieldDefinitionDTO:
         target_type=field.target_type.key if field.target_type else "",
         show_on_card=field.show_on_card,
         show_in_metadata_panel=field.show_in_metadata_panel,
-        order=field.order,
     )
 
 
 def entry_type_dto(entry_type: EntryType) -> EntryTypeDTO:
     """Build from a type whose `fields` (with `target_type`) are loaded or loadable."""
     return EntryTypeDTO(
-        pk=entry_type.pk,
         key=entry_type.key,
         label=entry_type.label,
         label_plural=entry_type.label_plural,
@@ -101,14 +99,11 @@ def entry_type_dto(entry_type: EntryType) -> EntryTypeDTO:
 
 
 def asset_dto(asset: MediaAsset) -> MediaAssetDTO:
-    return MediaAssetDTO(
-        pk=asset.pk, path=asset.file.name or "", url=asset.file.url, alt=asset.alt
-    )
+    return MediaAssetDTO(path=asset.file.name or "", url=asset.file.url, alt=asset.alt)
 
 
 def _entry_dto(entry: Entry) -> EntryDTO:
     return EntryDTO(
-        pk=entry.pk,
         type_key=entry.type.key,
         slug=entry.slug,
         title=entry.title,
@@ -130,7 +125,6 @@ def _entry_dto(entry: Entry) -> EntryDTO:
         parts=tuple(
             PartDTO(
                 kind=PartKind(part.kind),
-                order=part.order,
                 text=part.text,
                 url=part.url,
                 asset=asset_dto(part.asset) if part.asset else None,
@@ -142,7 +136,6 @@ def _entry_dto(entry: Entry) -> EntryDTO:
         relations=tuple(
             RelationDTO(
                 role=relation.role,
-                order=relation.order,
                 target=EntryRefDTO(
                     type_key=relation.to_entry.type.key,
                     slug=relation.to_entry.slug,

@@ -5,7 +5,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
-from lapidarium.links.db.django.models import Entry, EntryType
+from lapidarium.links.db.django.models import Entry, EntryType, Relation
 from lapidarium.pacts import BundleValidationError
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
@@ -53,3 +53,12 @@ def test_load_demo_reports_a_broken_set(monkeypatch):
 
     with pytest.raises(CommandError, match=r"types/session\.yaml: Broken\."):
         call_command("load_demo", "dev")
+
+
+def test_export_reports_a_published_link_to_a_draft(tmp_path):
+    _run("load_demo", "dev")
+    relation = Relation.objects.first()
+    Entry.objects.filter(pk=relation.to_entry_id).update(status="draft")
+
+    with pytest.raises(CommandError, match=r"Links to the draft"):
+        call_command("export_content", str(tmp_path))

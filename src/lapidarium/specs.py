@@ -10,3 +10,6 @@ YOUTUBE_HOSTS = frozenset(
 )
 ITCH_HOST = "itch.io"
 GITHUB_HOSTS = frozenset({"github.com", "www.github.com"})
+
+# Type keys and entry slugs name export files and URL segments; Django's slug alphabet.
+SLUG_PATTERN = r"[-a-zA-Z0-9_]+"

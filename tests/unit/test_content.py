@@ -27,8 +27,8 @@ from tests.factories import entry_data, field_data, type_data
 
 NOW = dt.datetime(2026, 10, 2, 12, tzinfo=dt.UTC)
 ROOT = Path("/export")
-COVER = MediaAssetDTO(pk=1, path="assets/moose.png", url="/m/moose.png", alt="Moose")
-PHOTO = MediaAssetDTO(pk=2, path="assets/me.png", url="/m/me.png", alt="Me")
+COVER = MediaAssetDTO(path="assets/moose.png", url="/m/moose.png", alt="Moose")
+PHOTO = MediaAssetDTO(path="assets/me.png", url="/m/me.png", alt="Me")
 
 
 def _bundle(**overrides):
@@ -44,25 +44,20 @@ def _bundle(**overrides):
 
 def _type_dto():
     return EntryTypeDTO(
-        pk=1,
         **{
             **type_data(tint="#eeeeee"),
             "fields": (
-                FieldDefinitionDTO(
-                    **field_data("system", FieldKind.TEXT, choices=()), order=0
-                ),
+                FieldDefinitionDTO(**field_data("system", FieldKind.TEXT, choices=())),
             ),
-        },
+        }
     )
 
 
 def _entry_dto():
-    draft = EntryRefDTO(type_key="session", slug="draft", title="D", status="draft")
     container = EntryRefDTO(
         type_key="project", slug="saga", title="Saga", status="published"
     )
     return EntryDTO(
-        pk=1,
         type_key="session",
         slug="moose",
         title="Moose",
@@ -84,7 +79,6 @@ def _entry_dto():
         parts=(
             PartDTO(
                 kind=PartKind.TEXT,
-                order=0,
                 text="AAR",
                 url="",
                 asset=None,
@@ -93,7 +87,6 @@ def _entry_dto():
             ),
             PartDTO(
                 kind=PartKind.IMAGE,
-                order=1,
                 text="",
                 url="",
                 asset=COVER,
@@ -101,10 +94,7 @@ def _entry_dto():
                 options={},
             ),
         ),
-        relations=(
-            RelationDTO(role="part_of", order=0, target=container),
-            RelationDTO(role="related", order=1, target=draft),
-        ),
+        relations=(RelationDTO(role="part_of", target=container),),
         syndication=(SyndicationLinkDTO(platform="youtube", url="https://youtu.be/x"),),
         created_at=NOW,
         updated_at=NOW,
@@ -123,7 +113,7 @@ def repos_fixture():
         email="mira@example.com",
     )
     repos.profile.list_links.return_value = [
-        LinkDTO(platform="itch", url="https://mira.itch.io", label="itch", order=0)
+        LinkDTO(platform="itch", url="https://mira.itch.io", label="itch")
     ]
     repos.types.list_all.return_value = [_type_dto()]
     repos.entries.list_published.return_value = [_entry_dto()]
@@ -236,6 +226,29 @@ def test_export_without_a_profile(repos):
     bundle = repos.store.write.call_args.args[1]
     assert bundle["profile"] is None
     assert bundle["assets"] == []
+
+
+def test_export_refuses_a_published_link_to_a_draft(repos):
+    draft = EntryRefDTO(type_key="session", slug="draft", title="D", status="draft")
+    entry = _entry_dto()
+    repos.entries.list_published.return_value = [
+        entry.model_copy(
+            update={
+                "relations": (
+                    *entry.relations,
+                    RelationDTO(role="related", target=draft),
+                )
+            }
+        )
+    ]
+
+    with pytest.raises(BundleValidationError) as caught:
+        _export_service(repos).export(ROOT)
+
+    assert caught.value.errors == {
+        "content/session/moose.md": ["Links to the draft session/draft."]
+    }
+    repos.store.write.assert_not_called()
 
 
 def test_import_saves_everything_in_one_transaction(repos):
@@ -366,7 +379,7 @@ def test_import_reports_every_problem_by_file(repos):
             "An image part needs alt text on its asset.",
             "Session needs at least one text part.",
             "Relation to missing session/nope.",
-            "part_of target session/other is no container.",
+            "Relation to session/other: Only containers can hold entries.",
         ],
         "content/session/other.md": [
             "metadata.players: This field is required.",
@@ -375,6 +388,88 @@ def test_import_reports_every_problem_by_file(repos):
         "profile.yaml": ["Photo is not among the assets."],
     }
     assert "profile.yaml: Photo is not among the assets." in str(caught.value)
+
+
+def _relation(role, target_slug, *, target_type="session"):
+    return {"role": role, "target_type": target_type, "target_slug": target_slug}
+
+
+def test_import_holds_relations_to_the_relation_rules(repos):
+    project = type_data("project", role=TypeRole.CONTAINER_OUTCOME, tint="#f0f0f0")
+    session = type_data(
+        fields=[
+            field_data(
+                "inspired_by", FieldKind.RELATION, target_type="session", required=True
+            )
+        ]
+    )
+    repos.store.read.return_value = _bundle(
+        types=[session, project],
+        entries=[
+            entry_data(
+                relations=[
+                    _relation("related", "draft"),
+                    _relation("inspired_by", "saga", target_type="project"),
+                    _relation("sequel_of", "other"),
+                    _relation("related", "moose"),
+                ]
+            ),
+            entry_data("draft", status="draft"),
+            entry_data("other", relations=[_relation("inspired_by", "draft")]),
+            entry_data(
+                "saga",
+                "project",
+                outcome="ongoing",
+                relations=[_relation("part_of", "arc", target_type="project")],
+            ),
+            entry_data(
+                "arc",
+                "project",
+                outcome="ongoing",
+                relations=[_relation("part_of", "saga", target_type="project")],
+            ),
+        ],
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "content/session/moose.md": [
+            "Relation to session/draft: A published entry cannot link to a draft.",
+            "Relation to project/saga: Inspired_By cannot link to a Project.",
+            "Relation to session/other: Unknown relation role 'sequel_of'.",
+            "Relation to itself.",
+        ],
+        "content/session/draft.md": ["Link at least one entry as: Inspired_By."],
+        "content/session/other.md": [
+            "Relation to session/draft: A published entry cannot link to a draft."
+        ],
+        "content/project/saga.md": [
+            "Relation to project/arc: That makes a loop of containers."
+        ],
+        "content/project/arc.md": [
+            "Relation to project/saga: That makes a loop of containers."
+        ],
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
+def test_import_refuses_keys_and_slugs_that_are_not_file_names(repos):
+    repos.store.read.return_value = _bundle(
+        types=[type_data("../x"), type_data()], entries=[entry_data("../../evil")]
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "types/../x.yaml": ["Key '../x' may hold only letters, digits, - and _."],
+        "content/session/../../evil.md": [
+            "Slug '../../evil' may hold only letters, digits, - and _."
+        ],
+    }
+    repos.transaction.atomic.assert_not_called()
 
 
 def test_demos_come_from_the_store(repos):
