@@ -20,6 +20,7 @@ All notable changes to this project are documented here. The format follows
   (containers, no loops, published never links to draft), bulk actions.
 - Export format v1 (`types/`, `content/<type>/<slug>.md`, `assets/`) with
   `export_content` and `import_content`; `load_demo ttrpg|dev` loads a bundled
-  set in the same format.
+  set in the same format; `setup_local` migrates, loads a demo and ensures an
+  admin login, refused unless `DEBUG`.
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.

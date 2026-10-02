@@ -24,6 +24,8 @@ from lapidarium.pacts import (
     EntryTypeData,
     EntryTypeDTO,
     FieldKind,
+    LocalSetupDTO,
+    LocalSetupServiceProtocol,
     MetadataValidationError,
     PartData,
     PartKind,
@@ -49,6 +51,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from lapidarium.pacts import (
+        AccountRepositoryProtocol,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
         EntryTypeRepositoryProtocol,
@@ -677,3 +680,25 @@ class ContentImportService(ContentImportServiceProtocol):
         kinds = [part["kind"] for part in entry["parts"]]
         messages.extend(self._schema.check_part_kinds(entry_type, kinds))
         return messages
+
+
+class LocalSetupService(LocalSetupServiceProtocol):
+    """Demo content plus an admin login: a local instance ready to click through."""
+
+    def __init__(
+        self,
+        *,
+        content_import: ContentImportServiceProtocol,
+        transaction: TransactionProtocol,
+        accounts: AccountRepositoryProtocol,
+    ) -> None:
+        self._content_import = content_import
+        self._transaction = transaction
+        self._accounts = accounts
+
+    @override
+    def set_up(self, demo: str, *, username: str, password: str) -> LocalSetupDTO:
+        with self._transaction.atomic():
+            content = self._content_import.load_demo(demo)
+            created = self._accounts.ensure_superuser(username, password=password)
+        return LocalSetupDTO(content=content, superuser_created=created)

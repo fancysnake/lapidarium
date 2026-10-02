@@ -28,7 +28,7 @@ env = environ.Env(
 
 ENV = env("ENV")
 IS_PRODUCTION = ENV == "production"
-DEBUG = env("DEBUG")
+DEBUG: bool = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
 

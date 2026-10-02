@@ -7,13 +7,19 @@ from typing import TYPE_CHECKING
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
 from lapidarium.links.db.django.repositories import (
+    AccountRepository,
     EntryRepository,
     EntryTypeRepository,
     MediaAssetRepository,
     ProfileRepository,
 )
 from lapidarium.links.db.django.transaction import DjangoTransaction
-from lapidarium.mills import ContentExportService, ContentImportService, SchemaService
+from lapidarium.mills import (
+    ContentExportService,
+    ContentImportService,
+    LocalSetupService,
+    SchemaService,
+)
 from lapidarium.pacts import ServicesProtocol
 
 if TYPE_CHECKING:
@@ -48,6 +54,10 @@ class Repositories:
     def content_files(self) -> ContentFilesStore:
         return ContentFilesStore()
 
+    @cached_property
+    def accounts(self) -> AccountRepository:
+        return AccountRepository()
+
 
 class Services(ServicesProtocol):
     """Flat service namespace, one `cached_property` per service, built per request."""
@@ -81,6 +91,14 @@ class Services(ServicesProtocol):
             assets=repos.media_assets,
             profile=repos.profile,
             store=repos.content_files,
+        )
+
+    @cached_property
+    def local_setup(self) -> LocalSetupService:
+        return LocalSetupService(
+            content_import=self.content_import,
+            transaction=DjangoTransaction(),
+            accounts=self._repositories.accounts,
         )
 
 

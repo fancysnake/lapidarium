@@ -442,6 +442,13 @@ class ContentSummaryDTO(BaseModel):
     assets: int
 
 
+class LocalSetupDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    content: ContentSummaryDTO
+    superuser_created: bool
+
+
 # Repository and port protocols
 
 
@@ -483,6 +490,11 @@ class ProfileRepositoryProtocol(Protocol):
     def save(self, data: ProfileData) -> None: ...
 
     def replace_links(self, links: Sequence[LinkData]) -> None: ...
+
+
+class AccountRepositoryProtocol(Protocol):
+    def ensure_superuser(self, username: str, *, password: str) -> bool:
+        """Create the superuser or reset it to `password`; True when created."""
 
 
 class ContentStoreProtocol(Protocol):
@@ -560,6 +572,10 @@ class ContentImportServiceProtocol(Protocol):
     def load_demo(self, name: str) -> ContentSummaryDTO: ...
 
 
+class LocalSetupServiceProtocol(Protocol):
+    def set_up(self, demo: str, *, username: str, password: str) -> LocalSetupDTO: ...
+
+
 class ServicesProtocol(Protocol):
     """The flat service namespace a gate reaches as `request.services`."""
 
@@ -571,6 +587,9 @@ class ServicesProtocol(Protocol):
 
     @property
     def content_import(self) -> ContentImportServiceProtocol: ...
+
+    @property
+    def local_setup(self) -> LocalSetupServiceProtocol: ...
 
 
 class RootRequestProtocol(Protocol):

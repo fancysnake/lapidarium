@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
+from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models import Prefetch
@@ -21,6 +22,7 @@ from lapidarium.links.db.django.models import (
     Tag,
 )
 from lapidarium.pacts import (
+    AccountRepositoryProtocol,
     AssetData,
     DoorPick,
     EntryDTO,
@@ -339,3 +341,14 @@ class ProfileRepository(ProfileRepositoryProtocol):
         Link.objects.bulk_create(
             Link(order=order, **link) for order, link in enumerate(links)
         )
+
+
+class AccountRepository(AccountRepositoryProtocol):
+    @override
+    def ensure_superuser(self, username: str, *, password: str) -> bool:
+        user, created = get_user_model().objects.update_or_create(
+            username=username, defaults={"is_staff": True, "is_superuser": True}
+        )
+        user.set_password(password)
+        user.save(update_fields=["password"])
+        return created

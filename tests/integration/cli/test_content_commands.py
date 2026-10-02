@@ -1,6 +1,7 @@
 from io import StringIO
 
 import pytest
+from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
@@ -62,3 +63,36 @@ def test_export_reports_a_published_link_to_a_draft(tmp_path):
 
     with pytest.raises(CommandError, match=r"Links to the draft"):
         call_command("export_content", str(tmp_path))
+
+
+def test_setup_local_loads_a_demo_and_a_login(settings):
+    settings.DEBUG = True
+
+    first = _run("setup_local", "--demo", "dev")
+    again = _run("setup_local", "--demo", "dev", "--password", "changed")
+
+    loaded = "Loaded 6 types, 8 entries, 2 assets."
+    assert first == f"{loaded} Created superuser 'admin'.\n"
+    assert again == f"{loaded} Reset superuser 'admin'.\n"
+    assert EntryType.objects.count() == 6
+    assert User.objects.get(username="admin").check_password("changed")
+
+
+def test_setup_local_refuses_without_debug(settings):
+    settings.DEBUG = False
+
+    with pytest.raises(CommandError, match="only with DEBUG on"):
+        call_command("setup_local")
+    assert not User.objects.exists()
+
+
+def test_setup_local_reports_a_broken_set(settings, monkeypatch):
+    settings.DEBUG = True
+
+    def broken(_store, _name):
+        raise BundleValidationError({"types/session.yaml": ["Broken."]})
+
+    monkeypatch.setattr(ContentFilesStore, "read_demo", broken)
+
+    with pytest.raises(CommandError, match=r"types/session\.yaml: Broken\."):
+        call_command("setup_local")

@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.auth.models import User
 from django.db import IntegrityError
 
 from lapidarium.links.db.django.models import (
@@ -11,6 +12,7 @@ from lapidarium.links.db.django.models import (
     Profile,
 )
 from lapidarium.links.db.django.repositories import (
+    AccountRepository,
     EntryRepository,
     MediaAssetRepository,
     ProfileRepository,
@@ -123,3 +125,15 @@ def test_new_types_and_fields_take_the_shared_defaults():
     settings = {k: v for k, v in FIELD_DEFAULTS.items() if k != "target_type"}
     assert {k: getattr(field, k) for k in settings} == _listed(settings)
     assert field.target_type is None
+
+
+def test_ensure_superuser_creates_then_resets_the_login():
+    repository = AccountRepository()
+
+    assert repository.ensure_superuser("admin", password="first") is True
+    User.objects.filter(username="admin").update(is_staff=False)
+    assert repository.ensure_superuser("admin", password="second") is False
+
+    user = User.objects.get(username="admin")
+    assert (user.is_staff, user.is_superuser) == (True, True)
+    assert user.check_password("second")
