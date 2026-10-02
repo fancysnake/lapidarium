@@ -1,0 +1,13 @@
+name: Sam Rivera
+handle: samrivera
+tagline: I build small, boring, durable tools for the web, and talk about them.
+photo: assets/demo/sam.svg
+bio: Maintainer of a handful of Python libraries. Prefers HTML that works without JavaScript.
+email: sam@example.com
+links:
+  - platform: github
+    url: https://github.com/example
+    label: GitHub
+  - platform: mastodon
+    url: https://fosstodon.org/@example
+    label: Mastodon

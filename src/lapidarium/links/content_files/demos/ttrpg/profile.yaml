@@ -1,0 +1,15 @@
+name: Mira Kowalska
+handle: '@mira_mg'
+tagline: Prowadzę sesje, piszę gry i śpiewam o tym, co wydarzyło się przy stole.
+photo: assets/demo/mira.svg
+bio: |-
+  Mistrzyni gry od piętnastu lat. Najchętniej prowadzi one-shoty science fiction
+  i grozę gotycką, a po sesjach pisze o nich piosenki.
+email: mira@example.com
+links:
+  - platform: youtube
+    url: https://www.youtube.com/@example
+    label: YouTube
+  - platform: itch
+    url: https://example.itch.io
+    label: itch.io

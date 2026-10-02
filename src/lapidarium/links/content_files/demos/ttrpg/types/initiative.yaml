@@ -1,0 +1,9 @@
+key: initiative
+label: Inicjatywa
+label_plural: Inicjatywy
+route: inicjatywy
+colour: '#3f6212'
+icon: flag
+order: 8
+role: container_timespan
+allowed_parts: [text]

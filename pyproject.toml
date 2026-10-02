@@ -39,6 +39,7 @@ nh3 = "^0.3.7"
 pillow = "^12.1.1"
 psycopg = { version = "^3.2.9", extras = ["binary"] }
 pydantic = "^2.13.5"
+pyyaml = "^6.0.3"
 whitenoise = "^6.12.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -80,6 +81,8 @@ skip = '*.lock,*.po,docs/prototype'
 
 [tool.coverage.run]
 branch = true
+# The template plugin needs the C tracer; Python 3.14 would default to sys.monitoring.
+core = "ctrace"
 source = ["src"]
 omit = ["src/lapidarium/edges/*", "src/lapidarium/links/db/django/migrations/*"]
 sigterm = true
@@ -157,14 +160,15 @@ init_typed = true
 django_settings_module = "lapidarium.edges.settings"
 
 [[tool.mypy.overrides]]
-module = ["environ"]
+module = ["environ", "unfold.*"]
 ignore_missing_imports = true
 
-# The ORM, settings and the request cycle surface as Any; relaxed only where the
-# framework is touched, as in ludamus.
+# The ORM, settings, the request cycle and parsed YAML surface as Any; relaxed
+# only where the framework or the parser is touched, as in ludamus.
 [[tool.mypy.overrides]]
 module = [
     "lapidarium.edges.settings",
+    "lapidarium.links.content_files.*",
     "lapidarium.links.db.django.*",
     "lapidarium.gates.web.django.*",
 ]
@@ -343,11 +347,54 @@ ignore_names = [
     # Django
     "*Config",
     "*Middleware",
+    "Command",
     "Meta",
+    "add_arguments",
     "application",
+    "constraints",
+    "help",
     "label",
     "name",
+    "ordering",
     "ready",
     "urlpatterns",
+    "verbose_name",
+    "verbose_name_plural",
+    # Django admin options, read by the admin site
+    "actions",
+    "autocomplete_fields",
+    "extra",
+    "fk_name",
+    "formset",
+    "inlines",
+    "list_display",
+    "list_filter",
+    "list_select_related",
+    "prepopulated_fields",
+    "readonly_fields",
+    "search_fields",
+    # Unfold options and the sidebar it calls by dotted path from settings
+    "hide_ordering_field",
+    "ordering_field",
+    "separator",
+    "sidebar_navigation",
+    # Pydantic
+    "model_config",
+    # Columns kept for feeds and enum members stored as data, not named in code
+    "external_id",
+    "published_at",
+    "thumbnail_url",
+    "ABANDONED",
+    "FINISHED",
+    "GALLERY",
+    "LATEST",
+    "MEDIA_FIRST",
+    "ONGOING",
+    "RANDOM_FEATURED",
+    "RELATED",
+    "UPCOMING",
+    # TypedDict keys read by subscript
+    "target_slug",
 ]
+ignore_decorators = ["@admin.action", "@admin.display", "@admin.register", "@override"]
 sort_by_size = true

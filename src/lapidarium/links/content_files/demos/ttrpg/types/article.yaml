@@ -1,0 +1,12 @@
+key: article
+label: Artykuł
+label_plural: Artykuły
+route: artykuly
+colour: '#0f6b5f'
+icon: menu_book
+order: 6
+allowed_parts: [text, image, video]
+required_parts: [text]
+door_enabled: true
+door_min_entries: 3
+list_filters: [tag]

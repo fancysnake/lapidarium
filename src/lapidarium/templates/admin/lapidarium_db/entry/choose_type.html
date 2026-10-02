@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} choose-type{% endblock %}
+
+{% block content %}
+    <div class="border border-base-200 rounded-default shadow-xs dark:border-base-800">
+        <p class="font-semibold p-4 text-font-important-light dark:text-font-important-dark">
+            {% translate "What are you adding?" %}
+        </p>
+        <ul class="border-base-200 border-t leading-relaxed p-4 dark:border-base-800">
+            {% for entry_type in entry_types %}
+                <li>
+                    <a class="text-primary-600 dark:text-primary-500"
+                       href="{% url opts|admin_urlname:'add' %}?type={{ entry_type.key|urlencode }}">{{ entry_type.label }}</a>
+                </li>
+            {% empty %}
+                <li>
+                    {% url 'admin:lapidarium_db_entrytype_add' as add_type_url %}
+                    {% blocktranslate %}No content types yet. <a href="{{ add_type_url }}">Define one</a> first.{% endblocktranslate %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

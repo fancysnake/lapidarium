@@ -1,0 +1,17 @@
+key: song
+label: Piosenka
+label_plural: Piosenki
+route: piosenki
+colour: '#b23b0a'
+icon: music_note
+order: 2
+layout: media_first
+allowed_parts: [text, audio, video, image]
+required_parts: [audio]
+door_enabled: true
+list_filters: [year, tag]
+fields:
+  - key: inspired_by
+    label: Zainspirowana przez
+    kind: relation
+    target_type: session

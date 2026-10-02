@@ -1,0 +1,19 @@
+key: event
+label: Wydarzenie
+label_plural: Wydarzenia
+route: wydarzenia
+colour: '#be185d'
+icon: event
+order: 5
+role: calendar
+allowed_parts: [text, link, image]
+door_enabled: true
+door_pick: upcoming
+list_filters: [year, role]
+fields:
+  - key: role
+    label: Rola
+    kind: choice
+    choices: [organizer, speaker, gm, attendee]
+    required: true
+    show_on_card: true

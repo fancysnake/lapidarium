@@ -1,0 +1,9 @@
+key: project
+label: Project
+label_plural: Projects
+route: projects
+colour: '#0550ae'
+icon: folder
+order: 6
+role: container_outcome
+allowed_parts: [text, image]

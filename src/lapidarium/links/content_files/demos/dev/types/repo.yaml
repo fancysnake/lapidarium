@@ -1,0 +1,22 @@
+key: repo
+label: Repository
+label_plural: Repositories
+route: repos
+colour: '#24292f'
+icon: code
+order: 1
+allowed_parts: [text, image, link]
+required_parts: [text]
+door_enabled: true
+list_filters: [tag, language, maintenance]
+fields:
+  - key: language
+    label: Language
+    kind: text
+    show_on_card: true
+  - key: maintenance
+    label: Maintenance
+    kind: choice
+    choices: [active, maintained, archived]
+    required: true
+    show_on_card: true

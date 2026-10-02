@@ -1,0 +1,14 @@
+key: meme
+label: Mem
+label_plural: Memy
+route: memy
+colour: '#8a5306'
+icon: mood
+order: 4
+layout: gallery
+allowed_parts: [image]
+required_parts: [image]
+door_enabled: true
+door_pick: random_featured
+has_detail_page: false
+list_filters: [year, tag]

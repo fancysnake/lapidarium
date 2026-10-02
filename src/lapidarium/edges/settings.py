@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "lapidarium.links.db.django.apps.DbConfig",
     "lapidarium.gates.web.django.apps.WebGatesConfig",
+    "lapidarium.gates.cli.django.apps.CliGatesConfig",
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "lapidarium.gates.web.django.urls"
+# Management commands build their services here; web requests get them from
+# the middleware.
+SERVICES_FACTORY = "lapidarium.inits.Services"
 
 TEMPLATES = [
     {
@@ -137,7 +141,16 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-UNFOLD = {"SITE_TITLE": SITE_NAME, "SITE_HEADER": SITE_NAME, "SITE_SYMBOL": "museum"}
+UNFOLD = {
+    "SITE_TITLE": SITE_NAME,
+    "SITE_HEADER": SITE_NAME,
+    "SITE_SYMBOL": "museum",
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": "lapidarium.links.db.django.admin.sidebar_navigation",
+    },
+}
 
 LOGGING = {
     "version": 1,

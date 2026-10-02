@@ -19,6 +19,7 @@ Requires [mise](https://mise.jdx.dev) and Docker (for PostgreSQL).
 mise install          # Python, Poetry
 mise run db           # PostgreSQL on :5432
 mise run dj migrate
+mise run dj load_demo ttrpg   # or dev: example types and entries
 mise run start        # http://localhost:8000
 ```
 

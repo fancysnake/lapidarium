@@ -1,0 +1,20 @@
+key: talk
+label: Talk
+label_plural: Talks
+route: talks
+colour: '#6639ba'
+icon: mic
+order: 2
+layout: media_first
+allowed_parts: [text, video, file, link]
+required_parts: [video]
+door_enabled: true
+list_filters: [year, tag]
+fields:
+  - key: event
+    label: Event
+    kind: text
+    show_on_card: true
+  - key: slides_url
+    label: Slides
+    kind: url

@@ -1,0 +1,6 @@
+Zero Node Django
+
+1. Why
+2. Plain CSS
+3. ES modules
+4. WhiteNoise
