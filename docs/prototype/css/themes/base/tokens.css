@@ -1,0 +1,45 @@
+/* Motyw bazowy silnika: tylko czerń, biel i szarości.
+   Jeśli układ działa tutaj, zadziała z każdym kolorowym motywem. */
+:root {
+  /* Kolory podstawowe */
+  --color-bg: #FFFFFF;
+  --color-surface: #F6F6F4;
+  --color-surface-2: #ECECE8;
+  --color-surface-band: #F1F1EE;
+  --color-text: #151515;
+  --color-text-strong: #333333;
+  --color-text-muted: #5A5A57;
+  --color-border: #DADAD5;
+  --color-border-soft: #E8E8E4;
+  --color-link: #151515;
+  --color-link-hover: #5A5A57;
+
+  /* Marka */
+  --color-brand: #151515;
+  --color-brand-contrast: #FFFFFF;
+
+  /* Rodzaje aktywności — w bazie wszystkie czarne */
+  --color-type-session: #151515;    --color-type-session-tint: #F1F1EE;
+  --color-type-song: #151515;       --color-type-song-tint: #F1F1EE;
+  --color-type-game: #151515;       --color-type-game-tint: #F1F1EE;
+  --color-type-graphic: #151515;    --color-type-graphic-tint: #F1F1EE;
+  --color-type-event: #151515;      --color-type-event-tint: #F1F1EE;
+  --color-type-article: #151515;    --color-type-article-tint: #F1F1EE;
+
+  /* Typografia */
+  --font-body: 'Spectral', Georgia, serif;
+  --font-display: 'Spectral SC', 'Spectral', Georgia, serif;
+  --font-label: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --text-base: 1.0625rem;
+  --text-label: 0.875rem;
+  --text-h1: 4rem;
+  --text-h1-session: 4.25rem;
+  --text-h2: 2.125rem;
+
+  /* Odstępy i układ */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 28px; --space-7: 40px; --space-8: 56px; --space-9: 72px;
+  --max-width: 1180px;
+  --gutter: 32px;
+}
+@media (max-width: 40rem) { :root { --gutter: 16px; } }

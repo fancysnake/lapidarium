@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ucieczka przed kosmicznym łosiem — sesja RPG · Radek, Mistrz Gry</title>
+<meta name="description" content="Jednostrzałowiec na [Nazwa konwentu]: ucieczka przed kosmicznym łosiem. Nagranie i raport z sesji.">
+<meta property="og:title" content="Ucieczka przed kosmicznym łosiem">
+<meta property="og:description" content="Sesja RPG prowadzona przez Radka — nagranie i raport.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=Spectral+SC:wght@600&amp;family=Barlow+Condensed:wght@500;600&amp;display=swap">
+<link rel="stylesheet" href="css/themes/base/tokens.css">
+<link rel="stylesheet" href="css/themes/radek/tokens.css" id="theme-tokens">
+<link rel="stylesheet" href="css/base.css">
+<script src="js/enhance.js" defer></script>
+</head>
+<body>
+
+<div class="site-bar" aria-hidden="true">
+  <span data-type="session"></span><span data-type="song"></span><span data-type="game"></span><span data-type="graphic"></span><span data-type="event"></span>
+</div>
+
+<div class="container">
+  <header class="site-header">
+    <a class="site-logo" href="index.html">Radek <span class="site-logo__mark" aria-hidden="true">◆</span> Mistrz Gry</a>
+    <nav class="site-nav label" aria-label="Główne menu">
+      <ul>
+        <li data-type="song"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Piosenki</a></li>
+        <li data-type="game"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Gry</a></li>
+        <li data-type="session"><a href="#" aria-current="page"><span class="site-nav__marker" aria-hidden="true"></span>Sesje</a></li>
+        <li data-type="event"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Wydarzenia</a></li>
+        <li data-type="graphic"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Memy</a></li>
+        <li><a href="#">O mnie</a></li>
+      </ul>
+    </nav>
+  </header>
+</div>
+
+<main class="container page" data-type="session">
+
+  <div class="session-hero">
+    <nav class="breadcrumb" aria-label="Ścieżka"><a href="#">Sesje RPG</a> · jednostrzałowiec</nav>
+    <h1 class="session-hero__hook">Ucieczka przed kosmicznym łosiem</h1>
+    <div class="framed read-aloud">
+      <div class="framed__inner">
+        <div class="read-aloud__label label">Tekst do przeczytania graczom</div>
+        <p>[Dwa–trzy zdania wstępu, którymi zaczęła się sesja. To, co gracze usłyszeli, zanim łoś pojawił się na radarze.]</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-layout">
+    <div class="session-layout__main">
+
+      <div class="video-facade" data-youtube-id="[ID_FILMU]" data-title="Ucieczka przed kosmicznym łosiem — nagranie sesji">
+        <button class="video-facade__play" type="button" aria-label="Odtwórz nagranie sesji">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+        </button>
+        <div class="video-facade__note">Nagranie z YouTube · ładuje się po kliknięciu</div>
+        <noscript><a href="https://www.youtube.com/watch?v=[ID_FILMU]">Obejrzyj na YouTube</a></noscript>
+      </div>
+
+      <article class="chronicle" aria-labelledby="chronicle-title">
+        <h2 class="section-title" id="chronicle-title">Kronika sesji</h2>
+        <p class="chronicle__first">AAR: 2–4 akapity. Kto grał, jaki był punkt wyjścia, co poszło nie tak (w dobrym sensie) i jak to się skończyło.</p>
+        <p>[Ciąg dalszy raportu.]</p>
+        <blockquote class="pull-quote">[cytat z sesji, który drużyna powtarza do dziś]</blockquote>
+      </article>
+    </div>
+
+    <aside class="session-layout__aside">
+      <section class="panel panel--typed" aria-labelledby="card-title">
+        <h2 class="panel__title" id="card-title">Karta sesji</h2>
+        <dl class="stats" style="font-size: 1rem; gap: var(--space-1) var(--space-3)">
+          <dt>System</dt><dd>[System]</dd>
+          <dt>Kiedy</dt><dd><time datetime="2026-09-20">[data]</time></dd>
+          <dt>Format</dt><dd>jednostrzałowiec</dd>
+          <dt>Gdzie</dt><dd><a href="#">[Nazwa konwentu]</a></dd>
+          <dt>Drużyna</dt><dd>[ksywki graczy]</dd>
+        </dl>
+      </section>
+
+      <section class="panel" aria-labelledby="aftermath-title">
+        <h2 class="panel__label label" id="aftermath-title" style="margin: 0">Pokłosie sesji</h2>
+        <div class="placeholder related-image" data-type="graphic">[mem z sesji o łosiu]</div>
+        <a class="related-item" href="#" data-type="song">
+          <span class="related-item__icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"></path></svg></span>
+          <span><strong>[Tytuł piosenki]</strong><span class="related-item__sub">ballada o tej sesji</span></span>
+        </a>
+        <hr>
+        <div class="panel__label--muted label">Inne sesje</div>
+        <a href="#">[Hook innej sesji]</a>
+        <a href="#">[Hook innej sesji]</a>
+      </section>
+    </aside>
+  </div>
+
+  <section class="framed author-box" style="--frame-color: var(--color-brand)" aria-label="O autorze">
+    <div class="framed__inner">
+      <div class="placeholder author-box__photo" style="--type-tint: var(--color-surface-2)">[portret]</div>
+      <div class="author-box__text">
+        <p class="author-box__name">Prowadził: Radek</p>
+        <p class="author-box__bio">Mistrz Gry od dwudziestu lat. Nagrywam sesje, piszę piosenki i gry. <a href="#">Więcej o mnie →</a></p>
+      </div>
+      <form class="newsletter" action="/newsletter/" method="post">
+        <label class="label" for="session-newsletter-email">Chcesz wieści o kolejnych sesjach?</label>
+        <div class="newsletter__row">
+          <input class="input" id="session-newsletter-email" name="email" type="email" autocomplete="email" placeholder="ty@przyklad.pl" required>
+          <button class="btn btn--primary" type="submit">Zapisz</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer site-footer--compact">
+  <div class="container site-footer__inner">
+    <span style="color: var(--color-text-muted)">Radek ◆ Mistrz Gry — strona, która zostaje</span>
+    <div class="footer-links" style="flex: 0 1 auto">
+      <ul>
+        <li><a href="#">YouTube</a></li>
+        <li><a href="#">itch.io</a></li>
+        <li><a href="#">SoundCloud</a></li>
+        <li><a href="/rss.xml">RSS</a></li>
+      </ul>
+    </div>
+    <div class="theme-switch" hidden>
+      <label for="theme-select">Motyw (prototyp):</label>
+      <select id="theme-select" hidden>
+        <option value="radek">Kolor per aktywność</option>
+        <option value="base">Bazowy czarno-biały</option>
+      </select>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

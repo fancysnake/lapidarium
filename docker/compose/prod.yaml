@@ -1,0 +1,57 @@
+---
+# Production shape for Coolify: the prebuilt image plus PostgreSQL. Media goes
+# to S3-compatible storage, so no media volume. Set the runtime env in Coolify
+# (SECRET_KEY, ALLOWED_HOSTS, DATABASE_URL, AWS_*, SITE_NAME, ADMIN_URL).
+name: lapidarium
+
+services:
+  web:
+    image: ghcr.io/fancysnake/lapidarium:${IMAGE_TAG:-latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV: production
+      DEBUG: 'false'
+      SECRET_KEY: ${SECRET_KEY:?}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:?}
+      DATABASE_URL: ${DATABASE_URL:?}
+      SITE_NAME: ${SITE_NAME:-lapidarium}
+      ADMIN_URL: ${ADMIN_URL:-admin/}
+      # An empty bucket name keeps media on the filesystem; the rest are read by
+      # boto3 only when it is set.
+      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-}
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8000}:8000'
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/')\""]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-lapidarium}
+      POSTGRES_USER: ${DB_USER:-lapidarium}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER:-lapidarium} -d ${DB_NAME:-lapidarium}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

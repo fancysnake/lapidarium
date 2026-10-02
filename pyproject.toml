@@ -1,0 +1,353 @@
+[project]
+name = "lapidarium"
+version = "0.1.0"
+description = "Engine for a creator's portfolio site: admin-defined content types, pages built from parts, zero Node"
+authors = [{ name = "Radosław Ganczarek", email = "radoslaw@ganczarek.in" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.14.0,<3.15"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 6.1",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.14",
+]
+dynamic = ['dependencies']
+
+[project.urls]
+repository = "https://github.com/fancysnake/lapidarium"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "lapidarium", from = "src" }]
+requires-poetry = ">=2.0,<3"
+
+[tool.poetry.dependencies]
+django = "~6.1.0"
+django-environ = "^0.14.0"
+django-storages = { version = "^1.14.6", extras = ["s3"] }
+django-unfold = "^0.108.0"
+gunicorn = "^26.0.0"
+httpx = "^0.28.1"
+markdown = "^3.10.2"
+nh3 = "^0.3.7"
+pillow = "^12.1.1"
+psycopg = { version = "^3.2.9", extras = ["binary"] }
+pydantic = "^2.13.5"
+whitenoise = "^6.12.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^26.1.0"
+codespell = "^2.4.3"
+deptry = "^0.25.1"
+diff-cover = "^10.6.0"
+django-coverage-plugin = "^3.2.2"
+django-stubs = "^6.0.5"
+djlint = "^1.46.2"
+import-linter = "^2.15"
+mypy = "^2.2.0"
+pip-audit = "^2.10.1"
+pylint = "^4.0.3"
+pytest = "^9.0.3"
+pytest-cov = "^7.0.0"
+pytest-django = "^4.14.0"
+pytest-xdist = "^3.8.0"
+ruff = "^0.16.0"
+taplo = "^0.9.3"
+tingle = "^0.7.2"
+vulture = "^2.16"
+
+# BLACK
+cabinet = { git = "https://github.com/fancysnake/cabinet.git", rev = "v0.5.0" }
+
+[tool.black]
+line-length = 88
+preview = true
+skip-magic-trailing-comma = true
+target-version = ['py314']
+
+# CODESPELL
+
+[tool.codespell]
+skip = '*.lock,*.po,docs/prototype'
+
+# COVERAGE
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+omit = ["src/lapidarium/edges/*", "src/lapidarium/links/db/django/migrations/*"]
+sigterm = true
+plugins = ["django_coverage_plugin"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+precision = 2
+exclude_also = ["raise NotImplementedError", "if TYPE_CHECKING:"]
+
+[tool.coverage.django_coverage_plugin]
+template_extensions = 'html'
+
+# DEPTRY
+
+[tool.deptry]
+known_first_party = ["lapidarium"]
+
+[tool.deptry.per_rule_ignores]
+# Loaded by Django from settings strings, never imported by name.
+DEP002 = [
+    "django-storages",
+    "django-unfold",
+    "gunicorn",
+    "pillow",
+    "psycopg",
+    "whitenoise",
+]
+
+# DJLINT
+
+[tool.djlint]
+profile = "django"
+ignore = "H021,H031,H037,D018"
+
+# MYPY
+
+[tool.mypy]
+check_untyped_defs = true
+color_output = true
+disallow_any_decorated = true
+disallow_any_explicit = true
+disallow_any_expr = true
+disallow_any_generics = true
+disallow_any_unimported = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+exclude = ["migrations/.*.py", "tests/.*.py"]
+extra_checks = true
+implicit_reexport = true
+mypy_path = "src"
+plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
+pretty = true
+python_version = "3.14"
+strict = true
+strict_equality = true
+strict_equality_for_none = true
+warn_incomplete_stub = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+
+[tool.django-stubs]
+django_settings_module = "lapidarium.edges.settings"
+
+[[tool.mypy.overrides]]
+module = ["environ"]
+ignore_missing_imports = true
+
+# The ORM, settings and the request cycle surface as Any; relaxed only where the
+# framework is touched, as in ludamus.
+[[tool.mypy.overrides]]
+module = [
+    "lapidarium.edges.settings",
+    "lapidarium.links.db.django.*",
+    "lapidarium.gates.web.django.*",
+]
+disallow_any_expr = false
+
+# RUFF
+
+[tool.ruff]
+line-length = 88
+output-format = 'concise'
+preview = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "COM",   # formatter owns commas
+    "CPY",   # no per-file copyright headers
+    "D1",    # no docstring on everything
+    "DOC",   # no docstring param/return spec
+    "FIX",   # TODO markers allowed
+    "TD003", # no issue link required on TODO
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/**.py" = ["ANN", "ARG001", "E501", "RUF012"]
+"tests/**.py" = [
+    "ANN",
+    "ARG002",
+    "INP001",
+    "PLR0913",
+    "PLR0917",
+    "PLR2004",
+    "PLR6301",
+    "S",
+    "SLF001",
+]
+
+[tool.ruff.lint.pylint]
+max-public-methods = 12
+max-args = 12
+max-positional-args = 2
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-values-type = "tuple"
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+# PYTEST
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "lapidarium.edges.settings"
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+
+# IMPORT LINTER
+
+[tool.importlinter]
+include_external_packages = "True"
+root_package = "lapidarium"
+
+[[tool.importlinter.contracts]]
+name = "gates"
+type = "forbidden"
+source_modules = ["lapidarium.gates"]
+forbidden_modules = [
+    "lapidarium.links",
+    "lapidarium.inits",
+    "lapidarium.mills",
+    "lapidarium.specs",
+    "lapidarium.edges",
+]
+
+[[tool.importlinter.contracts]]
+name = "links"
+type = "forbidden"
+source_modules = ["lapidarium.links"]
+forbidden_modules = [
+    "lapidarium.gates",
+    "lapidarium.inits",
+    "lapidarium.mills",
+    "lapidarium.specs",
+    "lapidarium.edges",
+]
+
+[[tool.importlinter.contracts]]
+name = "inits"
+type = "forbidden"
+source_modules = ["lapidarium.inits"]
+forbidden_modules = ["lapidarium.specs", "lapidarium.edges"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "mills"
+type = "forbidden"
+source_modules = ["lapidarium.mills"]
+forbidden_modules = [
+    "lapidarium.gates",
+    "lapidarium.links",
+    "lapidarium.inits",
+    "lapidarium.edges",
+    "django",
+]
+
+[[tool.importlinter.contracts]]
+name = "pacts"
+type = "forbidden"
+source_modules = ["lapidarium.pacts"]
+forbidden_modules = [
+    "lapidarium.gates",
+    "lapidarium.links",
+    "lapidarium.inits",
+    "lapidarium.mills",
+    "lapidarium.specs",
+    "lapidarium.edges",
+    "django",
+]
+
+[[tool.importlinter.contracts]]
+name = "specs"
+type = "forbidden"
+source_modules = ["lapidarium.specs"]
+forbidden_modules = [
+    "lapidarium.gates",
+    "lapidarium.links",
+    "lapidarium.inits",
+    "lapidarium.mills",
+    "lapidarium.edges",
+    "django",
+]
+
+[[tool.importlinter.contracts]]
+name = "edges"
+type = "forbidden"
+source_modules = ["lapidarium.edges"]
+forbidden_modules = [
+    "lapidarium.gates",
+    "lapidarium.links",
+    "lapidarium.inits",
+    "lapidarium.mills",
+    "lapidarium.pacts",
+    "lapidarium.specs",
+]
+
+[[tool.importlinter.contracts]]
+name = "inside-gates"
+type = "independence"
+modules = ["lapidarium.gates.*"]
+
+[[tool.importlinter.contracts]]
+name = "inside-links"
+type = "independence"
+modules = ["lapidarium.links.*"]
+
+[[tool.importlinter.contracts]]
+name = "inside-edges"
+type = "independence"
+modules = ["lapidarium.edges.*"]
+
+# VULTURE
+
+[tool.vulture]
+exclude = ["*/migrations/*.py", "*/lapidarium/edges/settings.py"]
+ignore_names = [
+    # Set by the middleware, read by views as request.services.
+    "services",
+    # Django
+    "*Config",
+    "*Middleware",
+    "Meta",
+    "application",
+    "label",
+    "name",
+    "ready",
+    "urlpatterns",
+]
+sort_by_size = true

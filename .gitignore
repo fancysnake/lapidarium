@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+
+# Tooling caches and reports
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.import_linter_cache/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.fence.log
+
+# Local overrides
+mise.local.toml
+.env.local
+.claude/settings.local.json
+
+# Django
+*.sqlite3
+staticfiles/
+media/
+*.mo
+*.pot
+*.log
+
+# Editors
+.idea/
+.vscode/
+.DS_Store

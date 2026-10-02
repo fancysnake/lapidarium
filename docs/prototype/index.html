@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radek — Mistrz Gry</title>
+<meta name="description" content="Mistrz Gry od 20 lat. Sesje, piosenki, gry i konwenty w jednym miejscu.">
+<link rel="alternate" type="application/rss+xml" title="Co nowego" href="/rss.xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&amp;family=Spectral+SC:wght@600&amp;family=Barlow+Condensed:wght@500;600&amp;display=swap">
+<link rel="stylesheet" href="css/themes/base/tokens.css">
+<link rel="stylesheet" href="css/themes/radek/tokens.css" id="theme-tokens">
+<link rel="stylesheet" href="css/base.css">
+<script src="js/enhance.js" defer></script>
+</head>
+<body>
+
+<div class="site-bar" aria-hidden="true">
+  <span data-type="session"></span><span data-type="song"></span><span data-type="game"></span><span data-type="graphic"></span><span data-type="event"></span>
+</div>
+
+<div class="container">
+  <header class="site-header">
+    <a class="site-logo" href="index.html">Radek <span class="site-logo__mark" aria-hidden="true">◆</span> Mistrz Gry</a>
+    <nav class="site-nav label" aria-label="Główne menu">
+      <ul>
+        <li data-type="song"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Piosenki</a></li>
+        <li data-type="game"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Gry</a></li>
+        <li data-type="session"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Sesje</a></li>
+        <li data-type="event"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Wydarzenia</a></li>
+        <li data-type="graphic"><a href="#"><span class="site-nav__marker" aria-hidden="true"></span>Memy</a></li>
+        <li><a href="#">O mnie</a></li>
+      </ul>
+    </nav>
+  </header>
+</div>
+
+<main>
+  <section class="container hero" aria-labelledby="hero-name">
+    <div class="hero__text">
+      <h1 class="hero__name" id="hero-name">Radosław Ganczarek</h1>
+      <p class="hero__stats">Klasa: Mistrz Gry <span>·</span> Poziom 20 <span>·</span> Charakter: [twój]</p>
+      <div class="hero__rule" aria-hidden="true">
+        <span data-type="session"></span><span data-type="song"></span><span data-type="game"></span><span data-type="graphic"></span><span data-type="event"></span>
+      </div>
+      <p class="hero__lead">Prowadzę sesje od dwudziestu lat. Nagrywam je, piszę o nich piosenki i własne gry, organizuję konwenty. Tutaj leży wszystko — w jednym miejscu, które nie zniknie razem z kolejną platformą.</p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="#newsletter">Zapisz się na newsletter</a>
+        <a class="btn btn--ghost" href="#kontakt">Napisz do mnie</a>
+      </div>
+    </div>
+    <div class="hero__portrait">
+      <div class="placeholder">[portret — jak ilustracja w podręczniku]</div>
+    </div>
+  </section>
+
+  <section class="container" aria-labelledby="doors-title" style="padding-bottom: var(--space-8)">
+    <h2 class="section-title" id="doors-title">Co tu znajdziesz</h2>
+    <div class="doors">
+
+      <article class="door" data-type="session">
+        <div class="door__label label">Sesje RPG</div>
+        <h3 class="door__title"><a href="sesja.html">Ucieczka przed kosmicznym łosiem</a></h3>
+        <p class="door__meta">Jednostrzałowiec, [System]</p>
+        <dl class="stats">
+          <dt>Kiedy</dt><dd>[data]</dd>
+          <dt>Gdzie</dt><dd>[Nazwa konwentu]</dd>
+          <dt>Nagranie</dt><dd>tak</dd>
+        </dl>
+        <a class="door__more" href="#">Wszystkie sesje →</a>
+      </article>
+
+      <article class="door" data-type="song">
+        <div class="door__label label">Piosenki</div>
+        <div class="door__media">
+          <div class="placeholder">[okładka]</div>
+          <div>
+            <h3 class="door__title"><a href="#">[Tytuł piosenki]</a></h3>
+            <p class="door__meta">ballada o [sesji]</p>
+          </div>
+        </div>
+        <button class="btn btn--type" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"></path></svg>Posłuchaj
+        </button>
+        <a class="door__more" href="#">Wszystkie piosenki →</a>
+      </article>
+
+      <article class="door" data-type="game">
+        <div class="door__label label">Gry</div>
+        <h3 class="door__title"><a href="#">[Tytuł gry]</a></h3>
+        <p class="door__meta">[gatunek], wydana na itch</p>
+        <dl class="stats">
+          <dt>Gracze</dt><dd>[2–5]</dd>
+          <dt>Czas</dt><dd>[jedna sesja]</dd>
+          <dt>Wersja</dt><dd>[x.y]</dd>
+        </dl>
+        <a class="door__more" href="#">Wszystkie gry →</a>
+      </article>
+
+      <article class="door" data-type="graphic">
+        <div class="door__label label">Memy</div>
+        <div class="placeholder door__image">[mem: „to nie system był świetny — to my byliśmy świetni”]</div>
+        <a href="#" style="font-style: italic; font-size: 0.9375rem">Rozwinięcie myśli: artykuł o drużynie i systemie</a>
+        <a class="door__more" href="#">Wszystkie memy →</a>
+      </article>
+
+      <article class="door" data-type="event">
+        <div class="door__label label">Wydarzenia</div>
+        <h3 class="door__title"><a href="#">[Nazwa konwentu]</a></h3>
+        <p class="door__meta">[data], [miasto]</p>
+        <p style="margin: 0; font-size: 0.9375rem">Rola: organizator, prowadzę 2 sesje</p>
+        <a class="door__more" href="#">Kalendarz →</a>
+      </article>
+
+    </div>
+  </section>
+
+  <div class="container home-bottom">
+    <section class="home-bottom__feed" aria-labelledby="feed-title">
+      <h2 class="section-title" id="feed-title" style="margin-bottom: var(--space-3)">Co nowego</h2>
+      <ul class="feed">
+        <li class="feed__item" data-type="session"><span class="feed__meta"><time datetime="2026-09-28">[dd.mm]</time> · <span class="feed__type">Sesja</span></span><a class="feed__title" href="sesja.html">Ucieczka przed kosmicznym łosiem — dodano raport</a></li>
+        <li class="feed__item" data-type="external"><span class="feed__meta"><time datetime="2026-09-25">[dd.mm]</time> · <span class="feed__type">YouTube</span></span><a class="feed__title" href="#">[Tytuł nagrania]</a></li>
+        <li class="feed__item" data-type="game"><span class="feed__meta"><time datetime="2026-09-20">[dd.mm]</time> · <span class="feed__type">Gra</span></span><a class="feed__title" href="#">[Tytuł gry] — wersja [x.y]</a></li>
+        <li class="feed__item" data-type="graphic"><span class="feed__meta"><time datetime="2026-09-14">[dd.mm]</time> · <span class="feed__type">Mem</span></span><a class="feed__title" href="#">[Podpis mema]</a></li>
+      </ul>
+      <a class="door__more" href="#" style="display: inline-block; margin-top: var(--space-3); color: var(--color-link)">Pełna kronika →</a>
+    </section>
+
+    <aside class="home-bottom__aside" data-type="event" aria-labelledby="next-event-title">
+      <div class="framed">
+        <div class="framed__inner">
+          <div class="next-event__label label">Następne spotkanie</div>
+          <h2 class="next-event__title" id="next-event-title">[Nazwa konwentu]</h2>
+          <p class="next-event__meta">[data], [miasto]</p>
+          <a href="/kalendarz.ics" style="display: inline-block; margin-top: var(--space-3)">Dodaj do kalendarza (.ics)</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer" id="newsletter">
+  <div class="container site-footer__inner">
+    <form class="newsletter" action="/newsletter/" method="post">
+      <h2 class="newsletter__title">Wieści zza ekranu</h2>
+      <p class="newsletter__lead">Raz w miesiącu: nowe sesje, piosenki i gry, oraz gdzie mnie spotkać. Bez algorytmu, bez szumu.</p>
+      <label class="label" for="newsletter-email">Twój e-mail</label>
+      <div class="newsletter__row">
+        <input class="input" id="newsletter-email" name="email" type="email" autocomplete="email" placeholder="ty@przyklad.pl" required>
+        <button class="btn btn--primary" type="submit">Zapisz mnie</button>
+      </div>
+    </form>
+    <div class="footer-links" id="kontakt">
+      <div class="footer-links__label label">Gdzie indziej</div>
+      <ul>
+        <li><a href="#">YouTube</a></li>
+        <li><a href="#">itch.io</a></li>
+        <li><a href="#">SoundCloud</a></li>
+        <li><a href="#">Facebook</a></li>
+        <li><a href="/rss.xml">RSS</a></li>
+      </ul>
+      <div class="footer-links__label label" style="margin-top: var(--space-3)">Napisz</div>
+      <a href="#">[twój e-mail]</a>
+      <div class="theme-switch" hidden style="margin-top: var(--space-5)">
+        <label for="theme-select">Motyw (prototyp):</label>
+        <select id="theme-select" hidden>
+          <option value="radek">Kolor per aktywność</option>
+          <option value="base">Bazowy czarno-biały</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

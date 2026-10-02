@@ -1,0 +1,42 @@
+# Container-side mise config. The host's tasks.toml is not included here.
+
+[settings]
+jobs = 1
+
+[tools]
+python = "3.14.7"
+pipx = "1.17.6"
+"pipx:poetry" = "2.5.1"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.dj]
+run = "django-admin"
+
+# Coolify runs a single web container, so migrations and collectstatic happen
+# at start. Move migrate to a pre-deploy command if replicas ever appear.
+[tasks.prod-start]
+run = [
+    "django-admin migrate --noinput",
+    "django-admin collectstatic --noinput --clear",
+    "mise run gunicorn",
+]
+
+# --keep-alive stays above Traefik's idle timeout so the proxy never reuses a
+# connection gunicorn has already closed (that shows up as random 502s).
+[tasks.gunicorn]
+run = """
+gunicorn \
+    --bind 0.0.0.0:8000 \
+    --workers 3 \
+    --threads 2 \
+    --worker-class gthread \
+    --worker-tmp-dir /dev/shm \
+    --keep-alive 190 \
+    --timeout 60 \
+    --graceful-timeout 30 \
+    --access-logfile - \
+    --error-logfile - \
+    --chdir /app/src lapidarium.edges.wsgi:application
+"""
