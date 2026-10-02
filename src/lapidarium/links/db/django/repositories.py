@@ -347,7 +347,8 @@ class AccountRepository(AccountRepositoryProtocol):
     @override
     def ensure_superuser(self, username: str, *, password: str) -> bool:
         user, created = get_user_model().objects.update_or_create(
-            username=username, defaults={"is_staff": True, "is_superuser": True}
+            username=username,
+            defaults={"is_active": True, "is_staff": True, "is_superuser": True},
         )
         user.set_password(password)
         user.save(update_fields=["password"])

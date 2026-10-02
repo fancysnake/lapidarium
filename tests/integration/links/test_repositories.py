@@ -131,9 +131,9 @@ def test_ensure_superuser_creates_then_resets_the_login():
     repository = AccountRepository()
 
     assert repository.ensure_superuser("admin", password="first") is True
-    User.objects.filter(username="admin").update(is_staff=False)
+    User.objects.filter(username="admin").update(is_active=False, is_staff=False)
     assert repository.ensure_superuser("admin", password="second") is False
 
     user = User.objects.get(username="admin")
-    assert (user.is_staff, user.is_superuser) == (True, True)
+    assert (user.is_active, user.is_staff, user.is_superuser) == (True, True, True)
     assert user.check_password("second")
