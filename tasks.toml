@@ -5,7 +5,7 @@ description = "Run any django-admin subcommand against the dev settings"
 run = "django-admin"
 
 [start]
-description = "Start the Django dev server on :8000 (needs `mise run db`)"
+description = "Start the Django dev server on :8000"
 run = "django-admin runserver 0.0.0.0:8000"
 
 [db]

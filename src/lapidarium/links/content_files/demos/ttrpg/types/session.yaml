@@ -1,0 +1,27 @@
+key: session
+label: Sesja
+label_plural: Sesje
+route: sesje
+colour: '#6b3fa0'
+icon: casino
+order: 1
+layout: media_first
+allowed_parts: [text, video, image, audio]
+required_parts: [text]
+door_enabled: true
+door_label: Sesje RPG
+door_pick: latest
+list_filters: [year, tag, system, format]
+fields:
+  - key: system
+    label: System
+    kind: text
+    show_on_card: true
+  - key: format
+    label: Format
+    kind: choice
+    choices: [one-shot, campaign-session, convention, online, other]
+    show_on_card: true
+  - key: players
+    label: Gracze
+    kind: text

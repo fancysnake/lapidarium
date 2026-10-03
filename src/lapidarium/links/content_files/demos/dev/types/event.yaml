@@ -1,0 +1,18 @@
+key: event
+label: Event
+label_plural: Events
+route: events
+colour: '#a2306f'
+icon: event
+order: 5
+role: calendar
+allowed_parts: [text, link]
+door_enabled: true
+door_pick: upcoming
+fields:
+  - key: role
+    label: Role
+    kind: choice
+    choices: [organizer, speaker, attendee]
+    required: true
+    show_on_card: true

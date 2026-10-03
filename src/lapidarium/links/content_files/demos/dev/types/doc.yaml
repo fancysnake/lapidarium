@@ -1,0 +1,9 @@
+key: doc
+label: Doc
+label_plural: Docs
+route: docs
+colour: '#0a6b3d'
+icon: description
+order: 3
+allowed_parts: [text, image]
+required_parts: [text]

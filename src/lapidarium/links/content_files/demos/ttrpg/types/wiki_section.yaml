@@ -1,0 +1,10 @@
+key: wiki_section
+label: Dział wiki
+label_plural: Działy wiki
+route: wiki
+colour: '#0f6b5f'
+icon: library_books
+order: 9
+in_menu: false
+role: container_outcome
+allowed_parts: [text]

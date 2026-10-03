@@ -13,12 +13,11 @@ Status: pre-alpha, under construction. The original spec (Polish) is in
 
 ## Development
 
-Requires [mise](https://mise.jdx.dev) and Docker (for PostgreSQL).
+Requires [mise](https://mise.jdx.dev). The dev server uses SQLite (`db.sqlite3`).
 
 ```bash
 mise install          # Python, Poetry
-mise run db           # PostgreSQL on :5432
-mise run dj migrate
+mise run dj setup_local   # migrate, ttrpg demo, admin/admin login
 mise run start        # http://localhost:8000
 ```
 

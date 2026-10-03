@@ -1,0 +1,31 @@
+key: game
+label: Gra
+label_plural: Gry
+route: gry
+colour: '#1d5fa8'
+icon: sports_esports
+order: 3
+allowed_parts: [text, image, file, link]
+required_parts: [text]
+door_enabled: true
+list_filters: [year, release_status]
+fields:
+  - key: genre
+    label: Gatunek
+    kind: text
+    show_on_card: true
+  - key: players
+    label: Liczba graczy
+    kind: text
+    show_on_card: true
+  - key: session_length
+    label: Długość sesji
+    kind: text
+  - key: version
+    label: Wersja
+    kind: text
+  - key: release_status
+    label: Stan
+    kind: choice
+    choices: [released, beta, in-progress]
+    required: true
