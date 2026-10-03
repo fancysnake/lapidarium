@@ -64,7 +64,7 @@ tingle = "^0.7.2"
 vulture = "^2.16"
 
 # BLACK
-cabinet = { git = "https://github.com/fancysnake/cabinet.git", rev = "v0.5.0" }
+cabinet = { git = "https://github.com/fancysnake/cabinet.git", rev = "17ed142189462b8ab3efa43d09035e941c6b6ba3" }
 
 [tool.black]
 line-length = 88
