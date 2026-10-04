@@ -261,8 +261,8 @@ crt = ["awscrt (==0.36.0)"]
 
 [[package]]
 name = "cabinet"
-version = "0.5.0"
-description = "A vekna tome: pull request maintenance rituals for GitHub and GitLab"
+version = "1.0.0"
+description = "A vekna tome: pull request and issue maintenance rituals for GitHub and GitLab"
 optional = false
 python-versions = ">=3.11,<3.15"
 groups = ["dev"]
@@ -278,8 +278,8 @@ vekna = {version = ">=0.10.0,<1.0.0", extras = ["trial"]}
 [package.source]
 type = "git"
 url = "https://github.com/fancysnake/cabinet.git"
-reference = "v0.5.0"
-resolved_reference = "e1a5b90da9e344cbefbeecf8de3d9b6191e7158c"
+reference = "17ed142189462b8ab3efa43d09035e941c6b6ba3"
+resolved_reference = "17ed142189462b8ab3efa43d09035e941c6b6ba3"
 
 [[package]]
 name = "cachecontrol"
@@ -4128,4 +4128,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14.0,<3.15"
-content-hash = "58f10f514fc0366537a0b2adabf8945ec21337fa0823a1b66d6ee0c961eefff4"
+content-hash = "aee80c52f1fa5f4a1dbe363cb035575d0b46b82c2faa1383e8b6f6923e2176f6"
