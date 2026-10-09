@@ -23,4 +23,4 @@ cover_checks = ["test"]
 
 [cabinet.agent]
 # A single test file or case is a quick check; linters and sweeps stay the ritual's.
-may_run = ["mise run test:unit", "mise run test:int"]
+may_not_run = ["mise run fullcheck"]
