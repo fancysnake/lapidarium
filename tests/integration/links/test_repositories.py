@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
 from django.db import IntegrityError
 
 from lapidarium.links.db.django.models import (
@@ -71,16 +72,37 @@ def test_search_text_holds_what_a_visitor_might_look_for():
     ]
 
 
-@pytest.mark.django_db(transaction=True)
 @pytest.mark.usefixtures("demo")
-def test_saving_an_asset_again_replaces_its_file():
+def test_saving_an_asset_again_updates_its_row_only():
+    before = MediaAssetRepository().read("assets/demo/los.svg")
+
     MediaAssetRepository().save(
         {"path": "assets/demo/los.svg", "alt": "New alt", "content": b"<svg/>"}
     )
 
     asset = MediaAsset.objects.get(file="assets/demo/los.svg")
     assert asset.alt == "New alt"
+    assert MediaAssetRepository().read("assets/demo/los.svg") == before
+
+
+@pytest.mark.usefixtures("demo")
+def test_writing_an_asset_again_replaces_its_file():
+    MediaAssetRepository().write("assets/demo/los.svg", content=b"<svg/>")
+
     assert MediaAssetRepository().read("assets/demo/los.svg") == b"<svg/>"
+
+
+def test_writing_refuses_a_name_the_storage_changed(media_root, monkeypatch):
+    monkeypatch.setattr(
+        FileSystemStorage,
+        "get_available_name",
+        lambda *_args, **_kwargs: "assets/other.svg",
+    )
+
+    with pytest.raises(OSError, match=r"assets/other\.svg"):
+        MediaAssetRepository().write("assets/new.svg", content=b"<svg/>")
+
+    assert not (media_root / "assets" / "other.svg").exists()
 
 
 @pytest.mark.usefixtures("demo")
