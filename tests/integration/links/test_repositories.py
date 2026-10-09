@@ -71,6 +71,7 @@ def test_search_text_holds_what_a_visitor_might_look_for():
     ]
 
 
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.usefixtures("demo")
 def test_saving_an_asset_again_replaces_its_file():
     MediaAssetRepository().save(

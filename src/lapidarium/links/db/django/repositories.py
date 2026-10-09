@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from functools import partial
 from typing import TYPE_CHECKING, override
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.db import transaction
 from django.db.models import Prefetch
 
 from lapidarium.links.db.django.models import (
@@ -164,6 +166,13 @@ def _asset_by_path(path: str) -> MediaAsset | None:
         raise NotFoundError(path) from None
 
 
+def _put(path: str, content: bytes) -> None:
+    # The path is the asset's identity in an export, so it is kept exactly.
+    if default_storage.exists(path):
+        default_storage.delete(path)
+    default_storage.save(path, ContentFile(content))
+
+
 class EntryTypeRepository(EntryTypeRepositoryProtocol):
     @override
     def list_all(self) -> list[EntryTypeDTO]:
@@ -299,13 +308,11 @@ class MediaAssetRepository(MediaAssetRepositoryProtocol):
 
     @override
     def save(self, data: AssetData) -> MediaAssetDTO:
-        # The path is the asset's identity in an export, so it is kept exactly.
-        if default_storage.exists(data["path"]):
-            default_storage.delete(data["path"])
-        name = default_storage.save(data["path"], ContentFile(data["content"]))
         asset, _ = MediaAsset.objects.update_or_create(
-            file=name, defaults={"alt": data["alt"]}
+            file=data["path"], defaults={"alt": data["alt"]}
         )
+        # Storage is not transactional: files change only once the rows commit.
+        transaction.on_commit(partial(_put, data["path"], data["content"]))
         return asset_dto(asset)
 
 

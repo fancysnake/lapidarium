@@ -31,6 +31,7 @@ def test_load_demo_offers_only_bundled_sets():
         call_command("load_demo", "photography")
 
 
+@pytest.mark.django_db(transaction=True)
 def test_export_then_import(tmp_path):
     _run("load_demo", "dev")
 

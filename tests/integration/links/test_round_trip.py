@@ -9,7 +9,10 @@ from lapidarium.links.content_files.markdown import ContentFilesStore
 
 DEMOS = ("dev", "ttrpg")
 
-pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
+pytestmark = [
+    pytest.mark.django_db(transaction=True),
+    pytest.mark.usefixtures("media_root"),
+]
 STAMPS = ("created_at", "updated_at")
 
 
