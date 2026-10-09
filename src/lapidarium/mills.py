@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import math
 import re
+from functools import partial
 from typing import TYPE_CHECKING, override
 from urllib.parse import urlsplit
 
@@ -557,6 +558,10 @@ class ContentImportService(ContentImportServiceProtocol):
         with self._transaction.atomic():
             for asset in bundle["assets"]:
                 self._assets.save(asset)
+                # Storage is not transactional: files change only once rows commit.
+                self._transaction.on_commit(
+                    partial(self._assets.write, asset["path"], content=asset["content"])
+                )
             self._types.save_all(types)
             for entry in bundle["entries"]:
                 key = (entry["type"], entry["slug"])

@@ -455,6 +455,9 @@ class LocalSetupDTO(BaseModel):
 class TransactionProtocol(Protocol):
     def atomic(self) -> AbstractContextManager[None]: ...
 
+    def on_commit(self, callback: Callable[[], None]) -> None:
+        """Run `callback` once the outermost transaction commits; never on rollback."""
+
 
 class EntryTypeRepositoryProtocol(Protocol):
     def list_all(self) -> list[EntryTypeDTO]: ...
@@ -479,7 +482,10 @@ class MediaAssetRepositoryProtocol(Protocol):
     def read(self, path: str) -> bytes: ...
 
     def save(self, data: AssetData) -> MediaAssetDTO:
-        """Create or update by path."""
+        """Create or update the row by path; the file is left to `write`."""
+
+    def write(self, path: str, *, content: bytes) -> None:
+        """Store `content` under exactly `path`, replacing any file there."""
 
 
 class ProfileRepositoryProtocol(Protocol):

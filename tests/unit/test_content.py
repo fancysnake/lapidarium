@@ -289,6 +289,10 @@ def test_import_saves_everything_in_one_transaction(repos):
     repos.store.read.assert_called_once_with(ROOT)
     repos.transaction.atomic.assert_called_once_with()
     repos.assets.save.assert_called_once_with(asset)
+    repos.assets.write.assert_not_called()
+    for call in repos.transaction.on_commit.call_args_list:
+        call.args[0]()
+    repos.assets.write.assert_called_once_with("assets/me.png", content=b"png")
     repos.types.save_all.assert_called_once_with(
         [{**session, "tint": "#ede8f4"}, project]
     )

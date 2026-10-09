@@ -299,14 +299,20 @@ class MediaAssetRepository(MediaAssetRepositoryProtocol):
 
     @override
     def save(self, data: AssetData) -> MediaAssetDTO:
-        # The path is the asset's identity in an export, so it is kept exactly.
-        if default_storage.exists(data["path"]):
-            default_storage.delete(data["path"])
-        name = default_storage.save(data["path"], ContentFile(data["content"]))
         asset, _ = MediaAsset.objects.update_or_create(
-            file=name, defaults={"alt": data["alt"]}
+            file=data["path"], defaults={"alt": data["alt"]}
         )
         return asset_dto(asset)
+
+    @override
+    def write(self, path: str, *, content: bytes) -> None:
+        # The path is the asset's identity in an export, so it is kept exactly.
+        if default_storage.exists(path):
+            default_storage.delete(path)
+        if (name := default_storage.save(path, ContentFile(content))) != path:
+            default_storage.delete(name)
+            msg = f"Storage saved {path!r} as {name!r}."
+            raise OSError(msg)
 
 
 class ProfileRepository(ProfileRepositoryProtocol):

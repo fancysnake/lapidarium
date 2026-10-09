@@ -31,11 +31,13 @@ def test_load_demo_offers_only_bundled_sets():
         call_command("load_demo", "photography")
 
 
-def test_export_then_import(tmp_path):
-    _run("load_demo", "dev")
+def test_export_then_import(tmp_path, django_capture_on_commit_callbacks):
+    with django_capture_on_commit_callbacks(execute=True):
+        _run("load_demo", "dev")
 
     exported = _run("export_content", str(tmp_path))
-    imported = _run("import_content", str(tmp_path))
+    with django_capture_on_commit_callbacks(execute=True):
+        imported = _run("import_content", str(tmp_path))
 
     assert exported == "Exported 6 types, 8 entries, 2 assets.\n"
     assert imported == "Imported 6 types, 8 entries, 2 assets.\n"

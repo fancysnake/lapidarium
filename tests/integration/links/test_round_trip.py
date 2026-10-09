@@ -27,9 +27,12 @@ def _by_key(bundle):
 
 
 @pytest.mark.parametrize("name", DEMOS)
-def test_demo_exports_as_it_was_written(name, tmp_path):
+def test_demo_exports_as_it_was_written(
+    name, tmp_path, *, django_capture_on_commit_callbacks
+):
     services = Services()
-    services.content_import.load_demo(name)
+    with django_capture_on_commit_callbacks(execute=True):
+        services.content_import.load_demo(name)
 
     summary = services.content_export.export(tmp_path)
 
@@ -45,12 +48,16 @@ def test_demo_exports_as_it_was_written(name, tmp_path):
 
 
 @pytest.mark.parametrize("name", DEMOS)
-def test_export_imports_back_to_identical_files(name, tmp_path):
+def test_export_imports_back_to_identical_files(
+    name, tmp_path, *, django_capture_on_commit_callbacks
+):
     services = Services()
-    services.content_import.load_demo(name)
+    with django_capture_on_commit_callbacks(execute=True):
+        services.content_import.load_demo(name)
     services.content_export.export(tmp_path / "first")
 
-    services.content_import.import_from(tmp_path / "first")
+    with django_capture_on_commit_callbacks(execute=True):
+        services.content_import.import_from(tmp_path / "first")
     services.content_export.export(tmp_path / "second")
 
     comparison = filecmp.dircmp(tmp_path / "first", tmp_path / "second")
