@@ -1,4 +1,4 @@
-FROM jdxcode/mise:2026.2 AS base
+FROM jdxcode/mise:2026.9@sha256:67514a972b2bddd0eca59b8c4baf4e106fc4e9f9de11233bc2305414bf672ee3 AS base
 
 # hadolint ignore=DL3008
 RUN apt-get update \
