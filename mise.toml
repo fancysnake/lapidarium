@@ -9,7 +9,7 @@ enter = "poetry install"
 [tools]
 pipx = "1.17.6"
 "pipx:poetry" = "2.5.1"
-python = "3.14.7"
+python = "3.14.8"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
