@@ -1,0 +1,14 @@
+{% include "lapidarium/components/detail-hero.html" %}
+{% if entry.cover %}
+  <img class="detail-hero__cover" src="{{ entry.cover.url }}" alt="{{ entry.cover.alt }}">
+{% endif %}
+<div class="detail-layout">
+  <div class="detail-layout__main">
+    {% for part in entry.parts %}
+      {% include "lapidarium/components/part.html" %}
+    {% endfor %}
+  </div>
+  <aside class="detail-layout__aside">
+    {% include "lapidarium/components/detail-aside.html" %}
+  </aside>
+</div>

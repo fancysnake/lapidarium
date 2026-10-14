@@ -1,0 +1,76 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n lapidarium %}
+{% block main %}
+  <main>
+    <section class="container hero" aria-labelledby="hero-name">
+      <div class="hero__text">
+        <h1 class="hero__name" id="hero-name">
+          {% if site.profile %}
+            {{ site.profile.name }}
+          {% else %}
+            {{ site_name }}
+          {% endif %}
+        </h1>
+        {% if site.profile.handle %}<p class="hero__stats">{{ site.profile.handle }}</p>{% endif %}
+        <div class="hero__rule" aria-hidden="true">
+          {% for entry_type in site.menu %}<span data-type="{{ entry_type.key }}"></span>{% endfor %}
+        </div>
+        {% if site.profile.tagline %}<p class="hero__lead">{{ site.profile.tagline }}</p>{% endif %}
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#newsletter">{% translate "Subscribe to the newsletter" %}</a>
+          {% if site.profile.email %}
+            <a class="btn btn--ghost" href="{% url 'contact' %}">{% translate "Write to me" %}</a>
+          {% endif %}
+        </div>
+      </div>
+      {% if site.profile.photo %}
+        <div class="hero__portrait">
+          <img src="{{ site.profile.photo.url }}" alt="{{ site.profile.photo.alt }}">
+        </div>
+      {% endif %}
+    </section>
+    {% if home.doors %}
+      <section class="container"
+               aria-labelledby="doors-title"
+               style="padding-bottom: var(--space-8)">
+        <h2 class="section-title" id="doors-title">{% translate "What you will find here" %}</h2>
+        <div class="doors">
+          {% for door in home.doors %}
+            {% include "lapidarium/components/door.html" %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+    <div class="container home-bottom">
+      <section class="home-bottom__feed" aria-labelledby="feed-title">
+        <h2 class="section-title" id="feed-title">{% translate "What's new" %}</h2>
+        {% if home.whats_new %}
+          <ul class="feed">
+            {% for item in home.whats_new %}
+              {% include "lapidarium/components/feed-item.html" %}
+            {% endfor %}
+          </ul>
+          <a class="door__more" href="{% url 'whats_new' %}">{% translate "Everything new" %} →</a>
+        {% else %}
+          <p class="empty">{% translate "Nothing here yet." %}</p>
+        {% endif %}
+      </section>
+      {% if home.next_up %}
+        <aside class="home-bottom__aside"
+               data-type="{{ home.next_up.entry.type_key }}"
+               aria-labelledby="next-up-title">
+          <div class="framed">
+            <div class="framed__inner">
+              <div class="next-up__label label">{% translate "Next up" %}</div>
+              <h2 class="next-up__title" id="next-up-title">
+                <a href="{% entry_url home.next_up.entry %}">{{ home.next_up.entry.title }}</a>
+              </h2>
+              {% include "lapidarium/components/when.html" with entry=home.next_up.entry role=home.next_up.entry_type.role %}
+              <a href="{% url 'ical' %}">{% translate "Add to your calendar (.ics)" %}</a>
+            </div>
+          </div>
+        </aside>
+      {% endif %}
+    </div>
+  </main>
+{% endblock main %}

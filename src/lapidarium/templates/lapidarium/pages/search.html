@@ -1,0 +1,22 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Search" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="container page">
+    <h1 class="page__title">{% translate "Search" %}</h1>
+    <form class="newsletter__row" method="get" role="search">
+      <label class="visually-hidden" for="search-q">{% translate "Search for" %}</label>
+      <input class="input" id="search-q" name="q" type="search" value="{{ query }}">
+      <button class="btn btn--primary" type="submit">{% translate "Search" %}</button>
+    </form>
+    {% if results %}
+      <ul class="cards">
+        {% for card in results %}
+          <li>{% include "lapidarium/components/card.html" %}</li>
+        {% endfor %}
+      </ul>
+    {% elif query %}
+      <p class="empty">{% blocktranslate %}Nothing matches “{{ query }}”.{% endblocktranslate %}</p>
+    {% endif %}
+  </main>
+{% endblock main %}

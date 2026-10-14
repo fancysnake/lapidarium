@@ -1,0 +1,11 @@
+{% load lapidarium %}
+<ul class="panel__list">
+  {% for card in cards %}
+    <li data-type="{{ card.entry.type_key }}">
+      <a class="related-item" href="{% entry_url card.entry %}">
+        {% include "lapidarium/components/type-label.html" with entry_type=card.entry_type %}
+        <span>{{ card.entry.title }}<span class="related-item__sub">{{ card.entry.summary }}</span></span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>

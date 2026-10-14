@@ -7,11 +7,12 @@ from typing import TYPE_CHECKING, override
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.db.models import Prefetch
+from django.db.models import Prefetch, QuerySet
 
 from lapidarium.links.db.django.models import (
     Entry,
     EntryType,
+    ExternalItem,
     FieldDefinition,
     Link,
     MediaAsset,
@@ -31,6 +32,8 @@ from lapidarium.pacts import (
     EntryStatus,
     EntryTypeDTO,
     EntryTypeRepositoryProtocol,
+    ExternalItemDTO,
+    ExternalItemRepositoryProtocol,
     FieldDefinitionDTO,
     FieldKind,
     Layout,
@@ -202,23 +205,32 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
             )
 
 
+def _published() -> QuerySet[Entry]:
+    return (
+        Entry.objects.filter(status=EntryStatus.PUBLISHED)
+        .select_related("type", "cover")
+        .prefetch_related(
+            "tags",
+            "syndication",
+            Prefetch("parts", queryset=Part.objects.select_related("asset")),
+            Prefetch(
+                "relations", queryset=Relation.objects.select_related("to_entry__type")
+            ),
+        )
+    )
+
+
 class EntryRepository(EntryRepositoryProtocol):
     @override
     def list_published(self) -> list[EntryDTO]:
-        entries = (
-            Entry.objects.filter(status=EntryStatus.PUBLISHED)
-            .select_related("type", "cover")
-            .prefetch_related(
-                "tags",
-                "syndication",
-                Prefetch("parts", queryset=Part.objects.select_related("asset")),
-                Prefetch(
-                    "relations",
-                    queryset=Relation.objects.select_related("to_entry__type"),
-                ),
-            )
-            .order_by("type__order", "type__key", "slug")
-        )
+        entries = _published().order_by("type__order", "type__key", "slug")
+        return [_entry_dto(entry) for entry in entries]
+
+    @override
+    def search(self, terms: Sequence[str]) -> list[EntryDTO]:
+        entries = _published()
+        for term in terms:
+            entries = entries.filter(search_text__icontains=term)
         return [_entry_dto(entry) for entry in entries]
 
     @override
@@ -359,3 +371,10 @@ class AccountRepository(AccountRepositoryProtocol):
         user.set_password(password)
         user.save(update_fields=["password"])
         return created
+
+
+class ExternalItemRepository(ExternalItemRepositoryProtocol):
+    @override
+    def list_recent(self, limit: int) -> list[ExternalItemDTO]:
+        items = ExternalItem.objects.filter(entry__isnull=True)[:limit]
+        return [ExternalItemDTO.model_validate(item) for item in items]

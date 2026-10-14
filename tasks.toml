@@ -50,3 +50,13 @@ run = [
 [fullcheck]
 description = "The commit gate for people: pr-fix plus the debt budget, which needs judgement when it fails"
 run = [{ task = "pr-fix" }, { task = "lint:tingle" }]
+
+["i18n:make"]
+description = "Extract UI strings into the pl and en catalogs"
+dir = "src/lapidarium"
+run = "django-admin makemessages -l pl -l en --no-location --no-wrap"
+
+["i18n:compile"]
+description = "Compile the catalogs; .mo files are build output, never committed"
+dir = "src/lapidarium"
+run = "django-admin compilemessages"

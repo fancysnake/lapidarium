@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from lapidarium.mills import LocalSetupService
+from lapidarium.mills.content import LocalSetupService
 from lapidarium.pacts import ContentSummaryDTO, LocalSetupDTO
 
 

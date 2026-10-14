@@ -1,0 +1,10 @@
+{% load i18n lapidarium %}
+<li class="feed__item" data-type="{{ item.type_key }}">
+  <span class="feed__meta"><time datetime="{{ item.when|date:'c' }}">{{ item.when|date:"SHORT_DATE_FORMAT" }}</time> · <span class="feed__type">{{ item.type_label }}</span></span>
+  {% if item.entry %}
+    <a class="feed__title" href="{% entry_url item.entry %}">{{ item.title }}</a>
+    {% if item.change == "updated" %}<span class="feed__change">({% translate "updated" %})</span>{% endif %}
+  {% else %}
+    <a class="feed__title" href="{{ item.url }}" rel="noopener">{{ item.title }}</a>
+  {% endif %}
+</li>

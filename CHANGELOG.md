@@ -22,5 +22,17 @@ All notable changes to this project are documented here. The format follows
   `export_content` and `import_content`; `load_demo ttrpg|dev` loads a bundled
   set in the same format; `setup_local` migrates, loads a demo and ensures an
   admin login, refused unless `DEBUG`.
+- Public site: home page with a door per content type, what's new and the next
+  calendar entry; a list per type with filters and pages (upcoming and archive
+  for calendar types); detail pages laid out as article, media first or
+  gallery, with parts, metadata, containers, related entries and an author
+  box; about page with a timeline of projects; search; RSS and iCal feeds.
+- Newsletter (Mailchimp or log) and contact form, with a honeypot and a rate
+  limit per sender.
+- Rendered public pages cached, cleared on every content change.
+- Base theme tokens and `base.css` ported from the prototype; type colours come
+  from the admin. Videos load only when played; every page works without
+  JavaScript.
+- Polish and English UI catalogs; `mise run i18n:make` and `i18n:compile`.
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.

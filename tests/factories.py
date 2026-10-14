@@ -1,10 +1,17 @@
-"""Write shapes with every key filled, for tests to override what they care about."""
+"""Write shapes and DTOs with every key filled, for tests to override what matters."""
+
+import datetime as dt
 
 from lapidarium.pacts import (
     BUILTIN_DEFAULTS,
+    EntryDTO,
+    EntryRefDTO,
     EntryStatus,
+    EntryTypeDTO,
+    FieldDefinitionDTO,
     FieldKind,
     PartKind,
+    RelationDTO,
     TypeRole,
     UrlKind,
 )
@@ -88,3 +95,50 @@ def entry_data(slug="moose", entry_type="session", **overrides):
         "updated_at": None,
     }
     return builtins(**(defaults | overrides))
+
+
+NOW = dt.datetime(2026, 10, 14, 12, tzinfo=dt.UTC)
+
+
+def field_dto(key, kind=FieldKind.TEXT, **overrides):
+    return FieldDefinitionDTO(**field_data(key, kind, **overrides))
+
+
+def type_dto(key="session", *, fields=(), **overrides):
+    return EntryTypeDTO(
+        **type_data(key, fields=fields, **{"tint": "#eeeeee", **overrides})
+    )
+
+
+def ref_dto(slug, type_key="session", *, status=EntryStatus.PUBLISHED):
+    return EntryRefDTO(type_key=type_key, slug=slug, title=slug.title(), status=status)
+
+
+def relation_dto(role, slug, *, type_key="session"):
+    return RelationDTO(role=role, target=ref_dto(slug, type_key))
+
+
+def entry_dto(slug="moose", type_key="session", **overrides):
+    return EntryDTO(
+        **{
+            **BUILTIN_DEFAULTS,
+            "type_key": type_key,
+            "slug": slug,
+            "title": slug.title(),
+            "summary": "One sentence.",
+            "external_url": "",
+            "status": EntryStatus.PUBLISHED,
+            "featured": False,
+            "hide_from_whats_new": False,
+            "license": "",
+            "cover": None,
+            "tags": (),
+            "metadata": {},
+            "parts": (),
+            "relations": (),
+            "syndication": (),
+            "created_at": NOW - dt.timedelta(days=30),
+            "updated_at": NOW - dt.timedelta(days=30),
+            **overrides,
+        }
+    )

@@ -3,32 +3,53 @@
 from __future__ import annotations
 
 from functools import cached_property
+from random import SystemRandom
 from typing import TYPE_CHECKING
+
+from django.conf import settings
+from django.utils import timezone
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
 from lapidarium.links.db.django.repositories import (
     AccountRepository,
     EntryRepository,
     EntryTypeRepository,
+    ExternalItemRepository,
     MediaAssetRepository,
     ProfileRepository,
 )
 from lapidarium.links.db.django.transaction import DjangoTransaction
-from lapidarium.mills import (
+from lapidarium.links.mail.django import DjangoMailer
+from lapidarium.links.newsletter.log import LogNewsletter
+from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
+from lapidarium.links.throttle.django import CacheThrottle
+from lapidarium.mills.catalogue import CatalogueService
+from lapidarium.mills.content import (
     ContentExportService,
     ContentImportService,
     LocalSetupService,
-    SchemaService,
 )
+from lapidarium.mills.outreach import OutreachService
+from lapidarium.mills.schema import SchemaService
+from lapidarium.mills.site import SiteService
 from lapidarium.pacts import ServicesProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from lapidarium.pacts import RootRequestProtocol
+    from lapidarium.pacts import NewsletterProtocol, RootRequestProtocol
 
 # Page background of the base theme, until themes supply their own.
 THEME_BACKGROUND = "#ffffff"
+
+
+def newsletter() -> NewsletterProtocol:
+    """Return the provider `NEWSLETTER_BACKEND` names."""
+    if settings.NEWSLETTER_BACKEND == "mailchimp":
+        return MailchimpNewsletter(
+            api_key=settings.MAILCHIMP_API_KEY, list_id=settings.MAILCHIMP_LIST_ID
+        )
+    return LogNewsletter()
 
 
 class Repositories:
@@ -57,6 +78,10 @@ class Repositories:
     @cached_property
     def accounts(self) -> AccountRepository:
         return AccountRepository()
+
+    @cached_property
+    def external_items(self) -> ExternalItemRepository:
+        return ExternalItemRepository()
 
 
 class Services(ServicesProtocol):
@@ -99,6 +124,36 @@ class Services(ServicesProtocol):
             content_import=self.content_import,
             transaction=DjangoTransaction(),
             accounts=self._repositories.accounts,
+        )
+
+    @cached_property
+    def site(self) -> SiteService:
+        repos = self._repositories
+        return SiteService(
+            schema=self.schema,
+            types=repos.entry_types,
+            entries=repos.entries,
+            profile=repos.profile,
+        )
+
+    @cached_property
+    def catalogue(self) -> CatalogueService:
+        repos = self._repositories
+        return CatalogueService(
+            types=repos.entry_types,
+            entries=repos.entries,
+            external=repos.external_items,
+            clock=timezone.now,
+            rng=SystemRandom(),
+        )
+
+    @cached_property
+    def outreach(self) -> OutreachService:
+        return OutreachService(
+            newsletter=newsletter(),
+            mailer=DjangoMailer(),
+            throttle=CacheThrottle(),
+            profile=self._repositories.profile,
         )
 
 

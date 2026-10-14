@@ -1,0 +1,5 @@
+{% load lapidarium %}
+<section class="part-text">
+  {% if part.caption %}<h2 class="section-title">{{ part.caption }}</h2>{% endif %}
+  {{ part.text|markdown }}
+</section>

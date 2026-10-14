@@ -1,0 +1,20 @@
+{% include "lapidarium/components/detail-hero.html" %}
+<div class="detail-layout">
+  <div class="detail-layout__main">
+    <ul class="gallery">
+      {% for part in entry.parts %}
+        {% if part.kind == "image" %}
+          <li>{% include "lapidarium/parts/image.html" %}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+    {% for part in entry.parts %}
+      {% if part.kind != "image" %}
+        {% include "lapidarium/components/part.html" %}
+      {% endif %}
+    {% endfor %}
+  </div>
+  <aside class="detail-layout__aside">
+    {% include "lapidarium/components/detail-aside.html" %}
+  </aside>
+</div>

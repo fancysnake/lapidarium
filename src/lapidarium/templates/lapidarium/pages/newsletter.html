@@ -1,0 +1,31 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Newsletter" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="container page">
+    <h1 class="page__title">{% translate "Newsletter" %}</h1>
+    {% if subscribed %}
+      <p class="notice" role="status">{% translate "Almost there: check your inbox and confirm the subscription." %}</p>
+    {% else %}
+      {% include "lapidarium/components/problem.html" %}
+      <form class="form" method="post">
+        <div class="form__field">
+          <label class="label" for="newsletter-email">{{ form.email.label }}</label>
+          <input class="input"
+                 id="newsletter-email"
+                 name="email"
+                 type="email"
+                 autocomplete="email"
+                 value="{{ form.email.value|default_if_none:'' }}"
+                 required>
+          {% include "lapidarium/components/form-errors.html" with errors=form.email.errors %}
+        </div>
+        <div class="form__trap" aria-hidden="true">
+          <label for="newsletter-website">{% translate "Leave this empty" %}</label>
+          <input id="newsletter-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <button class="btn btn--primary" type="submit">{% translate "Subscribe" %}</button>
+      </form>
+    {% endif %}
+  </main>
+{% endblock main %}

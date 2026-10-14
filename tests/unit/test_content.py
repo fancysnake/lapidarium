@@ -4,7 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lapidarium.mills import ContentExportService, ContentImportService, SchemaService
+from lapidarium.mills.content import ContentExportService, ContentImportService
+from lapidarium.mills.schema import SchemaService
 from lapidarium.pacts import (
     BundleValidationError,
     ContentSummaryDTO,

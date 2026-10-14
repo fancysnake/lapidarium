@@ -1,0 +1,6 @@
+{% load i18n %}
+{% if problem == "busy" %}
+  <p class="notice" role="alert">{% translate "That was a lot of tries in a short time. Please wait a while and try again." %}</p>
+{% elif problem == "provider" %}
+  <p class="notice" role="alert">{% translate "Something went wrong on the way. Please try again later." %}</p>
+{% endif %}

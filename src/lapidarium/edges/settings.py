@@ -15,6 +15,14 @@ env = environ.Env(
     ADMIN_URL=(str, "admin/"),
     ALLOWED_HOSTS=(list, ["localhost"]),
     AWS_STORAGE_BUCKET_NAME=(str, ""),
+    CACHE_URL=(str, "locmemcache://"),
+    DEFAULT_FROM_EMAIL=(str, "webmaster@localhost"),
+    EMAIL_URL=(str, "consolemail://"),
+    MAILCHIMP_API_KEY=(str, ""),
+    MAILCHIMP_LIST_ID=(str, ""),
+    NEWSLETTER_BACKEND=(str, "log"),
+    PAGE_CACHE_SECONDS=(int, 600),
+    PAGE_CACHE_URL=(str, "filecache:///tmp/lapidarium-pages"),
     DEBUG=(bool, False),
     ENV=(str, "production"),
     LANGUAGE_CODE=(str, "pl"),
@@ -140,6 +148,38 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# "pages" holds rendered public pages and is cleared on every content commit,
+# so it must be shared by all workers: the default is a directory, not memory.
+CACHES = {"default": env.cache("CACHE_URL"), "pages": env.cache("PAGE_CACHE_URL")}
+PAGE_CACHE_SECONDS: int = env("PAGE_CACHE_SECONDS")
+
+_EMAIL = env.email_url("EMAIL_URL")
+_SMTP_OPTIONS = {
+    "host": "EMAIL_HOST",
+    "port": "EMAIL_PORT",
+    "username": "EMAIL_HOST_USER",
+    "password": "EMAIL_HOST_PASSWORD",
+    "use_tls": "EMAIL_USE_TLS",
+    "use_ssl": "EMAIL_USE_SSL",
+}
+# Only the SMTP backend takes connection options; the others reject them.
+MAILERS = {
+    "default": {
+        "BACKEND": _EMAIL["EMAIL_BACKEND"],
+        "OPTIONS": (
+            {key: _EMAIL[name] for key, name in _SMTP_OPTIONS.items() if name in _EMAIL}
+            if _EMAIL["EMAIL_BACKEND"].endswith(".smtp.EmailBackend")
+            else {}
+        ),
+    }
+}
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+
+# "log" or "mailchimp".
+NEWSLETTER_BACKEND: str = env("NEWSLETTER_BACKEND")
+MAILCHIMP_API_KEY: str = env("MAILCHIMP_API_KEY")
+MAILCHIMP_LIST_ID: str = env("MAILCHIMP_LIST_ID")
 
 UNFOLD = {
     "SITE_TITLE": SITE_NAME,

@@ -1,0 +1,22 @@
+{% load i18n lapidarium %}
+<figure class="part-figure">
+  {% with embed=part.url|video_embed %}
+    {% if embed %}
+      <a class="video-facade"
+         href="{{ part.url }}"
+         data-embed-url="{{ embed }}"
+         data-title="{% if part.caption %}{{ part.caption }}{% else %}{{ entry.title }}{% endif %}">
+        <span class="video-facade__play" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"></path>
+          </svg>
+        </span>
+        <span class="video-facade__note">{{ part.url|host }} · {% translate "loads when played" %}</span>
+        <span class="visually-hidden">{% translate "Play the video" %}</span>
+      </a>
+    {% else %}
+      {% include "lapidarium/parts/link-card.html" with url=part.url sign="▶" %}
+    {% endif %}
+  {% endwith %}
+  {% if part.caption %}<figcaption>{{ part.caption }}</figcaption>{% endif %}
+</figure>

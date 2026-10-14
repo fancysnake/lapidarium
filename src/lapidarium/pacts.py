@@ -86,6 +86,19 @@ class RelationRole(StrEnum):
     RELATED = "related"
 
 
+class FeedChange(StrEnum):
+    ADDED = "added"
+    UPDATED = "updated"
+    EXTERNAL = "external"
+
+
+class ListFilter(StrEnum):
+    """Built-in list filters; the others are keys of the type's fields."""
+
+    YEAR = "year"
+    TAG = "tag"
+
+
 # Which role-dependent built-ins a type's entries carry, and which they must fill.
 # Columns outside this map (title, summary, status, cover, tags…) apply to every role.
 ROLE_BUILTINS: Mapping[TypeRole, frozenset[str]] = {
@@ -132,6 +145,8 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 }
 SUMMARY_MAX_LENGTH = 200
 EXPORT_FORMAT_VERSION = 1
+# Cache alias for rendered public pages; every content commit clears it.
+PAGE_CACHE = "pages"
 
 type MetadataValue = str | int | float | bool
 type Metadata = dict[str, MetadataValue]
@@ -163,6 +178,14 @@ class BundleValidationError(Exception):
             )
         )
         self.errors = {where: list(msgs) for where, msgs in errors.items()}
+
+
+class RateLimitedError(Exception):
+    """The sender has used up their attempts for now."""
+
+
+class DeliveryError(Exception):
+    """A mail or newsletter provider did not take the message."""
 
 
 # Write shapes: what gates and the content store hand to mills, and mills to links.
@@ -292,6 +315,21 @@ class ContentBundle(TypedDict):
     types: list[EntryTypeData]
     entries: list[EntryData]
     assets: list[AssetData]
+
+
+class ContactData(TypedDict):
+    name: str
+    email: str
+    message: str
+    # A field people never see; anything in it was filled in by a bot.
+    trap: str
+
+
+class MailData(TypedDict):
+    subject: str
+    body: str
+    to: str
+    reply_to: str
 
 
 # DTOs
@@ -449,6 +487,120 @@ class LocalSetupDTO(BaseModel):
     superuser_created: bool
 
 
+class ExternalItemDTO(BaseModel):
+    model_config = ConfigDict(frozen=True, from_attributes=True)
+
+    source: str
+    title: str
+    url: str
+    published_at: dt.datetime
+
+
+class FactDTO(BaseModel):
+    """One schema field of an entry, ready to show; relation fields carry `refs`."""
+
+    model_config = ConfigDict(frozen=True)
+
+    label: str
+    kind: FieldKind
+    value: MetadataValue | None
+    refs: tuple[EntryRefDTO, ...]
+
+
+class CardDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    entry: EntryDTO
+    entry_type: EntryTypeDTO
+    facts: tuple[FactDTO, ...]
+
+
+class DoorDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    entry_type: EntryTypeDTO
+    label: str
+    pick: CardDTO
+
+
+class FeedItemDTO(BaseModel):
+    """A line of "what's new": an entry, or an item from a feed elsewhere."""
+
+    model_config = ConfigDict(frozen=True)
+
+    change: FeedChange
+    when: dt.datetime
+    title: str
+    type_key: str
+    type_label: str
+    entry: EntryRefDTO | None
+    url: str
+
+
+class HomeDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    doors: tuple[DoorDTO, ...]
+    whats_new: tuple[FeedItemDTO, ...]
+    next_up: CardDTO | None
+
+
+class FilterDTO(BaseModel):
+    """A list filter; `label` is empty for the built-ins, which gates name."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    options: tuple[str, ...]
+    selected: str
+
+
+class ListingDTO(BaseModel):
+    """One page of a type's list; calendar types also get every upcoming entry."""
+
+    model_config = ConfigDict(frozen=True)
+
+    entry_type: EntryTypeDTO
+    filters: tuple[FilterDTO, ...]
+    upcoming: tuple[CardDTO, ...]
+    cards: tuple[CardDTO, ...]
+    page: int
+    pages: int
+    total: int
+
+
+class DetailDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    card: CardDTO
+    panel: tuple[FactDTO, ...]
+    containers: tuple[EntryRefDTO, ...]
+    contents: tuple[CardDTO, ...]
+    related: tuple[CardDTO, ...]
+    siblings: tuple[CardDTO, ...]
+
+
+class SiteDTO(BaseModel):
+    """What every public page shows around its content."""
+
+    model_config = ConfigDict(frozen=True)
+
+    profile: ProfileDTO | None
+    links: tuple[LinkDTO, ...]
+    types: tuple[EntryTypeDTO, ...]
+    menu: tuple[EntryTypeDTO, ...]
+    type_css: str
+
+
+class AboutDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    profile: ProfileDTO | None
+    links: tuple[LinkDTO, ...]
+    timeline: tuple[CardDTO, ...]
+
+
 # Repository and port protocols
 
 
@@ -468,6 +620,9 @@ class EntryTypeRepositoryProtocol(Protocol):
 
 class EntryRepositoryProtocol(Protocol):
     def list_published(self) -> list[EntryDTO]: ...
+
+    def search(self, terms: Sequence[str]) -> list[EntryDTO]:
+        """Return published entries whose text holds every term, ignoring case."""
 
     def save(self, data: EntryData) -> None:
         """Create or update by type and slug; relations are left alone."""
@@ -496,6 +651,26 @@ class ProfileRepositoryProtocol(Protocol):
     def save(self, data: ProfileData) -> None: ...
 
     def replace_links(self, links: Sequence[LinkData]) -> None: ...
+
+
+class ExternalItemRepositoryProtocol(Protocol):
+    def list_recent(self, limit: int) -> list[ExternalItemDTO]:
+        """Newest first, unless linked to an entry, which speaks for them."""
+
+
+class NewsletterProtocol(Protocol):
+    def subscribe(self, email: str) -> None:
+        """Add `email`, or leave an existing subscriber be; `DeliveryError` else."""
+
+
+class MailerProtocol(Protocol):
+    def send(self, mail: MailData) -> None:
+        """Send one message; `DeliveryError` when it cannot."""
+
+
+class ThrottleProtocol(Protocol):
+    def allow(self, key: str, *, limit: int, window: dt.timedelta) -> bool:
+        """Count one attempt under `key`; False once `limit` are used in `window`."""
 
 
 class AccountRepositoryProtocol(Protocol):
@@ -582,6 +757,42 @@ class LocalSetupServiceProtocol(Protocol):
     def set_up(self, demo: str, *, username: str, password: str) -> LocalSetupDTO: ...
 
 
+class SiteServiceProtocol(Protocol):
+    def chrome(self) -> SiteDTO: ...
+
+    def about(self) -> AboutDTO: ...
+
+
+class CatalogueServiceProtocol(Protocol):
+    def home(self) -> HomeDTO: ...
+
+    def listing(
+        self, route: str, *, filters: Mapping[str, str], page: int
+    ) -> ListingDTO:
+        """`NotFoundError` for an unknown route or a page past the last."""
+
+    def detail(self, route: str, slug: str) -> DetailDTO:
+        """`NotFoundError` unless published, on a type with detail pages."""
+
+    def whats_new(self) -> tuple[FeedItemDTO, ...]: ...
+
+    def search(self, query: str) -> tuple[CardDTO, ...]: ...
+
+    def upcoming(self) -> tuple[CardDTO, ...]:
+        """Calendar entries not yet over, soonest first."""
+
+
+class OutreachServiceProtocol(Protocol):
+    def can_contact(self) -> bool:
+        """Whether the profile has an address for the contact form to reach."""
+
+    def subscribe(self, email: str, *, trap: str, sender: str) -> None:
+        """`RateLimitedError` or `DeliveryError`; a filled `trap` is let go quietly."""
+
+    def contact(self, message: ContactData, *, sender: str) -> None:
+        """Mail the profile; `NotFoundError` without an address to mail to."""
+
+
 class ServicesProtocol(Protocol):
     """The flat service namespace a gate reaches as `request.services`."""
 
@@ -596,6 +807,15 @@ class ServicesProtocol(Protocol):
 
     @property
     def local_setup(self) -> LocalSetupServiceProtocol: ...
+
+    @property
+    def site(self) -> SiteServiceProtocol: ...
+
+    @property
+    def catalogue(self) -> CatalogueServiceProtocol: ...
+
+    @property
+    def outreach(self) -> OutreachServiceProtocol: ...
 
 
 class RootRequestProtocol(Protocol):

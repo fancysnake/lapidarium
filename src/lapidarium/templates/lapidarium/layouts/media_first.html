@@ -1,0 +1,21 @@
+{% include "lapidarium/components/detail-hero.html" %}
+<div class="detail-layout detail-layout--media-first">
+  <div class="detail-layout__main">
+    {% for part in entry.parts %}
+      {% if part.kind != "text" %}
+        {% include "lapidarium/components/part.html" %}
+      {% endif %}
+    {% endfor %}
+    {% if entry.cover %}
+      <img class="detail-hero__cover" src="{{ entry.cover.url }}" alt="{{ entry.cover.alt }}">
+    {% endif %}
+    {% for part in entry.parts %}
+      {% if part.kind == "text" %}
+        {% include "lapidarium/components/part.html" %}
+      {% endif %}
+    {% endfor %}
+  </div>
+  <aside class="detail-layout__aside">
+    {% include "lapidarium/components/detail-aside.html" %}
+  </aside>
+</div>

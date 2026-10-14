@@ -1,0 +1,34 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n lapidarium %}
+{% block title %}{{ detail.card.entry.title }} · {{ detail.card.entry_type.label }} · {{ site_name }}{% endblock title %}
+{% block meta %}
+  {% with entry=detail.card.entry %}
+    <meta name="description" content="{{ entry.summary }}">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ entry.title }}">
+    <meta property="og:description" content="{{ entry.summary }}">
+    {% if entry.cover %}
+      <meta property="og:image" content="{% absolute entry.cover.url %}">
+    {% elif site.profile.photo %}
+      <meta property="og:image" content="{% absolute site.profile.photo.url %}">
+    {% endif %}
+  {% endwith %}
+{% endblock meta %}
+{% block main %}
+  {% with entry=detail.card.entry entry_type=detail.card.entry_type %}
+    <main class="container page" data-type="{{ entry.type_key }}">
+      {% include layout %}
+      {% if detail.contents %}
+        <section aria-labelledby="contents-title">
+          <h2 class="section-title" id="contents-title">{% translate "Inside" %}</h2>
+          <ul class="cards">
+            {% for card in detail.contents %}
+              <li>{% include "lapidarium/components/card.html" %}</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+      {% include "lapidarium/components/author-box.html" %}
+    </main>
+  {% endwith %}
+{% endblock main %}

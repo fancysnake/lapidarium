@@ -1,0 +1,11 @@
+{% load i18n %}
+<figure class="part-figure part-audio">
+  {% if part.asset %}
+    <audio controls preload="none" src="{{ part.asset.url }}">
+      <a href="{{ part.asset.url }}">{% translate "Download the recording" %}</a>
+    </audio>
+    {% if part.caption %}<figcaption>{{ part.caption }}</figcaption>{% endif %}
+  {% else %}
+    {% include "lapidarium/parts/link-card.html" with url=part.url sign="♪" %}
+  {% endif %}
+</figure>
