@@ -73,6 +73,11 @@ class EntryStatus(StrEnum):
     PUBLISHED = "published"
 
 
+class ProblemLevel(StrEnum):
+    ERROR = "error"
+    WARNING = "warning"
+
+
 class Outcome(StrEnum):
     ONGOING = "ongoing"
     FINISHED = "finished"
@@ -145,6 +150,38 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 }
 SUMMARY_MAX_LENGTH = 200
 EXPORT_FORMAT_VERSION = 1
+# The theme contract: every token a page may rely on. Renaming one breaks themes.
+REQUIRED_TOKENS = frozenset(
+    {
+        "--color-bg",
+        "--color-surface",
+        "--color-surface-2",
+        "--color-surface-band",
+        "--color-text",
+        "--color-text-strong",
+        "--color-text-muted",
+        "--color-border",
+        "--color-border-soft",
+        "--color-link",
+        "--color-link-hover",
+        "--color-brand",
+        "--color-brand-contrast",
+        "--color-type-default",
+        "--color-type-default-tint",
+        "--font-body",
+        "--font-display",
+        "--font-label",
+        "--text-base",
+        "--text-label",
+        "--text-h1",
+        "--text-h1-detail",
+        "--text-h2",
+        *(f"--space-{step}" for step in range(1, 10)),
+        "--max-width",
+        "--gutter",
+    }
+)
+
 # Cache alias for rendered public pages; every content commit clears it.
 PAGE_CACHE = "pages"
 
@@ -581,11 +618,36 @@ class DetailDTO(BaseModel):
     siblings: tuple[CardDTO, ...]
 
 
+class ThemeDTO(BaseModel):
+    """A theme directory as read: `theme.toml` and the tokens its CSS sets."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    name: str
+    version: str
+    engine: str
+    fonts: tuple[str, ...]
+    has_stylesheet: bool
+    tokens: dict[str, str]
+    dark_tokens: dict[str, str]
+    templates: tuple[str, ...]
+
+
+class ProblemDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    level: ProblemLevel
+    code: str
+    message: str
+
+
 class SiteDTO(BaseModel):
     """What every public page shows around its content."""
 
     model_config = ConfigDict(frozen=True)
 
+    theme: ThemeDTO
     profile: ProfileDTO | None
     links: tuple[LinkDTO, ...]
     types: tuple[EntryTypeDTO, ...]
@@ -671,6 +733,15 @@ class MailerProtocol(Protocol):
 class ThrottleProtocol(Protocol):
     def allow(self, key: str, *, limit: int, window: dt.timedelta) -> bool:
         """Count one attempt under `key`; False once `limit` are used in `window`."""
+
+
+class ThemeStoreProtocol(Protocol):
+    def base(self) -> ThemeDTO: ...
+
+    def active(self) -> ThemeDTO: ...
+
+    def engine_templates(self) -> frozenset[str]:
+        """Paths of the templates the engine ships, as themes override them."""
 
 
 class AccountRepositoryProtocol(Protocol):
@@ -793,6 +864,19 @@ class OutreachServiceProtocol(Protocol):
         """Mail the profile; `NotFoundError` without an address to mail to."""
 
 
+class ThemeServiceProtocol(Protocol):
+    def active(self) -> ThemeDTO: ...
+
+    def check(self) -> list[ProblemDTO]:
+        """Return what is wrong with the active theme, errors first."""
+
+    def background(self) -> str:
+        """Return the page background type colours must stand out against."""
+
+    def dark_background(self) -> str | None:
+        """Return the background of the dark scheme, if the theme has one."""
+
+
 class ServicesProtocol(Protocol):
     """The flat service namespace a gate reaches as `request.services`."""
 
@@ -816,6 +900,9 @@ class ServicesProtocol(Protocol):
 
     @property
     def outreach(self) -> OutreachServiceProtocol: ...
+
+    @property
+    def theme(self) -> ThemeServiceProtocol: ...
 
 
 class RootRequestProtocol(Protocol):

@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 
 from lapidarium.mills.catalogue import Catalogue, newest_first
+from lapidarium.mills.schema import mix
 from lapidarium.pacts import CONTAINER_ROLES, AboutDTO, SiteDTO, SiteServiceProtocol
+from lapidarium.specs import TINT_MIX
 
 if TYPE_CHECKING:
     from lapidarium.pacts import (
@@ -13,6 +15,7 @@ if TYPE_CHECKING:
         EntryTypeRepositoryProtocol,
         ProfileRepositoryProtocol,
         SchemaServiceProtocol,
+        ThemeServiceProtocol,
     )
 
 
@@ -24,8 +27,10 @@ class SiteService(SiteServiceProtocol):
         types: EntryTypeRepositoryProtocol,
         entries: EntryRepositoryProtocol,
         profile: ProfileRepositoryProtocol,
+        theme: ThemeServiceProtocol,
     ) -> None:
         self._schema = schema
+        self._theme = theme
         self._types = types
         self._entries = entries
         self._profile = profile
@@ -39,12 +44,20 @@ class SiteService(SiteServiceProtocol):
             f" --type-tint: {t.tint or self._schema.derive_tint(t.colour)}; }}"
             for t in types
         )
+        if dark := self._theme.dark_background():
+            rules = "\n".join(
+                f'  [data-type="{t.key}"] {{ --type-tint:'
+                f" {mix(t.colour, dark, share=TINT_MIX)}; }}"
+                for t in types
+            )
+            type_css += f"\n@media (prefers-color-scheme: dark) {{\n{rules}\n}}"
         return SiteDTO(
             profile=self._profile.get(),
             links=tuple(self._profile.list_links()),
             types=tuple(types),
             menu=tuple(t for t in types if t.in_menu),
             type_css=type_css,
+            theme=self._theme.active(),
         )
 
     @override

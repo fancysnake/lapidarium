@@ -1,0 +1,33 @@
+/* GM screen: overrides the base tokens it differs from. */
+:root {
+  --color-link: #006400;
+  --color-link-hover: #004700;
+
+  /* Brand: office green */
+  --color-brand: #008000;
+  --color-brand-contrast: #ffffff;
+
+  --font-body: "Spectral", Georgia, serif;
+  --font-display: "Spectral SC", "Spectral", Georgia, serif;
+  --font-label: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #121412;
+    --color-surface: #1b1e1b;
+    --color-surface-2: #252925;
+    --color-surface-band: #171a17;
+    --color-text: #ecefe9;
+    --color-text-strong: #f5f7f3;
+    --color-text-muted: #a9b0a6;
+    --color-border: #343a33;
+    --color-border-soft: #262b26;
+    --color-link: #7fd27f;
+    --color-link-hover: #a6e3a6;
+    --color-brand: #6cc86c;
+    --color-brand-contrast: #0b130b;
+    --color-type-default: #ecefe9;
+    --color-type-default-tint: #252925;
+  }
+}

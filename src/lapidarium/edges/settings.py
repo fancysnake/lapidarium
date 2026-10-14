@@ -7,6 +7,7 @@ module of its own is only needed for values the environment cannot express.
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 # src/lapidarium
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,6 +31,8 @@ env = environ.Env(
     MEDIA_URL=(str, "/media/"),
     SECRET_KEY=str,
     SITE_NAME=(str, "lapidarium"),
+    SITE_THEME=(str, "base"),
+    SITE_THEME_DIRS=(list, []),
     STATIC_ROOT=(str, "staticfiles"),
     TIME_ZONE=(str, "Europe/Warsaw"),
 )
@@ -41,6 +44,24 @@ SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
 
 SITE_NAME = env("SITE_NAME")
+
+# Themes: the engine ships `base` (always loaded first) and `gm-screen`; an
+# instance adds its own directories, searched before the engine's.
+ENGINE_THEMES = BASE_DIR / "themes"
+ENGINE_TEMPLATES: Path = BASE_DIR / "templates"
+BASE_THEME_DIR: Path = ENGINE_THEMES / "base"
+SITE_THEME: str = env("SITE_THEME")
+
+
+def _theme_dir(name: str) -> Path:
+    for root in (*(Path(d) for d in env("SITE_THEME_DIRS")), ENGINE_THEMES):
+        if (root / name / "tokens.css").is_file():
+            return root / name
+    msg = f"SITE_THEME {name!r}: no theme directory with a tokens.css."
+    raise ImproperlyConfigured(msg)
+
+
+THEME_DIR: Path = _theme_dir(SITE_THEME)
 ADMIN_URL = env("ADMIN_URL")
 
 INSTALLED_APPS = [
@@ -79,7 +100,8 @@ SERVICES_FACTORY = "lapidarium.inits.Services"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        # The theme's templates override the engine's, file by file.
+        "DIRS": [THEME_DIR / "templates", ENGINE_TEMPLATES],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -123,7 +145,11 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT")
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    ("themes/base", BASE_THEME_DIR),
+    *([(f"themes/{SITE_THEME}", THEME_DIR)] if THEME_DIR != BASE_THEME_DIR else []),
+]
 MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")
 

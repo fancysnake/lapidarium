@@ -1,0 +1,8 @@
+# "GM screen": serif type, small caps and an office-green brand, coloured
+# like the prototype. Loaded over the base theme, so it sets only what differs.
+name = "GM screen"
+version = "1.0.0"
+engine = "0.1"
+fonts = [
+  "https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=Spectral+SC:wght@600&family=Barlow+Condensed:wght@500;600&display=swap",
+]

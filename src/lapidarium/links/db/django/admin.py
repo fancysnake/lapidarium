@@ -135,6 +135,10 @@ def _can(permission: str) -> Callable[[HttpRequest], bool]:
     return lambda request: request.user.has_perm(f"lapidarium_db.{permission}")
 
 
+def _is_staff(request: HttpRequest) -> bool:
+    return bool(request.user.is_staff)
+
+
 def _item(title: str, *, icon: str, model: str) -> NavItem:
     return {
         "title": title,
@@ -181,6 +185,12 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                 _item(gettext("Content types"), icon="category", model="entrytype"),
                 _item(gettext("Profile"), icon="person", model="profile"),
                 _item(gettext("Links"), icon="link", model="link"),
+                {
+                    "title": gettext("Theme preview"),
+                    "icon": "palette",
+                    "link": reverse("theme_preview"),
+                    "permission": _is_staff,
+                },
             ],
         },
     ]

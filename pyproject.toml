@@ -169,6 +169,7 @@ ignore_missing_imports = true
 module = [
     "lapidarium.edges.settings",
     "lapidarium.links.content_files.*",
+    "lapidarium.links.themes.*",
     "lapidarium.links.db.django.*",
     "lapidarium.gates.web.django.*",
 ]
@@ -400,6 +401,8 @@ ignore_names = [
     "to",
     # DTO fields only templates read
     "contents",
+    "fonts",
+    "has_stylesheet",
     "menu",
     "next_up",
     "panel",

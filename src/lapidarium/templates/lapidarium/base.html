@@ -24,9 +24,17 @@
           type="application/rss+xml"
           title="{% translate "What's new" %}"
           href="{% url 'rss' %}">
-    <link rel="stylesheet"
-          href="{% static 'lapidarium/themes/base/tokens.css' %}">
+    {% for font in site.theme.fonts %}<link rel="stylesheet" href="{{ font }}">{% endfor %}
+    <link rel="stylesheet" href="{% static 'themes/base/tokens.css' %}">
+    {% if site.theme.key != "base" %}
+      <link rel="stylesheet"
+            href="{% static 'themes/'|add:site.theme.key|add:'/tokens.css' %}">
+    {% endif %}
     <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
+    {% if site.theme.has_stylesheet %}
+      <link rel="stylesheet"
+            href="{% static 'themes/'|add:site.theme.key|add:'/theme.css' %}">
+    {% endif %}
     <style>{{ site.type_css|safe }}</style>
     <script type="module" src="{% static 'lapidarium/js/enhance.js' %}"></script>
   </head>

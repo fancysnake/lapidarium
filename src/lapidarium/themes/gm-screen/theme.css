@@ -1,0 +1,9 @@
+/* GM screen: component touches on top of base.css. */
+.hero__name,
+.door__title,
+.detail-hero__title { letter-spacing: 0.02em; }
+
+.door,
+.card { box-shadow: 0 1px 0 var(--color-border-soft); }
+
+.site-logo__mark { color: var(--color-brand); }

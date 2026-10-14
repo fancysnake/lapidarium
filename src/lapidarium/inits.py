@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import cached_property
+from importlib.metadata import version
 from random import SystemRandom
 from typing import TYPE_CHECKING
 
@@ -22,6 +23,7 @@ from lapidarium.links.db.django.transaction import DjangoTransaction
 from lapidarium.links.mail.django import DjangoMailer
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
+from lapidarium.links.themes.files import ThemeFiles
 from lapidarium.links.throttle.django import CacheThrottle
 from lapidarium.mills.catalogue import CatalogueService
 from lapidarium.mills.content import (
@@ -32,6 +34,7 @@ from lapidarium.mills.content import (
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
+from lapidarium.mills.theme import ThemeService
 from lapidarium.pacts import ServicesProtocol
 
 if TYPE_CHECKING:
@@ -39,8 +42,20 @@ if TYPE_CHECKING:
 
     from lapidarium.pacts import NewsletterProtocol, RootRequestProtocol
 
-# Page background of the base theme, until themes supply their own.
-THEME_BACKGROUND = "#ffffff"
+
+class Process:
+    """What lives as long as the process: built once, on first use."""
+
+    @cached_property
+    def themes(self) -> ThemeFiles:
+        return ThemeFiles(
+            base=settings.BASE_THEME_DIR,
+            active=settings.THEME_DIR,
+            engine_templates=settings.ENGINE_TEMPLATES,
+        )
+
+
+PROCESS = Process()
 
 
 def newsletter() -> NewsletterProtocol:
@@ -92,7 +107,7 @@ class Services(ServicesProtocol):
 
     @cached_property
     def schema(self) -> SchemaService:
-        return SchemaService(background=THEME_BACKGROUND)
+        return SchemaService(background=self.theme.background())
 
     @cached_property
     def content_export(self) -> ContentExportService:
@@ -134,6 +149,7 @@ class Services(ServicesProtocol):
             types=repos.entry_types,
             entries=repos.entries,
             profile=repos.profile,
+            theme=self.theme,
         )
 
     @cached_property
@@ -146,6 +162,10 @@ class Services(ServicesProtocol):
             clock=timezone.now,
             rng=SystemRandom(),
         )
+
+    @cached_property
+    def theme(self) -> ThemeService:
+        return ThemeService(store=PROCESS.themes, engine_version=version("lapidarium"))
 
     @cached_property
     def outreach(self) -> OutreachService:
