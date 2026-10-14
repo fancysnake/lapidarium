@@ -54,7 +54,7 @@ run = [{ task = "pr-fix" }, { task = "lint:tingle" }]
 ["i18n:make"]
 description = "Extract UI strings into the pl and en catalogs"
 dir = "src/lapidarium"
-run = "django-admin makemessages -l pl -l en --no-location --no-wrap"
+run = "django-admin makemessages -l pl -l en --no-location --no-wrap --no-obsolete"
 
 ["i18n:compile"]
 description = "Compile the catalogs; .mo files are build output, never committed"

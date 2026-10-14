@@ -1,8 +1,14 @@
 from unittest.mock import MagicMock
 
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 
-from lapidarium.inits import ServiceInjectionMiddleware, Services, newsletter
+from lapidarium.inits import (
+    ServiceInjectionMiddleware,
+    Services,
+    feed_sources,
+    newsletter,
+)
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
 from lapidarium.mills.catalogue import CatalogueService
@@ -11,6 +17,8 @@ from lapidarium.mills.content import (
     ContentImportService,
     LocalSetupService,
 )
+from lapidarium.mills.feeds import FeedSyncService
+from lapidarium.mills.health import ContentHealthService
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
@@ -39,6 +47,8 @@ def test_services_are_built_once_per_container():
     assert isinstance(services.site, SiteService)
     assert isinstance(services.catalogue, CatalogueService)
     assert isinstance(services.outreach, OutreachService)
+    assert isinstance(services.feed_sync, FeedSyncService)
+    assert isinstance(services.content_health, ContentHealthService)
 
 
 @pytest.mark.parametrize(
@@ -52,3 +62,27 @@ def test_newsletter_follows_the_setting(*, settings, monkeypatch, backend, expec
     settings.MAILCHIMP_API_KEY = "key-us1"
 
     assert isinstance(newsletter(), expected)
+
+
+def test_feed_sources_come_from_the_setting(settings):
+    settings.FEED_SOURCES = [
+        "youtube:UC1",
+        "github:owner/repo",
+        "atom:https://blog.example.com/feed.xml",
+    ]
+
+    names = [source.name for source in feed_sources()]
+
+    assert names == [
+        "YouTube https://www.youtube.com/feeds/videos.xml?channel_id=UC1",
+        "GitHub https://github.com/owner/repo/releases.atom",
+        "blog.example.com https://blog.example.com/feed.xml",
+    ]
+
+
+@pytest.mark.parametrize("item", ("vimeo:123", "youtube:", "nonsense"))
+def test_unreadable_feed_sources_stop_the_start(settings, item):
+    settings.FEED_SOURCES = [item]
+
+    with pytest.raises(ImproperlyConfigured):
+        feed_sources()

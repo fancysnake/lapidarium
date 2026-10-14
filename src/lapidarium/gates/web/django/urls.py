@@ -4,6 +4,7 @@ from django.urls import path
 
 from lapidarium.gates.web.django.about import about
 from lapidarium.gates.web.django.contact import contact
+from lapidarium.gates.web.django.content_health import content_health
 from lapidarium.gates.web.django.details import detail
 from lapidarium.gates.web.django.feeds import ical_feed, rss
 from lapidarium.gates.web.django.health import healthz
@@ -17,6 +18,7 @@ from lapidarium.gates.web.django.whats_new import whats_new
 # Fixed pages first: every other first segment is a content type's route.
 urlpatterns = [
     path(f"{settings.ADMIN_URL}theme-preview/", theme_preview, name="theme_preview"),
+    path(f"{settings.ADMIN_URL}content-health/", content_health, name="content_health"),
     path(settings.ADMIN_URL, admin.site.urls),
     path("healthz/", healthz, name="healthz"),
     path("", home, name="home"),

@@ -186,6 +186,12 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                 _item(gettext("Profile"), icon="person", model="profile"),
                 _item(gettext("Links"), icon="link", model="link"),
                 {
+                    "title": gettext("Content health"),
+                    "icon": "health_and_safety",
+                    "link": reverse("content_health"),
+                    "permission": _is_staff,
+                },
+                {
                     "title": gettext("Theme preview"),
                     "icon": "palette",
                     "link": reverse("theme_preview"),

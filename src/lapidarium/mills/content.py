@@ -17,6 +17,7 @@ from lapidarium.pacts import (
     EntryStatus,
     EntryTypeData,
     EntryTypeDTO,
+    ExportDTO,
     LocalSetupDTO,
     LocalSetupServiceProtocol,
     MetadataValidationError,
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
 
     from lapidarium.pacts import (
         AccountRepositoryProtocol,
+        ArchiveProtocol,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
         EntryTypeRepositoryProtocol,
@@ -142,12 +144,28 @@ class ContentExportService(ContentExportServiceProtocol):
         assets: MediaAssetRepositoryProtocol,
         profile: ProfileRepositoryProtocol,
         store: ContentStoreProtocol,
+        archive: ArchiveProtocol,
     ) -> None:
         self._types = types
         self._entries = entries
         self._assets = assets
         self._profile = profile
         self._store = store
+        self._archive = archive
+
+    @override
+    def publish(self, root: Path, *, push: bool) -> ExportDTO:
+        content = self.export(root)
+        committed = self._archive.commit(
+            root,
+            message=(
+                f"Export: {content.entries} entries, {content.types} types,"
+                f" {content.assets} assets"
+            ),
+        )
+        if push and committed:
+            self._archive.push(root)
+        return ExportDTO(content=content, committed=committed)
 
     @override
     def export(self, root: Path) -> ContentSummaryDTO:

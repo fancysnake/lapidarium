@@ -33,3 +33,6 @@ SEARCH_LIMIT = 50
 # Contact and newsletter attempts one sender may make per window.
 OUTREACH_LIMIT = 5
 OUTREACH_WINDOW = dt.timedelta(hours=1)
+
+# An ongoing container with nothing new for this long is probably finished.
+STALE_AFTER = dt.timedelta(days=183)

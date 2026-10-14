@@ -134,6 +134,7 @@ def test_sidebar_lists_content_types_then_site_records(admin):
         TYPES,
         "/admin/lapidarium_db/profile/",
         "/admin/lapidarium_db/link/",
+        "/admin/content-health/",
         "/admin/theme-preview/",
     ]
 

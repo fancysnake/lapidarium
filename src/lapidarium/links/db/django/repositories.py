@@ -57,6 +57,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts import (
         EntryData,
         EntryTypeData,
+        ExternalItemData,
         LinkData,
         ProfileData,
         RelationData,
@@ -378,3 +379,23 @@ class ExternalItemRepository(ExternalItemRepositoryProtocol):
     def list_recent(self, limit: int) -> list[ExternalItemDTO]:
         items = ExternalItem.objects.filter(entry__isnull=True)[:limit]
         return [ExternalItemDTO.model_validate(item) for item in items]
+
+    @override
+    def save(self, item: ExternalItemData, *, entry: tuple[str, str] | None) -> bool:
+        linked = (
+            Entry.objects.filter(type__key=entry[0], slug=entry[1]).first()
+            if entry
+            else None
+        )
+        _, created = ExternalItem.objects.update_or_create(
+            source=item["source"],
+            external_id=item["external_id"],
+            defaults={
+                "title": item["title"],
+                "url": item["url"],
+                "published_at": item["published_at"],
+                "thumbnail_url": item["thumbnail_url"],
+                "entry": linked,
+            },
+        )
+        return created

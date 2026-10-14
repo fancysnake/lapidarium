@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from django.template.context import Context
 
-    from lapidarium.pacts import EntryDTO, EntryRefDTO
+    from lapidarium.pacts import EntryDTO, EntryRefDTO, HealthIssueDTO
 
 register = template.Library()
 
@@ -61,3 +61,12 @@ def host(url: str) -> str:
 @register.filter
 def option(options: Mapping[str, str], key: str) -> str:
     return options.get(key, "")
+
+
+@register.simple_tag(takes_context=True)
+def content_health(context: Context) -> list[HealthIssueDTO]:
+    """Return the issues the admin dashboard lists; it has no view of its own."""
+    issues: list[HealthIssueDTO] = context["request"].services.content_health.check(
+        links=False
+    )
+    return issues

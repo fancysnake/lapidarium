@@ -362,6 +362,15 @@ class ContactData(TypedDict):
     trap: str
 
 
+class ExternalItemData(TypedDict):
+    source: str
+    external_id: str
+    title: str
+    url: str
+    published_at: dt.datetime
+    thumbnail_url: str
+
+
 class MailData(TypedDict):
     subject: str
     body: str
@@ -618,6 +627,32 @@ class DetailDTO(BaseModel):
     siblings: tuple[CardDTO, ...]
 
 
+class FeedSyncDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    fetched: int
+    created: int
+    linked: int
+    failed: tuple[str, ...]
+
+
+class HealthIssueDTO(BaseModel):
+    """Something about the content worth a look; `entry` when it is about one."""
+
+    model_config = ConfigDict(frozen=True)
+
+    code: str
+    message: str
+    entry: EntryRefDTO | None
+
+
+class ExportDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    content: ContentSummaryDTO
+    committed: bool
+
+
 class ThemeDTO(BaseModel):
     """A theme directory as read: `theme.toml` and the tokens its CSS sets."""
 
@@ -719,6 +754,31 @@ class ExternalItemRepositoryProtocol(Protocol):
     def list_recent(self, limit: int) -> list[ExternalItemDTO]:
         """Newest first, unless linked to an entry, which speaks for them."""
 
+    def save(self, item: ExternalItemData, *, entry: tuple[str, str] | None) -> bool:
+        """Create or update by source and external id; True when created."""
+
+
+class FeedSourceProtocol(Protocol):
+    @property
+    def name(self) -> str: ...
+
+    def fetch(self) -> list[ExternalItemData]:
+        """Items the feed lists now; `DeliveryError` when it cannot be read."""
+
+
+class LinkCheckerProtocol(Protocol):
+    def is_alive(self, url: str) -> bool: ...
+
+
+class ArchiveProtocol(Protocol):
+    """A version-controlled directory the export is written into."""
+
+    def commit(self, root: Path, *, message: str) -> bool:
+        """Record every change under `root`; False when there was none."""
+
+    def push(self, root: Path) -> None:
+        """Send commits to the default remote; `DeliveryError` when refused."""
+
 
 class NewsletterProtocol(Protocol):
     def subscribe(self, email: str) -> None:
@@ -815,6 +875,9 @@ class SchemaServiceProtocol(Protocol):
 class ContentExportServiceProtocol(Protocol):
     def export(self, root: Path) -> ContentSummaryDTO: ...
 
+    def publish(self, root: Path, *, push: bool) -> ExportDTO:
+        """Export into the archive at `root` and commit; push when asked."""
+
 
 class ContentImportServiceProtocol(Protocol):
     def import_from(self, root: Path) -> ContentSummaryDTO: ...
@@ -864,6 +927,19 @@ class OutreachServiceProtocol(Protocol):
         """Mail the profile; `NotFoundError` without an address to mail to."""
 
 
+class FeedSyncServiceProtocol(Protocol):
+    def sync(self) -> FeedSyncDTO:
+        """Fetch every source; a source that fails is listed, the rest go on."""
+
+
+class ContentHealthServiceProtocol(Protocol):
+    def check(self, *, links: bool) -> list[HealthIssueDTO]:
+        """Issues across published content; `links` also visits syndication URLs."""
+
+    def send_digest(self, issues: Sequence[HealthIssueDTO]) -> None:
+        """Mail `issues` to the profile; `NotFoundError` without an address."""
+
+
 class ThemeServiceProtocol(Protocol):
     def active(self) -> ThemeDTO: ...
 
@@ -903,6 +979,12 @@ class ServicesProtocol(Protocol):
 
     @property
     def theme(self) -> ThemeServiceProtocol: ...
+
+    @property
+    def feed_sync(self) -> FeedSyncServiceProtocol: ...
+
+    @property
+    def content_health(self) -> ContentHealthServiceProtocol: ...
 
 
 class RootRequestProtocol(Protocol):
