@@ -1,0 +1,68 @@
+---
+name: Release
+
+# The image goes to GHCR from build-image.yml on the same tag.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: # dry run: builds and publishes to TestPyPI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@94c60b39bc2d90ab2f9bab27f38d3cc4812c1834 # v5
+      # Refuses to publish a wheel whose version is not the tag. A dry run has
+      # no tag to disagree with.
+      - name: Check the tag matches the package version
+        if: github.ref_type == 'tag'
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          declared=$(mise exec -- poetry version -s)
+          if [ "$tagged" != "$declared" ]; then
+            echo "tag $GITHUB_REF_NAME does not match pyproject version $declared" >&2
+            exit 1
+          fi
+      # .mo files are build output; the wheel carries them, git does not.
+      - run: sudo apt-get install -y --no-install-recommends gettext
+      - run: find src -name django.po -execdir msgfmt --check -o django.mo django.po \;
+      - run: mise exec -- poetry build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dist
+          path: dist/
+
+  # Both publish jobs authenticate with PyPI over OIDC (trusted publishing);
+  # `id-token: write` mints the token, so there is no API token to store.
+  testpypi:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  pypi:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2

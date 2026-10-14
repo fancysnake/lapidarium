@@ -25,6 +25,9 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 packages = [{ include = "lapidarium", from = "src" }]
+# Compiled catalogs are build output, ignored by git, so they are named here to
+# reach the wheel; the release workflow compiles them before building.
+include = [{ path = "src/lapidarium/locale/**/*.mo", format = ["sdist", "wheel"] }]
 requires-poetry = ">=2.0,<3"
 
 [tool.poetry.dependencies]
@@ -43,6 +46,14 @@ pyyaml = "^6.0.3"
 whitenoise = "^6.12.0"
 defusedxml = "^0.7.1"
 dulwich = "^1.2.17"
+
+# Only `site:*` and the site workflow install this one; nothing else needs a
+# static-site generator to run the tests.
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = ">=9.6,<10.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^26.1.0"

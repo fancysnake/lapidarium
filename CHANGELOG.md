@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+What counts as breaking, and so as a major release: renaming or removing a
+theme token or a component class, a new export format version, a removed or
+renamed setting or command, a template moved or renamed (theme overrides
+follow paths). Before 1.0, a minor release may break; a patch never does.
+
 ## [Unreleased]
 
 ### Added
@@ -45,6 +50,9 @@ All notable changes to this project are documented here. The format follows
   `--links`, exit 1 when anything), also on the admin dashboard and its own
   admin page; `export_content --commit --push` commits the export to a git
   working copy. Coolify task recipes in `docs/operations.md`.
+- Documentation site (MkDocs Material, `mise run site:dev` and `site:build`),
+  published to GitHub Pages; release workflow publishing to PyPI on a `v*` tag,
+  with compiled catalogs in the wheel; versioning policy above.
 - Polish and English UI catalogs; `mise run i18n:make` and `i18n:compile`.
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.
