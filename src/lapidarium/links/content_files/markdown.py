@@ -287,9 +287,7 @@ def _read_entry(path: Path) -> EntryData:
         for relation in loaded.pop("relations", [])
     ]
     return _ENTRY.validate_python(
-        _ENTRY_DEFAULTS
-        | loaded
-        | {
+        _ENTRY_DEFAULTS | loaded | {
             "type": path.parent.name,
             "slug": path.stem,
             "parts": parts,

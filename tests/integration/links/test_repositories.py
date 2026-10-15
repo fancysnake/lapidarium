@@ -116,8 +116,9 @@ def test_writing_refuses_a_name_the_storage_changed(media_root, monkeypatch):
 @pytest.mark.usefixtures("demo")
 def test_saving_the_profile_again_updates_the_one_row():
     ProfileRepository().save(
-        dict.fromkeys(("bio", "email", "handle", "photo", "tagline"), "")
-        | {"name": "Mira K."}
+        dict.fromkeys(("bio", "email", "handle", "photo", "tagline"), "") | {
+            "name": "Mira K."
+        }
     )
 
     assert Profile.objects.get().name == "Mira K."
