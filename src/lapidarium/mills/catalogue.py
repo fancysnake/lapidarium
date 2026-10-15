@@ -65,7 +65,7 @@ def _key(entry: EntryDTO) -> _Key:
     return entry.type_key, entry.slug
 
 
-def _ref(entry: EntryDTO) -> EntryRefDTO:
+def entry_ref(entry: EntryDTO) -> EntryRefDTO:
     return EntryRefDTO(
         type_key=entry.type_key, slug=entry.slug, title=entry.title, status=entry.status
     )
@@ -162,7 +162,7 @@ class Catalogue:
     def targets(self, entry: EntryDTO, role: str) -> tuple[EntryRefDTO, ...]:
         """Return the published entries `entry` links to as `role`."""
         return tuple(
-            _ref(target)
+            entry_ref(target)
             for relation in entry.relations
             if relation.role == role
             and (target := self.get(relation.target.type_key, relation.target.slug))
@@ -361,7 +361,7 @@ class CatalogueService(CatalogueServiceProtocol):
                 title=entry.title,
                 type_key=entry.type_key,
                 type_label=catalogue.types[entry.type_key].label,
-                entry=_ref(entry),
+                entry=entry_ref(entry),
                 url="",
             )
             for entry in catalogue.entries

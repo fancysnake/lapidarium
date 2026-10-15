@@ -18,6 +18,7 @@ env = environ.Env(
     AWS_STORAGE_BUCKET_NAME=(str, ""),
     CACHE_URL=(str, "locmemcache://"),
     DEFAULT_FROM_EMAIL=(str, "webmaster@localhost"),
+    FEED_SOURCES=(list, []),
     EMAIL_URL=(str, "consolemail://"),
     MAILCHIMP_API_KEY=(str, ""),
     MAILCHIMP_LIST_ID=(str, ""),
@@ -201,6 +202,9 @@ MAILERS = {
     }
 }
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+
+# Feeds `fetch_feeds` reads: youtube:<channel id>, github:<owner/repo>, atom:<url>.
+FEED_SOURCES: list[str] = env("FEED_SOURCES")
 
 # "log" or "mailchimp".
 NEWSLETTER_BACKEND: str = env("NEWSLETTER_BACKEND")

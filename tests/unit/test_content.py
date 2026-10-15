@@ -13,6 +13,7 @@ from lapidarium.pacts import (
     EntryRefDTO,
     EntryStatus,
     EntryTypeDTO,
+    ExportDTO,
     FieldDefinitionDTO,
     FieldKind,
     LinkDTO,
@@ -129,6 +130,7 @@ def _export_service(repos):
         assets=repos.assets,
         profile=repos.profile,
         store=repos.store,
+        archive=repos.archive,
     )
 
 
@@ -486,3 +488,24 @@ def test_demos_come_from_the_store(repos):
     assert service.load_demo("dev") == ContentSummaryDTO(types=0, entries=0, assets=0)
     repos.store.read_demo.assert_called_once_with("dev")
     repos.profile.save.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("push", "committed", "pushed"),
+    ((False, True, False), (True, True, True), (True, False, False)),
+)
+def test_publish_exports_commits_and_pushes_when_asked(
+    *, repos, push, committed, pushed
+):
+    repos.archive.commit.return_value = committed
+
+    result = _export_service(repos).publish(ROOT, push=push)
+
+    assert result == ExportDTO(
+        content=ContentSummaryDTO(types=1, entries=1, assets=2), committed=committed
+    )
+    repos.store.write.assert_called_once()
+    repos.archive.commit.assert_called_once_with(
+        ROOT, message="Export: 1 entries, 1 types, 2 assets"
+    )
+    assert repos.archive.push.called is pushed

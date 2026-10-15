@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 22:12+0200\n"
+"POT-Creation-Date: 2026-10-14 22:43+0200\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -14,6 +14,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+
+msgid "Content health"
+msgstr "Stan treści"
 
 msgid "Your e-mail"
 msgstr "Twój e-mail"
@@ -53,6 +56,9 @@ msgstr "Profil"
 
 msgid "Links"
 msgstr "Linki"
+
+msgid "Theme preview"
+msgstr "Podgląd motywu"
 
 msgid "choices"
 msgstr "wartości do wyboru"
@@ -430,6 +436,15 @@ msgstr "Wróć na stronę główną"
 msgid "Search"
 msgstr "Szukaj"
 
+msgid "Django site admin"
+msgstr "Administracja stroną Django"
+
+msgid "The same list `check_content` prints; dead links are checked only from the command line, with --links."
+msgstr "Ta sama lista, którą wypisuje `check_content`; martwe linki sprawdza tylko polecenie z opcją --links."
+
+msgid "Nothing to look at."
+msgstr "Nic do sprawdzenia."
+
 msgid "What are you adding?"
 msgstr "Co dodajesz?"
 
@@ -606,6 +621,24 @@ msgstr "Szukaj"
 #, python-format
 msgid "Nothing matches “%(query)s”."
 msgstr "Nic nie pasuje do „%(query)s”."
+
+msgid "Checks"
+msgstr "Sprawdzenia"
+
+msgid "The theme meets the contract."
+msgstr "Motyw spełnia kontrakt."
+
+msgid "Content type colours"
+msgstr "Kolory rodzajów treści"
+
+msgid "Type and buttons"
+msgstr "Typografia i przyciski"
+
+msgid "Body text with"
+msgstr "Tekst główny z"
+
+msgid "a link"
+msgstr "linkiem"
 
 msgid "Follow by RSS"
 msgstr "Obserwuj przez RSS"

@@ -49,6 +49,7 @@ An instance is configured through the environment. Beyond the Django basics
 | `NEWSLETTER_BACKEND` | `log` | `log` or `mailchimp` |
 | `MAILCHIMP_API_KEY`, `MAILCHIMP_LIST_ID` | empty | Mailchimp audience; new subscribers confirm by mail |
 | `AWS_STORAGE_BUCKET_NAME` | empty | Turns on S3 media storage |
+| `FEED_SOURCES` | empty | Feeds `fetch_feeds` reads, see [docs/operations.md](docs/operations.md) |
 | `SITE_THEME` | `base` | Active theme, see [docs/themes.md](docs/themes.md) |
 | `SITE_THEME_DIRS` | empty | Extra theme directories, searched first |
 
