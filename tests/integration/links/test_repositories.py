@@ -173,10 +173,11 @@ def test_ensure_superuser_creates_then_resets_the_login():
 
 @pytest.mark.usefixtures("demo")
 def test_search_finds_published_entries_holding_every_term():
-    found = EntryRepository().search(["Tycho", "rutynowego"])
+    found = EntryRepository().search(["Tycho", "rutynowego"], limit=10)
 
     assert [e.slug for e in found] == ["ucieczka-przed-kosmicznym-losiem"]
-    assert EntryRepository().search(["Tycho", "nope"]) == []
+    assert EntryRepository().search(["Tycho", "nope"], limit=10) == []
+    assert len(EntryRepository().search(["a"], limit=2)) == 2
 
 
 def test_recent_external_items_leave_out_those_an_entry_speaks_for():

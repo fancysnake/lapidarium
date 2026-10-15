@@ -1,8 +1,9 @@
 from unittest.mock import MagicMock
 
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 
-from lapidarium.inits import ServiceInjectionMiddleware, Services, newsletter
+from lapidarium.inits import ServiceInjectionMiddleware, Services, build_newsletter
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
 from lapidarium.mills.catalogue import CatalogueService
@@ -41,6 +42,20 @@ def test_services_are_built_once_per_container():
     assert isinstance(services.outreach, OutreachService)
 
 
+def test_middleware_shares_one_newsletter_across_requests(monkeypatch):
+    build = MagicMock()
+    monkeypatch.setattr("lapidarium.inits.build_newsletter", build)
+    middleware = ServiceInjectionMiddleware(MagicMock())
+    first, second = MagicMock(), MagicMock()
+
+    middleware(first)
+    middleware(second)
+
+    assert isinstance(first.services.outreach, OutreachService)
+    assert isinstance(second.services.outreach, OutreachService)
+    build.assert_called_once_with()
+
+
 @pytest.mark.parametrize(
     ("backend", "expected"),
     (("log", LogNewsletter), ("mailchimp", MailchimpNewsletter)),
@@ -50,5 +65,21 @@ def test_newsletter_follows_the_setting(*, settings, monkeypatch, backend, expec
         monkeypatch.delenv(name, raising=False)
     settings.NEWSLETTER_BACKEND = backend
     settings.MAILCHIMP_API_KEY = "key-us1"
+    settings.MAILCHIMP_LIST_ID = "list"
 
-    assert isinstance(newsletter(), expected)
+    assert isinstance(build_newsletter(), expected)
+
+
+@pytest.mark.parametrize(
+    ("backend", "api_key", "list_id"),
+    (("mailchump", "", ""), ("mailchimp", "", "list"), ("mailchimp", "key-us1", "")),
+)
+def test_a_newsletter_that_cannot_work_stops_the_start(
+    *, settings, backend, api_key, list_id
+):
+    settings.NEWSLETTER_BACKEND = backend
+    settings.MAILCHIMP_API_KEY = api_key
+    settings.MAILCHIMP_LIST_ID = list_id
+
+    with pytest.raises(ImproperlyConfigured):
+        ServiceInjectionMiddleware(MagicMock())

@@ -47,7 +47,8 @@ An instance is configured through the environment. Beyond the Django basics
 | `EMAIL_URL` | `consolemail://` | Mail backend for the contact form, e.g. `smtp+tls://user:pass@host:587` |
 | `DEFAULT_FROM_EMAIL` | `webmaster@localhost` | Sender of contact form mail |
 | `NEWSLETTER_BACKEND` | `log` | `log` or `mailchimp` |
-| `MAILCHIMP_API_KEY`, `MAILCHIMP_LIST_ID` | empty | Mailchimp audience; new subscribers confirm by mail |
+| `MAILCHIMP_API_KEY`, `MAILCHIMP_LIST_ID` | empty | Mailchimp audience, required with `mailchimp`; new subscribers confirm by mail |
+| `TRUSTED_PROXY_HOPS` | `1` in production, else `0` | Proxies in front that append to `X-Forwarded-For`; rate limits key on the address the outermost one saw |
 | `AWS_STORAGE_BUCKET_NAME` | empty | Turns on S3 media storage |
 
 The contact form appears once the profile has an e-mail address.

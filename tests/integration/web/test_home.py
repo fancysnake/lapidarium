@@ -38,7 +38,9 @@ def test_home_shows_doors_whats_new_and_the_next_event(site):
     assert response.context["site_name"] == "lapidarium (test)"
     assert response.context["current_page"] == "home"
     assert not response.context["current_route"]
-    assert '[data-type="session"] { --type-color: #6b3fa0;' in response.text
+    assert (
+        '[data-type="session"] { --type-color: #6b3fa0; --type-tint:' in response.text
+    )
     assert 'href="/contact/"' in response.text
 
 

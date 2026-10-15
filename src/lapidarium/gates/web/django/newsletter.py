@@ -11,11 +11,10 @@ from django.views.decorators.http import require_http_methods
 from lapidarium.gates.web.django.forms import NewsletterForm
 from lapidarium.gates.web.django.rendering import (
     RootRequest,
-    refusal,
+    attempt,
     render_page,
     sender,
 )
-from lapidarium.pacts import DeliveryError, RateLimitedError
 
 if TYPE_CHECKING:
     from django.http import HttpResponse
@@ -29,15 +28,15 @@ def newsletter(request: RootRequest) -> HttpResponse:
     form = NewsletterForm(request.POST or None)
     problem, status = "", HTTPStatus.OK
     if form.is_valid():
-        try:
-            request.services.outreach.subscribe(
-                form.cleaned_data["email"],
-                trap=form.cleaned_data["website"],
-                sender=sender(request),
+        email = form.cleaned_data["email"]
+        # A bot told it worked has no reason to try again.
+        if not form.caught:
+            problem, status = attempt(
+                lambda: request.services.outreach.subscribe(
+                    email, sender=sender(request)
+                )
             )
-        except (RateLimitedError, DeliveryError) as exc:
-            problem, status = refusal(exc)
-        else:
+        if not problem:
             return HttpResponseRedirect(reverse("newsletter") + "?subscribed=1")
     return render_page(
         request,

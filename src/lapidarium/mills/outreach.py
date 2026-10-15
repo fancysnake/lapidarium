@@ -46,10 +46,7 @@ class OutreachService(OutreachServiceProtocol):
         return bool(self._recipient())
 
     @override
-    def subscribe(self, email: str, *, trap: str, sender: str) -> None:
-        # A bot told it worked has no reason to try again.
-        if trap:
-            return
+    def subscribe(self, email: str, *, sender: str) -> None:
         self._count("newsletter", sender)
         self._newsletter.subscribe(email)
 
@@ -58,8 +55,6 @@ class OutreachService(OutreachServiceProtocol):
         if not (recipient := self._recipient()):
             msg = "profile e-mail"
             raise NotFoundError(msg)
-        if message["trap"]:
-            return
         self._count("contact", sender)
         self._mailer.send(
             {

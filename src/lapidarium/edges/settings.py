@@ -199,6 +199,11 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
 }
 
+# Proxies in front that append to X-Forwarded-For; 0 trusts the header not at all.
+TRUSTED_PROXY_HOPS: int = env.int(
+    "TRUSTED_PROXY_HOPS", default=1 if IS_PRODUCTION else 0
+)
+
 if IS_PRODUCTION:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -92,6 +92,11 @@ class FeedChange(StrEnum):
     EXTERNAL = "external"
 
 
+class NewsletterBackend(StrEnum):
+    LOG = "log"
+    MAILCHIMP = "mailchimp"
+
+
 class ListFilter(StrEnum):
     """Built-in list filters; the others are keys of the type's fields."""
 
@@ -321,8 +326,6 @@ class ContactData(TypedDict):
     name: str
     email: str
     message: str
-    # A field people never see; anything in it was filled in by a bot.
-    trap: str
 
 
 class MailData(TypedDict):
@@ -588,17 +591,9 @@ class SiteDTO(BaseModel):
 
     profile: ProfileDTO | None
     links: tuple[LinkDTO, ...]
+    # Tints are filled in, derived from the colour where the type sets none.
     types: tuple[EntryTypeDTO, ...]
     menu: tuple[EntryTypeDTO, ...]
-    type_css: str
-
-
-class AboutDTO(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    profile: ProfileDTO | None
-    links: tuple[LinkDTO, ...]
-    timeline: tuple[CardDTO, ...]
 
 
 # Repository and port protocols
@@ -621,8 +616,8 @@ class EntryTypeRepositoryProtocol(Protocol):
 class EntryRepositoryProtocol(Protocol):
     def list_published(self) -> list[EntryDTO]: ...
 
-    def search(self, terms: Sequence[str]) -> list[EntryDTO]:
-        """Return published entries whose text holds every term, ignoring case."""
+    def search(self, terms: Sequence[str], *, limit: int) -> list[EntryDTO]:
+        """Return up to `limit` published entries holding every term, ignoring case."""
 
     def save(self, data: EntryData) -> None:
         """Create or update by type and slug; relations are left alone."""
@@ -760,8 +755,6 @@ class LocalSetupServiceProtocol(Protocol):
 class SiteServiceProtocol(Protocol):
     def chrome(self) -> SiteDTO: ...
 
-    def about(self) -> AboutDTO: ...
-
 
 class CatalogueServiceProtocol(Protocol):
     def home(self) -> HomeDTO: ...
@@ -778,6 +771,9 @@ class CatalogueServiceProtocol(Protocol):
 
     def search(self, query: str) -> tuple[CardDTO, ...]: ...
 
+    def timeline(self) -> tuple[CardDTO, ...]:
+        """Container entries, newest first."""
+
     def upcoming(self) -> tuple[CardDTO, ...]:
         """Calendar entries not yet over, soonest first."""
 
@@ -786,8 +782,8 @@ class OutreachServiceProtocol(Protocol):
     def can_contact(self) -> bool:
         """Whether the profile has an address for the contact form to reach."""
 
-    def subscribe(self, email: str, *, trap: str, sender: str) -> None:
-        """`RateLimitedError` or `DeliveryError`; a filled `trap` is let go quietly."""
+    def subscribe(self, email: str, *, sender: str) -> None:
+        """`RateLimitedError` or `DeliveryError`."""
 
     def contact(self, message: ContactData, *, sender: str) -> None:
         """Mail the profile; `NotFoundError` without an address to mail to."""

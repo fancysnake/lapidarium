@@ -11,11 +11,10 @@ from django.views.decorators.http import require_http_methods
 from lapidarium.gates.web.django.forms import ContactForm
 from lapidarium.gates.web.django.rendering import (
     RootRequest,
-    refusal,
+    attempt,
     render_page,
     sender,
 )
-from lapidarium.pacts import DeliveryError, RateLimitedError
 
 if TYPE_CHECKING:
     from django.http import HttpResponse
@@ -38,13 +37,13 @@ def contact(request: RootRequest) -> HttpResponse:
             "name": data["name"],
             "email": data["email"],
             "message": data["message"],
-            "trap": data["website"],
         }
-        try:
-            outreach.contact(message, sender=sender(request))
-        except (RateLimitedError, DeliveryError) as exc:
-            problem, status = refusal(exc)
-        else:
+        # A bot told it worked has no reason to try again.
+        if not form.caught:
+            problem, status = attempt(
+                lambda: outreach.contact(message, sender=sender(request))
+            )
+        if not problem:
             return HttpResponseRedirect(reverse("contact") + "?sent=1")
     return render_page(
         request,

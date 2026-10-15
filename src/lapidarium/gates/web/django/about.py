@@ -13,6 +13,6 @@ def about(request: RootRequest) -> HttpResponse:
     return render_page(
         request,
         "lapidarium/pages/about.html",
-        about=request.services.site.about(),
+        timeline=request.services.catalogue.timeline(),
         can_contact=request.services.outreach.can_contact(),
     )

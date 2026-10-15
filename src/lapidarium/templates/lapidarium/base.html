@@ -27,7 +27,10 @@
     <link rel="stylesheet"
           href="{% static 'lapidarium/themes/base/tokens.css' %}">
     <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
-    <style>{{ site.type_css|safe }}</style>
+    <style>
+      {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {{ entry_type.tint }}; }
+      {% endfor %}
+    </style>
     <script type="module" src="{% static 'lapidarium/js/enhance.js' %}"></script>
   </head>
   <body>

@@ -17,6 +17,7 @@ from lapidarium.pacts import (
     EntryStatus,
     EntryTypeData,
     EntryTypeDTO,
+    ListFilter,
     LocalSetupDTO,
     LocalSetupServiceProtocol,
     MetadataValidationError,
@@ -189,6 +190,15 @@ def _slug_errors(name: str, value: str) -> list[str]:
     return [f"{name} {value!r} may hold only letters, digits, - and _."]
 
 
+def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:
+    fields = {f.key for f in entry_type.fields}
+    return [
+        f"List filter {key!r} is neither year, tag nor one of the fields."
+        for key in entry_type.list_filters
+        if key not in ListFilter and key not in fields
+    ]
+
+
 def _draft_links(entry: EntryDTO) -> list[str]:
     """Links the relation rules forbid; only data written around them has any."""
     return [
@@ -291,6 +301,7 @@ class ContentImportService(ContentImportServiceProtocol):
                 messages := [
                     *_slug_errors("Key", type_key),
                     *self._schema.check_colours(schema.colour, schema.tint),
+                    *_filter_errors(schema),
                 ]
             )
         }
