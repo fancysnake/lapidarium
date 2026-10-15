@@ -60,7 +60,7 @@ pytest-django = "^4.14.0"
 pytest-xdist = "^3.8.0"
 ruff = "^0.16.0"
 taplo = "^0.9.3"
-tingle = "^0.7.2"
+tingle = "^0.8.0"
 vulture = "^2.16"
 
 # BLACK
