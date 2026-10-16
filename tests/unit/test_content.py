@@ -4,7 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lapidarium.mills import ContentExportService, ContentImportService, SchemaService
+from lapidarium.mills.content import ContentExportService, ContentImportService
+from lapidarium.mills.schema import SchemaService
 from lapidarium.pacts import (
     BundleValidationError,
     ContentSummaryDTO,
@@ -472,6 +473,23 @@ def test_import_refuses_keys_and_slugs_that_are_not_file_names(repos):
         "content/session/../../evil.md": [
             "Slug '../../evil' may hold only letters, digits, - and _."
         ],
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
+def test_import_refuses_list_filters_the_type_cannot_offer(repos):
+    repos.store.read.return_value = _bundle(
+        types=[type_data(list_filters=["year", "system", "gone"])], entries=[]
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "types/session.yaml": [
+            "List filter 'system' is neither year, tag nor one of the fields.",
+            "List filter 'gone' is neither year, tag nor one of the fields.",
+        ]
     }
     repos.transaction.atomic.assert_not_called()
 

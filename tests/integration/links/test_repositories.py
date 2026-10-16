@@ -1,3 +1,5 @@
+import datetime as dt
+
 import pytest
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
@@ -15,10 +17,16 @@ from lapidarium.links.db.django.models import (
 from lapidarium.links.db.django.repositories import (
     AccountRepository,
     EntryRepository,
+    ExternalItemRepository,
     MediaAssetRepository,
     ProfileRepository,
 )
-from lapidarium.pacts import FIELD_DEFAULTS, TYPE_DEFAULTS, NotFoundError
+from lapidarium.pacts import (
+    FIELD_DEFAULTS,
+    TYPE_DEFAULTS,
+    ExternalItemDTO,
+    NotFoundError,
+)
 from tests.factories import entry_data
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
@@ -108,8 +116,9 @@ def test_writing_refuses_a_name_the_storage_changed(media_root, monkeypatch):
 @pytest.mark.usefixtures("demo")
 def test_saving_the_profile_again_updates_the_one_row():
     ProfileRepository().save(
-        dict.fromkeys(("bio", "email", "handle", "photo", "tagline"), "")
-        | {"name": "Mira K."}
+        dict.fromkeys(("bio", "email", "handle", "photo", "tagline"), "") | {
+            "name": "Mira K."
+        }
     )
 
     assert Profile.objects.get().name == "Mira K."
@@ -160,3 +169,43 @@ def test_ensure_superuser_creates_then_resets_the_login():
     user = User.objects.get(username="admin")
     assert (user.is_active, user.is_staff, user.is_superuser) == (True, True, True)
     assert user.check_password("second")
+
+
+@pytest.mark.usefixtures("demo")
+def test_search_finds_published_entries_holding_every_term():
+    found = EntryRepository().search(["Tycho", "rutynowego"], limit=10)
+
+    assert [e.slug for e in found] == ["ucieczka-przed-kosmicznym-losiem"]
+    assert EntryRepository().search(["Tycho", "nope"], limit=10) == []
+    assert len(EntryRepository().search(["a"], limit=2)) == 2
+
+
+def test_recent_external_items_leave_out_those_an_entry_speaks_for():
+    when = dt.datetime(2026, 10, 1, tzinfo=dt.UTC)
+    for index in range(3):
+        ExternalItem.objects.create(
+            source="YouTube",
+            external_id=str(index),
+            title=f"Video {index}",
+            url=f"https://youtu.be/{index}",
+            published_at=when + dt.timedelta(days=index),
+        )
+    linked = ExternalItem.objects.get(external_id="2")
+    linked.entry = Entry.objects.create(
+        type=EntryType.objects.create(key="talk", route="talks"),
+        slug="talk",
+        title="Talk",
+        summary="One.",
+    )
+    linked.save()
+
+    items = ExternalItemRepository().list_recent(1)
+
+    assert items == [
+        ExternalItemDTO(
+            source="YouTube",
+            title="Video 1",
+            url="https://youtu.be/1",
+            published_at=when + dt.timedelta(days=1),
+        )
+    ]

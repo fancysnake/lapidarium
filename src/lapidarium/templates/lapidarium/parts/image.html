@@ -1,0 +1,6 @@
+{% if part.asset %}
+  <figure class="part-figure">
+    <img src="{{ part.asset.url }}" alt="{{ part.asset.alt }}" loading="lazy">
+    {% if part.caption %}<figcaption>{{ part.caption }}</figcaption>{% endif %}
+  </figure>
+{% endif %}

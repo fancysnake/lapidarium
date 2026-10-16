@@ -1,0 +1,8 @@
+{% load lapidarium %}
+<a class="link-card" href="{{ url }}" rel="noopener">
+  <span class="link-card__icon" aria-hidden="true">{{ sign }}</span>
+  <span>
+    <strong>{% if part.caption %}{{ part.caption }}{% else %}{{ url|host }}{% endif %}</strong>
+    <span class="link-card__sub">{{ url|host }}</span>
+  </span>
+</a>

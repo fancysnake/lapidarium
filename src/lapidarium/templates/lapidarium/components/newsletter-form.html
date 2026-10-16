@@ -1,0 +1,24 @@
+{% load i18n %}
+<form class="newsletter" action="{% url 'newsletter' %}" method="post">
+  {% if title %}
+    <h2 class="newsletter__title">{{ title }}</h2>
+    <p class="newsletter__lead">{% translate "New entries and where to meet, now and then. No algorithm in between." %}</p>
+  {% endif %}
+  <label class="label" for="{{ form_id }}-email">{{ label }}</label>
+  <div class="newsletter__row">
+    <input class="input"
+           id="{{ form_id }}-email"
+           name="email"
+           type="email"
+           autocomplete="email"
+           required>
+    <button class="btn btn--primary" type="submit">{% translate "Subscribe" %}</button>
+  </div>
+  <div class="form__trap" aria-hidden="true">
+    <label for="{{ form_id }}-website">{% translate "Leave this empty" %}</label>
+    <input id="{{ form_id }}-website"
+           name="website"
+           tabindex="-1"
+           autocomplete="off">
+  </div>
+</form>

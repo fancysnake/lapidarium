@@ -1,0 +1,23 @@
+{% load i18n lapidarium %}
+<article class="door" data-type="{{ door.entry_type.key }}">
+  <div class="door__label label">{{ door.label }}</div>
+  {% with entry=door.pick.entry %}
+    {% if entry.cover %}
+      <img class="door__image"
+           src="{{ entry.cover.url }}"
+           alt="{{ entry.cover.alt }}"
+           loading="lazy">
+    {% endif %}
+    <h3 class="door__title">
+      <a href="{% entry_url entry %}">{{ entry.title }}</a>
+    </h3>
+    <p class="door__meta">{{ entry.summary }}</p>
+    {% include "lapidarium/components/when.html" with role=door.entry_type.role %}
+    {% if door.pick.facts %}
+      <dl class="stats">
+        {% include "lapidarium/components/facts.html" with facts=door.pick.facts %}
+      </dl>
+    {% endif %}
+  {% endwith %}
+  <a class="door__more" href="{% url 'listing' route=door.entry_type.route %}">{% translate "All" %} {{ door.entry_type.label_plural|lower }} →</a>
+</article>

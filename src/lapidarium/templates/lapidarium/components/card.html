@@ -1,0 +1,20 @@
+{% load lapidarium %}
+<article class="card" data-type="{{ card.entry.type_key }}">
+  {% if card.entry.cover %}
+    <img class="card__image"
+         src="{{ card.entry.cover.url }}"
+         alt="{{ card.entry.cover.alt }}"
+         loading="lazy">
+  {% endif %}
+  {% include "lapidarium/components/type-label.html" with entry_type=card.entry_type %}
+  <h3 class="card__title">
+    <a href="{% entry_url card.entry %}">{{ card.entry.title }}</a>
+  </h3>
+  {% include "lapidarium/components/when.html" with entry=card.entry role=card.entry_type.role %}
+  <p class="card__summary">{{ card.entry.summary }}</p>
+  {% if card.facts %}
+    <dl class="stats">
+      {% include "lapidarium/components/facts.html" with facts=card.facts %}
+    </dl>
+  {% endif %}
+</article>

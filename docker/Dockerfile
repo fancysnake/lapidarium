@@ -29,6 +29,9 @@ RUN mise exec -- poetry install --only main --no-root
 
 COPY --chown=appuser:appuser src ./src
 
+# Catalogs compile here: .mo files are build output and stay out of git.
+RUN find src -name django.po -execdir msgfmt --check -o django.mo django.po \;
+
 EXPOSE 8000
 
 # Base image sets ENTRYPOINT ["mise"]; prod-start runs migrate + collectstatic,

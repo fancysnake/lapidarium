@@ -1,0 +1,20 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "What's new" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="container page">
+    <h1 class="page__title">{% translate "What's new" %}</h1>
+    {% if items %}
+      <ul class="feed">
+        {% for item in items %}
+          {% include "lapidarium/components/feed-item.html" %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty">{% translate "Nothing here yet." %}</p>
+    {% endif %}
+    <p>
+      <a href="{% url 'rss' %}">{% translate "Follow by RSS" %}</a>
+    </p>
+  </main>
+{% endblock main %}

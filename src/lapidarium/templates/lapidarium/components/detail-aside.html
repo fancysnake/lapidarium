@@ -1,0 +1,85 @@
+{% load i18n lapidarium %}
+<section class="panel panel--typed" aria-labelledby="panel-title">
+  <h2 class="panel__title" id="panel-title">{{ entry_type.label }}</h2>
+  <dl class="stats">
+    {% if entry.date %}
+      <dt>{% translate "Date" %}</dt>
+      <dd>
+        <time datetime="{{ entry.date|date:'Y-m-d' }}">{{ entry.date|date:"DATE_FORMAT" }}</time>
+      </dd>
+    {% endif %}
+    {% if entry.start_at %}
+      <dt>{% translate "Starts" %}</dt>
+      <dd>
+        <time datetime="{{ entry.start_at|date:'c' }}">{{ entry.start_at|date:"DATETIME_FORMAT" }}</time>
+      </dd>
+    {% endif %}
+    {% if entry.end_at %}
+      <dt>{% translate "Ends" %}</dt>
+      <dd>
+        <time datetime="{{ entry.end_at|date:'c' }}">{{ entry.end_at|date:"DATETIME_FORMAT" }}</time>
+      </dd>
+    {% endif %}
+    {% if entry.location or entry.is_online %}
+      <dt>{% translate "Where" %}</dt>
+      <dd>
+        {{ entry.location }}
+        {% if entry.is_online %}({% translate "online" %}){% endif %}
+      </dd>
+    {% endif %}
+    {% if entry.outcome %}
+      <dt>{% translate "Status" %}</dt>
+      <dd>{% include "lapidarium/components/outcome.html" with outcome=entry.outcome %}</dd>
+    {% endif %}
+    {% include "lapidarium/components/facts.html" with facts=detail.panel %}
+    {% if entry.tags %}
+      <dt>{% translate "Tags" %}</dt>
+      <dd>
+        {% for tag in entry.tags %}
+          {% if "tag" in entry_type.list_filters %}
+            <a href="{% url 'listing' route=entry_type.route %}?tag={{ tag|urlencode }}">{{ tag }}</a>
+          {% else %}
+            {{ tag }}
+          {% endif %}
+          {% if not forloop.last %},{% endif %}
+        {% endfor %}
+      </dd>
+    {% endif %}
+    {% if entry.license %}
+      <dt>{% translate "License" %}</dt>
+      <dd>{{ entry.license }}</dd>
+    {% endif %}
+  </dl>
+  {% if entry.external_url %}
+    <a class="btn btn--type" href="{{ entry.external_url }}" rel="noopener">{% translate "Open on" %} {{ entry.external_url|host }}</a>
+  {% endif %}
+  {% if entry.syndication %}
+    <hr>
+    <div class="panel__label--muted label">{% translate "Also on" %}</div>
+    <ul class="panel__list">
+      {% for link in entry.syndication %}
+        <li>
+          <a href="{{ link.url }}" rel="noopener">{{ link.url|host }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</section>
+{% if detail.related %}
+  <section class="panel" aria-labelledby="related-title">
+    <h2 class="panel__label label" id="related-title">{% translate "Related" %}</h2>
+    {% include "lapidarium/components/related.html" with cards=detail.related %}
+  </section>
+{% endif %}
+{% if detail.siblings %}
+  <section class="panel" aria-labelledby="siblings-title">
+    <h2 class="panel__label panel__label--muted label" id="siblings-title">
+      {% translate "More from" %}
+      {% for container in detail.containers %}
+        <a href="{% entry_url container %}">{{ container.title }}</a>
+        {% if not forloop.last %},{% endif %}
+      {% endfor %}
+    </h2>
+    {% include "lapidarium/components/related.html" with cards=detail.siblings %}
+  </section>
+{% endif %}

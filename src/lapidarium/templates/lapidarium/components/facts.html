@@ -1,0 +1,18 @@
+{% load lapidarium %}
+{% for fact in facts %}
+  <dt>{{ fact.label }}</dt>
+  <dd>
+    {% if fact.refs %}
+      {% for ref in fact.refs %}
+        <a href="{% entry_url ref %}">{{ ref.title }}</a>
+        {% if not forloop.last %},{% endif %}
+      {% endfor %}
+    {% elif fact.kind == "bool" %}
+      {{ fact.value|yesno }}
+    {% elif fact.kind == "url" %}
+      <a href="{{ fact.value }}" rel="noopener">{{ fact.value|host }}</a>
+    {% else %}
+      {{ fact.value }}
+    {% endif %}
+  </dd>
+{% endfor %}

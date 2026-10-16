@@ -1,0 +1,51 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n lapidarium %}
+{% block title %}{% translate "About" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="container page">
+    {% if site.profile %}
+      <section class="hero" aria-labelledby="about-name">
+        <div class="hero__text">
+          <h1 class="hero__name" id="about-name">{{ site.profile.name }}</h1>
+          {% if site.profile.handle %}<p class="hero__stats">{{ site.profile.handle }}</p>{% endif %}
+          {% if site.profile.tagline %}<p class="hero__lead">{{ site.profile.tagline }}</p>{% endif %}
+          <div class="part-text">{{ site.profile.bio|markdown }}</div>
+        </div>
+        {% if site.profile.photo %}
+          <div class="hero__portrait">
+            <img src="{{ site.profile.photo.url }}" alt="{{ site.profile.photo.alt }}">
+          </div>
+        {% endif %}
+      </section>
+    {% else %}
+      <h1 class="page__title">{% translate "About" %}</h1>
+    {% endif %}
+    {% if site.links or can_contact %}
+      <section aria-labelledby="links-title">
+        <h2 class="section-title" id="links-title">{% translate "Where to find me" %}</h2>
+        <ul class="panel__list">
+          {% for link in site.links %}
+            <li>
+              <a href="{{ link.url }}" rel="me noopener">{{ link.label }}</a>
+            </li>
+          {% endfor %}
+          {% if can_contact %}
+            <li>
+              <a href="{% url 'contact' %}">{% translate "Contact form" %}</a>
+            </li>
+          {% endif %}
+        </ul>
+      </section>
+    {% endif %}
+    {% if timeline %}
+      <section aria-labelledby="timeline-title">
+        <h2 class="section-title" id="timeline-title">{% translate "Projects and initiatives" %}</h2>
+        <ol class="timeline">
+          {% for card in timeline %}
+            <li>{% include "lapidarium/components/card.html" %}</li>
+          {% endfor %}
+        </ol>
+      </section>
+    {% endif %}
+  </main>
+{% endblock main %}

@@ -1,0 +1,10 @@
+{% load i18n lapidarium %}
+{% if part.asset %}
+  <a class="link-card" href="{{ part.asset.url }}" download>
+    <span class="link-card__icon" aria-hidden="true">↓</span>
+    <span>
+      <strong>{% firstof part.options|option:"download_label" part.caption part.asset.path|file_name %}</strong>
+      <span class="link-card__sub">{% translate "Download" %} · {{ part.asset.path|file_kind }}</span>
+    </span>
+  </a>
+{% endif %}

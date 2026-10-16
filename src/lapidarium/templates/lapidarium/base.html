@@ -1,0 +1,99 @@
+{% load i18n static lapidarium %}<!DOCTYPE html>
+{% get_current_language as language %}
+<html lang="{{ language }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+      {% block title %}{{ site_name }}{% endblock title %}
+    </title>
+    {% block meta %}
+      <meta name="description"
+            content="{% if site.profile %}{{ site.profile.tagline }}{% endif %}">
+      <meta property="og:type" content="website">
+      <meta property="og:title" content="{{ site_name }}">
+      {% if site.profile %}
+        <meta property="og:description" content="{{ site.profile.tagline }}">
+        {% if site.profile.photo %}
+          <meta property="og:image" content="{% absolute site.profile.photo.url %}">
+        {% endif %}
+      {% endif %}
+    {% endblock meta %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <link rel="alternate"
+          type="application/rss+xml"
+          title="{% translate "What's new" %}"
+          href="{% url 'rss' %}">
+    <link rel="stylesheet"
+          href="{% static 'lapidarium/themes/base/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
+    <style>
+      {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {{ entry_type.tint }}; }
+      {% endfor %}
+    </style>
+    <script type="module" src="{% static 'lapidarium/js/enhance.js' %}"></script>
+  </head>
+  <body>
+    <div class="site-bar" aria-hidden="true">
+      {% for entry_type in site.menu %}<span data-type="{{ entry_type.key }}"></span>{% endfor %}
+    </div>
+    <div class="container">
+      <header class="site-header">
+        <a class="site-logo" href="{% url 'home' %}">
+          {% if site.profile %}
+            {{ site.profile.name }}
+          {% else %}
+            {{ site_name }}
+          {% endif %}
+        </a>
+        <nav class="site-nav label" aria-label="{% translate "Main menu" %}">
+          <ul>
+            {% for entry_type in site.menu %}
+              <li data-type="{{ entry_type.key }}">
+                <a href="{% url 'listing' route=entry_type.route %}"
+                   {% if entry_type.route == current_route %}aria-current="page"{% endif %}><span class="site-nav__marker" aria-hidden="true"></span>{{ entry_type.label_plural }}</a>
+              </li>
+            {% endfor %}
+            <li>
+              <a href="{% url 'about' %}"
+                 {% if current_page == "about" %}aria-current="page"{% endif %}>{% translate "About" %}</a>
+            </li>
+            <li>
+              <a href="{% url 'search' %}"
+                 {% if current_page == "search" %}aria-current="page"{% endif %}>{% translate "Search" %}</a>
+            </li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+    {% block main %}
+    {% endblock main %}
+    <footer class="site-footer" id="newsletter">
+      <div class="container site-footer__inner">
+        {% translate "Your e-mail" as email_label %}
+        {% translate "Newsletter" as newsletter_title %}
+        {% include "lapidarium/components/newsletter-form.html" with form_id="footer" label=email_label title=newsletter_title %}
+        <div class="footer-links">
+          <div class="footer-links__label label">{% translate "Elsewhere" %}</div>
+          <ul>
+            {% for link in site.links %}
+              <li>
+                <a href="{{ link.url }}" rel="me noopener">{{ link.label }}</a>
+              </li>
+            {% endfor %}
+            <li>
+              <a href="{% url 'rss' %}">RSS</a>
+            </li>
+            <li>
+              <a href="{% url 'ical' %}">{% translate "Calendar (.ics)" %}</a>
+            </li>
+          </ul>
+          {% if site.profile.email %}
+            <div class="footer-links__label label">{% translate "Write" %}</div>
+            <a href="{% url 'contact' %}">{% translate "Contact form" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

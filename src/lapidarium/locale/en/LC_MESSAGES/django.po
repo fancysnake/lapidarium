@@ -1,0 +1,622 @@
+# English catalog of the lapidarium engine: msgids are English already.
+# This file is distributed under the same license as the lapidarium package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: lapidarium\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-14 22:12+0200\n"
+"PO-Revision-Date: 2026-10-14 12:00+0200\n"
+"Last-Translator: lapidarium\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Your e-mail"
+msgstr ""
+
+msgid "Your name"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Content"
+msgstr ""
+
+msgid "All entries"
+msgstr ""
+
+msgid "Library"
+msgstr ""
+
+msgid "Media"
+msgstr ""
+
+msgid "Tags"
+msgstr ""
+
+msgid "External items"
+msgstr ""
+
+msgid "Site"
+msgstr ""
+
+msgid "Content types"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Links"
+msgstr ""
+
+msgid "choices"
+msgstr ""
+
+msgid "For choice fields."
+msgstr ""
+
+msgid "A choice field needs choices."
+msgstr ""
+
+msgid "A relation field needs a target type."
+msgstr ""
+
+msgid "allowed parts"
+msgstr ""
+
+msgid "required parts"
+msgstr ""
+
+msgid "colour"
+msgstr ""
+
+msgid "tint"
+msgstr ""
+
+msgid "Light background; derived from the colour when blank."
+msgstr ""
+
+msgid "Year"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "list filters"
+msgstr ""
+
+msgid "Required parts must be allowed."
+msgstr ""
+
+msgid "Behaviour"
+msgstr ""
+
+msgid "Look"
+msgstr ""
+
+msgid "Parts"
+msgstr ""
+
+msgid "Home page door"
+msgstr ""
+
+msgid "Another entry of this type uses this slug."
+msgstr ""
+
+msgid "Published entries link here; unlink them first."
+msgstr ""
+
+msgid "role"
+msgstr ""
+
+msgid "link to another entry"
+msgstr ""
+
+msgid "links to other entries"
+msgstr ""
+
+msgid "Add entry"
+msgstr ""
+
+msgid "When and where"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "Presentation"
+msgstr ""
+
+msgid "Backlinks"
+msgstr ""
+
+msgid "Linked from"
+msgstr ""
+
+msgid "Publish"
+msgstr ""
+
+msgid "Unpublish"
+msgstr ""
+
+msgid "Mark as featured"
+msgstr ""
+
+msgid "Remove from featured"
+msgstr ""
+
+#, python-format
+msgid "%d entry changed."
+msgid_plural "%d entries changed."
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "%d entry skipped: a published entry may only link to published ones."
+msgid_plural ""
+"%d entries skipped: a published entry may only link to published ones."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Use #rrggbb."
+msgstr ""
+
+msgid "file"
+msgstr ""
+
+msgid "alt text"
+msgstr ""
+
+msgid "Required for images; for memes, transcribe the text."
+msgstr ""
+
+msgid "media asset"
+msgstr ""
+
+msgid "media assets"
+msgstr ""
+
+msgid "key"
+msgstr ""
+
+msgid "label"
+msgstr ""
+
+msgid "plural label"
+msgstr ""
+
+msgid "route"
+msgstr ""
+
+msgid "URL segment of the list, in the site language."
+msgstr ""
+
+msgid "icon"
+msgstr ""
+
+msgid "order"
+msgstr ""
+
+msgid "in menu"
+msgstr ""
+
+msgid "layout"
+msgstr ""
+
+msgid "door on the home page"
+msgstr ""
+
+msgid "door label"
+msgstr ""
+
+msgid "door pick"
+msgstr ""
+
+msgid "door minimum entries"
+msgstr ""
+
+msgid "has detail pages"
+msgstr ""
+
+msgid "content type"
+msgstr ""
+
+msgid "content types"
+msgstr ""
+
+msgid "kind"
+msgstr ""
+
+msgid "required"
+msgstr ""
+
+msgid "URL validator"
+msgstr ""
+
+msgid "For URL fields."
+msgstr ""
+
+msgid "target type"
+msgstr ""
+
+msgid "For relation fields."
+msgstr ""
+
+msgid "show on card"
+msgstr ""
+
+msgid "show in metadata panel"
+msgstr ""
+
+msgid "field"
+msgstr ""
+
+msgid "fields"
+msgstr ""
+
+msgid "name"
+msgstr ""
+
+msgid "tag"
+msgstr ""
+
+msgid "tags"
+msgstr ""
+
+msgid "type"
+msgstr ""
+
+msgid "slug"
+msgstr ""
+
+msgid "title"
+msgstr ""
+
+msgid "summary"
+msgstr ""
+
+msgid "One sentence for cards and link previews."
+msgstr ""
+
+msgid "date"
+msgstr ""
+
+msgid "starts"
+msgstr ""
+
+msgid "ends"
+msgstr ""
+
+msgid "location"
+msgstr ""
+
+msgid "online"
+msgstr ""
+
+msgid "external page"
+msgstr ""
+
+msgid "Canonical page elsewhere, e.g. itch.io or GitHub."
+msgstr ""
+
+msgid "status"
+msgstr ""
+
+msgid "outcome"
+msgstr ""
+
+msgid "featured"
+msgstr ""
+
+msgid "hide from what's new"
+msgstr ""
+
+msgid "license"
+msgstr ""
+
+msgid "cover"
+msgstr ""
+
+msgid "metadata"
+msgstr ""
+
+msgid "entry"
+msgstr ""
+
+msgid "entries"
+msgstr ""
+
+msgid "Ends before it starts."
+msgstr ""
+
+msgid "text"
+msgstr ""
+
+msgid "Markdown."
+msgstr ""
+
+msgid "URL"
+msgstr ""
+
+msgid "caption"
+msgstr ""
+
+msgid "options"
+msgstr ""
+
+msgid "part"
+msgstr ""
+
+msgid "parts"
+msgstr ""
+
+msgid "relation"
+msgstr ""
+
+msgid "relations"
+msgstr ""
+
+msgid "An entry cannot link to itself."
+msgstr ""
+
+msgid "platform"
+msgstr ""
+
+msgid "syndication link"
+msgstr ""
+
+msgid "syndication links"
+msgstr ""
+
+msgid "handle"
+msgstr ""
+
+msgid "tagline"
+msgstr ""
+
+msgid "photo"
+msgstr ""
+
+msgid "bio"
+msgstr ""
+
+msgid "e-mail"
+msgstr ""
+
+msgid "profile"
+msgstr ""
+
+msgid "link"
+msgstr ""
+
+msgid "links"
+msgstr ""
+
+msgid "source"
+msgstr ""
+
+msgid "external id"
+msgstr ""
+
+msgid "published"
+msgstr ""
+
+msgid "thumbnail"
+msgstr ""
+
+msgid "external item"
+msgstr ""
+
+msgid "external items"
+msgstr ""
+
+msgid "Not found"
+msgstr ""
+
+msgid "There is nothing at this address, or no longer."
+msgstr ""
+
+msgid "Back to the home page"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "What are you adding?"
+msgstr ""
+
+#, python-format
+msgid ""
+"No content types yet. <a href=\"%(add_type_url)s\">Define one</a> first."
+msgstr ""
+
+msgid "What's new"
+msgstr ""
+
+msgid "Main menu"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Newsletter"
+msgstr ""
+
+msgid "Elsewhere"
+msgstr ""
+
+msgid "Calendar (.ics)"
+msgstr ""
+
+msgid "Write"
+msgstr ""
+
+msgid "Contact form"
+msgstr ""
+
+msgid "About the author"
+msgstr ""
+
+msgid "More about me"
+msgstr ""
+
+msgid "Want to hear about what comes next?"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Starts"
+msgstr ""
+
+msgid "Ends"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "Open on"
+msgstr ""
+
+msgid "Also on"
+msgstr ""
+
+msgid "Related"
+msgstr ""
+
+msgid "More from"
+msgstr ""
+
+msgid "Breadcrumb"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "updated"
+msgstr ""
+
+msgid "New entries and where to meet, now and then. No algorithm in between."
+msgstr ""
+
+msgid "Subscribe"
+msgstr ""
+
+msgid "Leave this empty"
+msgstr ""
+
+msgid "ongoing"
+msgstr ""
+
+msgid "finished"
+msgstr ""
+
+msgid "abandoned"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Newer"
+msgstr ""
+
+#, python-format
+msgid "Page %(page)s of %(pages)s"
+msgstr ""
+
+msgid "Older"
+msgstr ""
+
+msgid ""
+"That was a lot of tries in a short time. Please wait a while and try again."
+msgstr ""
+
+msgid "Something went wrong on the way. Please try again later."
+msgstr ""
+
+msgid "Where to find me"
+msgstr ""
+
+msgid "Projects and initiatives"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "Write to me"
+msgstr ""
+
+msgid "Thank you, your message is on its way."
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "Inside"
+msgstr ""
+
+msgid "Subscribe to the newsletter"
+msgstr ""
+
+msgid "What you will find here"
+msgstr ""
+
+msgid "Everything new"
+msgstr ""
+
+msgid "Nothing here yet."
+msgstr ""
+
+msgid "Next up"
+msgstr ""
+
+msgid "Add to your calendar (.ics)"
+msgstr ""
+
+msgid "Filter"
+msgstr ""
+
+msgid "Upcoming"
+msgstr ""
+
+msgid "Archive"
+msgstr ""
+
+msgid "Entries"
+msgstr ""
+
+msgid "Almost there: check your inbox and confirm the subscription."
+msgstr ""
+
+msgid "Search for"
+msgstr ""
+
+#, python-format
+msgid "Nothing matches “%(query)s”."
+msgstr ""
+
+msgid "Follow by RSS"
+msgstr ""
+
+msgid "Download the recording"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "loads when played"
+msgstr ""
+
+msgid "Play the video"
+msgstr ""

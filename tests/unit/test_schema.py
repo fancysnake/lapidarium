@@ -2,7 +2,7 @@ import datetime as dt
 
 import pytest
 
-from lapidarium.mills import SchemaService, contrast_ratio, mix
+from lapidarium.mills.schema import SchemaService, contrast_ratio, mix
 from lapidarium.pacts import (
     FIELD_DEFAULTS,
     EntryTypeDTO,

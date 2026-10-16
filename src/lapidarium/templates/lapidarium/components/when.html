@@ -1,0 +1,24 @@
+{% load i18n %}
+{% if entry.date or entry.start_at or entry.location or entry.is_online or entry.outcome %}
+  <p class="card__meta">
+    {% if entry.date %}
+      <time datetime="{{ entry.date|date:'Y-m-d' }}">{{ entry.date|date:"DATE_FORMAT" }}</time>
+    {% elif entry.start_at %}
+      <time datetime="{{ entry.start_at|date:'c' }}">
+        {% if role == "calendar" %}
+          {{ entry.start_at|date:"DATETIME_FORMAT" }}
+        {% else %}
+          {{ entry.start_at|date:"DATE_FORMAT" }}
+        {% endif %}
+      </time>
+      {% if entry.end_at %}
+        – <time datetime="{{ entry.end_at|date:'c' }}">{{ entry.end_at|date:"DATE_FORMAT" }}</time>
+      {% endif %}
+    {% endif %}
+    {% if entry.location %}· {{ entry.location }}{% endif %}
+    {% if entry.is_online %}· {% translate "online" %}{% endif %}
+    {% if entry.outcome %}
+      · {% include "lapidarium/components/outcome.html" with outcome=entry.outcome %}
+    {% endif %}
+  </p>
+{% endif %}

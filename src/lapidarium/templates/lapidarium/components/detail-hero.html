@@ -1,0 +1,11 @@
+{% load i18n lapidarium %}
+<div class="detail-hero">
+  <nav class="breadcrumb" aria-label="{% translate "Breadcrumb" %}">
+    <a href="{% url 'listing' route=entry_type.route %}">{{ entry_type.label_plural }}</a>
+    {% for container in detail.containers %}
+      · <a href="{% entry_url container %}">{{ container.title }}</a>
+    {% endfor %}
+  </nav>
+  <h1 class="detail-hero__title">{{ entry.title }}</h1>
+  <p class="detail-hero__summary">{{ entry.summary }}</p>
+</div>

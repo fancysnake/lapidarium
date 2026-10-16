@@ -1,0 +1,23 @@
+{% load i18n %}
+{% if site.profile %}
+  <section class="framed author-box"
+           style="--frame-color: var(--color-brand)"
+           aria-label="{% translate "About the author" %}">
+    <div class="framed__inner">
+      {% if site.profile.photo %}
+        <img class="author-box__photo"
+             src="{{ site.profile.photo.url }}"
+             alt="{{ site.profile.photo.alt }}"
+             loading="lazy">
+      {% endif %}
+      <div class="author-box__text">
+        <p class="author-box__name">{{ site.profile.name }}</p>
+        <p class="author-box__bio">
+          {{ site.profile.tagline }} <a href="{% url 'about' %}">{% translate "More about me" %} →</a>
+        </p>
+      </div>
+      {% translate "Want to hear about what comes next?" as author_label %}
+      {% include "lapidarium/components/newsletter-form.html" with form_id="author" label=author_label title="" %}
+    </div>
+  </section>
+{% endif %}

@@ -1,0 +1,12 @@
+{% load i18n %}
+{% if listing.pages > 1 %}
+  <nav class="pagination" aria-label="{% translate "Pages" %}">
+    {% if listing.page > 1 %}
+      <a href="{% querystring page=listing.page|add:-1 %}" rel="prev">← {% translate "Newer" %}</a>
+    {% endif %}
+    <span>{% blocktranslate with page=listing.page pages=listing.pages %}Page {{ page }} of {{ pages }}{% endblocktranslate %}</span>
+    {% if listing.page < listing.pages %}
+      <a href="{% querystring page=listing.page|add:1 %}" rel="next">{% translate "Older" %} →</a>
+    {% endif %}
+  </nav>
+{% endif %}

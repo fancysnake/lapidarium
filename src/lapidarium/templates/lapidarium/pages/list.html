@@ -1,0 +1,93 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n lapidarium %}
+{% block title %}{{ listing.entry_type.label_plural }} · {{ site_name }}{% endblock title %}
+{% block main %}
+  {% with entry_type=listing.entry_type %}
+    <main class="container page" data-type="{{ entry_type.key }}">
+      <h1 class="page__title">{{ entry_type.label_plural }}</h1>
+      {% if listing.filters %}
+        <form class="filters" method="get">
+          {% for filter in listing.filters %}
+            <div class="filters__field">
+              <label class="label" for="filter-{{ filter.key }}">
+                {% if filter.label %}
+                  {{ filter.label }}
+                {% elif filter.key == "year" %}
+                  {% translate "Year" %}
+                {% else %}
+                  {% translate "Tag" %}
+                {% endif %}
+              </label>
+              <select id="filter-{{ filter.key }}" name="{{ filter.key }}">
+                <option value="">{% translate "All" %}</option>
+                {% for option in filter.options %}
+                  <option value="{{ option }}" {% if option == filter.selected %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endfor %}
+          <button class="btn btn--ghost" type="submit">{% translate "Filter" %}</button>
+        </form>
+      {% endif %}
+      {% if listing.upcoming %}
+        <section aria-labelledby="upcoming-title">
+          <h2 class="section-title" id="upcoming-title">{% translate "Upcoming" %}</h2>
+          <ul class="cards">
+            {% for card in listing.upcoming %}
+              <li>{% include "lapidarium/components/card.html" %}</li>
+            {% endfor %}
+          </ul>
+          <p><a href="{% url 'ical' %}">{% translate "Add to your calendar (.ics)" %}</a></p>
+        </section>
+      {% endif %}
+      <section aria-labelledby="entries-title">
+        <h2 class="{% if entry_type.role == 'calendar' %}section-title{% else %}visually-hidden{% endif %}"
+            id="entries-title">
+          {% if entry_type.role == "calendar" %}
+            {% translate "Archive" %}
+          {% else %}
+            {% translate "Entries" %}
+          {% endif %}
+        </h2>
+        {% if listing.cards %}
+          {% if entry_type.layout == "gallery" %}
+            <ul class="gallery">
+              {% for card in listing.cards %}
+                <li>
+                  <figure class="gallery__item" id="{{ card.entry.slug }}">
+                    {% if card.entry.cover %}
+                      <img src="{{ card.entry.cover.url }}" alt="{{ card.entry.cover.alt }}" loading="lazy">
+                    {% else %}
+                      {% for part in card.entry.parts %}
+                        {% if part.kind == "image" %}
+                          {% include "lapidarium/parts/image.html" %}
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                    <figcaption>
+                      {% if entry_type.has_detail_page %}
+                        <a href="{% entry_url card.entry %}">{{ card.entry.title }}</a>
+                      {% else %}
+                        <a href="#{{ card.entry.slug }}">{{ card.entry.title }}</a>
+                      {% endif %}
+                      <span class="card__meta">{{ card.entry.summary }}</span>
+                    </figcaption>
+                  </figure>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <ul class="cards">
+              {% for card in listing.cards %}
+                <li>{% include "lapidarium/components/card.html" %}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% elif not listing.upcoming %}
+          <p class="empty">{% translate "Nothing here yet." %}</p>
+        {% endif %}
+      </section>
+      {% include "lapidarium/components/pagination.html" %}
+    </main>
+  {% endwith %}
+{% endblock main %}
