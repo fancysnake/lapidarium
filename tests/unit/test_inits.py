@@ -3,7 +3,12 @@ from unittest.mock import MagicMock
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-from lapidarium.inits import ServiceInjectionMiddleware, Services, build_newsletter
+from lapidarium.inits import (
+    Process,
+    ServiceInjectionMiddleware,
+    Services,
+    build_newsletter,
+)
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
 from lapidarium.mills.catalogue import CatalogueService
@@ -42,9 +47,10 @@ def test_services_are_built_once_per_container():
     assert isinstance(services.outreach, OutreachService)
 
 
-def test_middleware_shares_one_newsletter_across_requests(monkeypatch):
+def test_requests_share_one_newsletter(monkeypatch):
     build = MagicMock()
     monkeypatch.setattr("lapidarium.inits.build_newsletter", build)
+    monkeypatch.setattr("lapidarium.inits.PROCESS", Process())
     middleware = ServiceInjectionMiddleware(MagicMock())
     first, second = MagicMock(), MagicMock()
 

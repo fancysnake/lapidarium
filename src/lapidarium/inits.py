@@ -44,21 +44,6 @@ if TYPE_CHECKING:
     from lapidarium.pacts import NewsletterProtocol, RootRequestProtocol
 
 
-class Process:
-    """What lives as long as the process: built once, on first use."""
-
-    @cached_property
-    def themes(self) -> ThemeFiles:
-        return ThemeFiles(
-            base=settings.BASE_THEME_DIR,
-            active=settings.THEME_DIR,
-            engine_templates=settings.ENGINE_TEMPLATES,
-        )
-
-
-PROCESS = Process()
-
-
 def newsletter_backend() -> NewsletterBackend:
     """Return `NEWSLETTER_BACKEND`; `ImproperlyConfigured` if it cannot work."""
     try:
@@ -83,6 +68,28 @@ def build_newsletter() -> NewsletterProtocol:
             )
         case NewsletterBackend.LOG:
             return LogNewsletter()
+
+
+class Process:
+    """What lives as long as the process: built once, on first use."""
+
+    @cached_property
+    def themes(self) -> ThemeFiles:
+        return ThemeFiles(
+            layers=settings.THEME_LAYERS, engine_templates=settings.ENGINE_TEMPLATES
+        )
+
+    @cached_property
+    def engine_version(self) -> str:
+        return version("lapidarium")
+
+    @cached_property
+    def newsletter(self) -> NewsletterProtocol:
+        """One provider, so its HTTP client is kept across requests."""
+        return build_newsletter()
+
+
+PROCESS = Process()
 
 
 class Repositories:
@@ -120,14 +127,15 @@ class Repositories:
 class Services(ServicesProtocol):
     """Flat service namespace, one `cached_property` per service, built per request."""
 
-    def __init__(self, *, newsletter: NewsletterProtocol | None = None) -> None:
+    def __init__(self) -> None:
         self._repositories = Repositories()
-        # Shared by the caller across requests; built here only when none is given.
-        self._newsletter = newsletter
 
     @cached_property
     def schema(self) -> SchemaService:
-        return SchemaService(background=self.theme.background())
+        return SchemaService(
+            background=self.theme.background(),
+            dark_background=self.theme.dark_background(),
+        )
 
     @cached_property
     def content_export(self) -> ContentExportService:
@@ -184,12 +192,12 @@ class Services(ServicesProtocol):
 
     @cached_property
     def theme(self) -> ThemeService:
-        return ThemeService(store=PROCESS.themes, engine_version=version("lapidarium"))
+        return ThemeService(store=PROCESS.themes, engine_version=PROCESS.engine_version)
 
     @cached_property
     def outreach(self) -> OutreachService:
         return OutreachService(
-            newsletter=self._newsletter or build_newsletter(),
+            newsletter=PROCESS.newsletter,
             mailer=DjangoMailer(),
             throttle=CacheThrottle(),
             profile=self._repositories.profile,
@@ -201,10 +209,10 @@ class ServiceInjectionMiddleware[Response]:
 
     def __init__(self, get_response: Callable[[RootRequestProtocol], Response]) -> None:
         # Middleware loads once, with the app: a newsletter that cannot work stops
-        # the start, and one that can keeps its HTTP client across requests.
-        self._newsletter = build_newsletter()
+        # the start.
+        newsletter_backend()
         self.get_response = get_response
 
     def __call__(self, request: RootRequestProtocol) -> Response:
-        request.services = Services(newsletter=self._newsletter)
+        request.services = Services()
         return self.get_response(request)

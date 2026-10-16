@@ -14,7 +14,8 @@ same semantic HTML for every theme; a theme overrides it at three levels.
 Set `SITE_THEME` to the theme's directory name. The engine ships `base` (black,
 white and greys) and `gm-screen` (serif type, green brand, a dark scheme). An
 instance keeps its own themes in directories listed in `SITE_THEME_DIRS`
-(comma-separated); those are searched before the engine's.
+(comma-separated); those are searched before the engine's. An instance theme
+named `base` replaces the engine's, so it must set every required token.
 
 ```text
 themes/<name>/
@@ -56,9 +57,14 @@ breaking change.
 | Type scale | `--text-base`, `--text-label`, `--text-h1`, `--text-h1-detail`, `--text-h2` |
 | Spacing | `--space-1` … `--space-9`, `--max-width`, `--gutter` |
 
-A dark scheme sets tokens again inside
-`@media (prefers-color-scheme: dark) { :root { … } }`. The engine then derives
-each content type's tint against the dark `--color-bg` as well.
+The engine reads tokens only from top-level `:root` rules. A dark scheme sets
+tokens again inside `@media (prefers-color-scheme: dark) { :root { … } }`, and
+the engine then derives each content type's tint against the dark `--color-bg`
+as well. A `tokens.css` that does not parse stops the start.
+
+`--color-bg`, `--color-text`, `--color-brand`, `--color-brand-contrast`,
+`--color-type-default` and `--color-type-default-tint` must be `#rrggbb`, so
+that their contrast can be checked.
 
 ### Content type colours
 
@@ -96,6 +102,7 @@ files so that an override replaces one piece, not a page.
 |---|---|---|
 | `lapidarium.E001` | error | a required token is defined by neither the base nor the theme |
 | `lapidarium.E002` | error | text, brand or type fallback colour has contrast below 4.5:1 against its background, in either scheme |
+| `lapidarium.E003` | error | a colour the contrast check reads is not `#rrggbb` |
 | `lapidarium.W001` | warning | `theme.toml` declares no engine version |
 | `lapidarium.W002` | warning | the theme is built for another engine release |
 | `lapidarium.W003` | warning | the theme overrides a template the engine no longer has |

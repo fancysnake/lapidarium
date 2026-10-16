@@ -24,17 +24,10 @@
           type="application/rss+xml"
           title="{% translate "What's new" %}"
           href="{% url 'rss' %}">
-    {% for font in site.theme.fonts %}<link rel="stylesheet" href="{{ font }}">{% endfor %}
-    <link rel="stylesheet" href="{% static 'themes/base/tokens.css' %}">
-    {% if site.theme.key != "base" %}
+    {% for sheet in site.theme.stylesheets %}
       <link rel="stylesheet"
-            href="{% static 'themes/'|add:site.theme.key|add:'/tokens.css' %}">
-    {% endif %}
-    <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
-    {% if site.theme.has_stylesheet %}
-      <link rel="stylesheet"
-            href="{% static 'themes/'|add:site.theme.key|add:'/theme.css' %}">
-    {% endif %}
+            href="{% if sheet.external %}{{ sheet.href }}{% else %}{% static sheet.href %}{% endif %}">
+    {% endfor %}
     <style>
       {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {{ entry_type.tint }}; }
       {% endfor %}

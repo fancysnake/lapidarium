@@ -50,7 +50,6 @@ SITE_NAME = env("SITE_NAME")
 # instance adds its own directories, searched before the engine's.
 ENGINE_THEMES = BASE_DIR / "themes"
 ENGINE_TEMPLATES: Path = BASE_DIR / "templates"
-BASE_THEME_DIR: Path = ENGINE_THEMES / "base"
 SITE_THEME: str = env("SITE_THEME")
 
 
@@ -62,7 +61,11 @@ def _theme_dir(name: str) -> Path:
     raise ImproperlyConfigured(msg)
 
 
-THEME_DIR: Path = _theme_dir(SITE_THEME)
+# Each layer loads over the one before; a site theme named `base` replaces the
+# engine's.
+THEME_LAYERS: tuple[Path, ...] = tuple(
+    {d.name: d for d in (ENGINE_THEMES / "base", _theme_dir(SITE_THEME))}.values()
+)
 ADMIN_URL = env("ADMIN_URL")
 
 INSTALLED_APPS = [
@@ -101,8 +104,8 @@ SERVICES_FACTORY = "lapidarium.inits.Services"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # The theme's templates override the engine's, file by file.
-        "DIRS": [THEME_DIR / "templates", ENGINE_TEMPLATES],
+        # Later layers override earlier ones and the engine, file by file.
+        "DIRS": [*(d / "templates" for d in reversed(THEME_LAYERS)), ENGINE_TEMPLATES],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -148,8 +151,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT")
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    ("themes/base", BASE_THEME_DIR),
-    *([(f"themes/{SITE_THEME}", THEME_DIR)] if THEME_DIR != BASE_THEME_DIR else []),
+    *((f"themes/{d.name}", d) for d in THEME_LAYERS),
 ]
 MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")

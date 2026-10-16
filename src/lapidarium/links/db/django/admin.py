@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import TYPE_CHECKING, ClassVar, TypedDict, cast, override
+from typing import TYPE_CHECKING, ClassVar, NotRequired, TypedDict, cast, override
 
 from django import forms
 from django.conf import settings
@@ -122,7 +122,7 @@ class NavItem(TypedDict):
     title: str
     icon: str
     link: str
-    permission: Callable[[HttpRequest], bool]
+    permission: NotRequired[Callable[[HttpRequest], bool]]
 
 
 class NavGroup(TypedDict):
@@ -133,10 +133,6 @@ class NavGroup(TypedDict):
 
 def _can(permission: str) -> Callable[[HttpRequest], bool]:
     return lambda request: request.user.has_perm(f"lapidarium_db.{permission}")
-
-
-def _is_staff(request: HttpRequest) -> bool:
-    return bool(request.user.is_staff)
 
 
 def _item(title: str, *, icon: str, model: str) -> NavItem:
@@ -189,7 +185,6 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                     "title": gettext("Theme preview"),
                     "icon": "palette",
                     "link": reverse("theme_preview"),
-                    "permission": _is_staff,
                 },
             ],
         },

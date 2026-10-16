@@ -15,7 +15,8 @@ pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
 @pytest.fixture(name="gm_screen")
 def gm_screen_fixture(settings, monkeypatch):
-    settings.THEME_DIR = settings.ENGINE_THEMES / "gm-screen"
+    themes = settings.ENGINE_THEMES
+    settings.THEME_LAYERS = (themes / "base", themes / "gm-screen")
     monkeypatch.setattr(inits, "PROCESS", inits.Process())
 
 
@@ -24,7 +25,7 @@ def bare_theme_fixture(*, settings, monkeypatch, tmp_path):
     """Use a theme that sets only a brand too pale to read, and no engine."""
     (tmp_path / "bare").mkdir()
     (tmp_path / "bare" / "tokens.css").write_text(":root { --color-brand: #eeeeee; }")
-    settings.THEME_DIR = tmp_path / "bare"
+    settings.THEME_LAYERS = (settings.ENGINE_THEMES / "base", tmp_path / "bare")
     monkeypatch.setattr(inits, "PROCESS", inits.Process())
 
 
@@ -69,6 +70,7 @@ def test_the_preview_shows_components_and_checks(site):
     assert len(response.context["home"].doors) == 5
     assert "The theme meets the contract." in response.text
     assert 'class="door"' in response.text
+    assert 'id="contact-email"' in response.text
 
 
 @pytest.mark.usefixtures("bare_theme")
@@ -79,6 +81,7 @@ def test_the_preview_lists_problems(site):
 
     assert [p.code for p in response.context["problems"]] == ["E002", "E002", "W001"]
     assert "W001" in response.text
+    assert "bare (bare)</p>" in response.text
 
 
 @pytest.mark.usefixtures("bare_theme")

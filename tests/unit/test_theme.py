@@ -34,8 +34,8 @@ def _theme(key="base", **overrides):
 
 def _service(*, base=None, active=None, engine="0.1.0", templates=frozenset()):
     store = MagicMock()
-    store.base.return_value = base or _theme(tokens=COMPLETE)
-    store.active.return_value = active or store.base.return_value
+    base = base or _theme(tokens=COMPLETE)
+    store.layers.return_value = (base, active) if active else (base,)
     store.engine_templates.return_value = templates
     return ThemeService(store=store, engine_version=engine)
 
@@ -54,13 +54,61 @@ def test_active_tokens_override_the_base():
     service = _service(active=active)
 
     assert service.background() == "#fafafa"
-    assert service.active() == active
+    assert service.active().key == "green"
 
 
-def test_a_background_that_is_not_hex_falls_back_to_white():
+def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
+    base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#000000"})
+    active = _theme("x", tokens={"--color-bg": "#fafafa"})
+
+    service = _service(base=base, active=active)
+
+    assert service.dark_background() == "#fafafa"
+
+
+def test_the_page_loads_fonts_then_tokens_then_engine_css_then_theme_css():
+    base = _theme(tokens=COMPLETE, fonts=("https://base",))
+    active = _theme(
+        "x", name="X", version="2.0", fonts=("https://x",), has_stylesheet=True
+    )
+
+    theme = _service(base=base, active=active).active()
+
+    assert (theme.key, theme.name, theme.version) == ("x", "X", "2.0")
+    assert [(s.href, s.external) for s in theme.stylesheets] == [
+        ("https://base", True),
+        ("https://x", True),
+        ("themes/base/tokens.css", False),
+        ("themes/x/tokens.css", False),
+        ("lapidarium/css/base.css", False),
+        ("themes/x/theme.css", False),
+    ]
+
+
+def test_the_base_alone_loads_once():
+    theme = _service().active()
+
+    assert [s.href for s in theme.stylesheets] == [
+        "themes/base/tokens.css",
+        "lapidarium/css/base.css",
+    ]
+
+
+def test_a_background_that_is_not_hex_falls_back_to_white_and_is_an_error():
     service = _service(active=_theme("x", tokens={"--color-bg": "white"}))
 
     assert service.background() == "#ffffff"
+    assert [p.message for p in service.check()] == [
+        "--color-bg (light) is 'white'; the contrast check needs #rrggbb."
+    ]
+
+
+def test_a_dark_background_that_is_not_hex_drops_the_dark_scheme():
+    dark = {"--color-bg": "rgb(0 0 0)"}
+    service = _service(active=_theme("x", dark_tokens=dark))
+
+    assert service.dark_background() is None
+    assert _codes(service.check()) == [(ProblemLevel.ERROR, "E003")]
 
 
 def test_missing_tokens_are_errors():
@@ -72,7 +120,7 @@ def test_missing_tokens_are_errors():
     assert "--gutter" in problems[0].message
 
 
-def test_low_contrast_is_an_error_and_odd_values_are_skipped():
+def test_low_contrast_and_colours_that_are_not_hex_are_errors():
     active = _theme(
         "pale", tokens={"--color-brand": "#dddddd", "--color-type-default": "var(--x)"}
     )
@@ -80,6 +128,7 @@ def test_low_contrast_is_an_error_and_odd_values_are_skipped():
     problems = _service(active=active).check()
 
     assert [p.message.split(" has")[0] for p in problems] == [
+        "--color-type-default (light) is 'var(--x)'; the contrast check needs #rrggbb.",
         "--color-brand on --color-bg (light)",
         "--color-brand-contrast on --color-brand (light)",
     ]
@@ -106,7 +155,7 @@ def test_no_dark_background_without_dark_tokens():
 @pytest.mark.parametrize(
     ("declared", "engine", "codes"),
     (
-        ("", "0.1.0", [(ProblemLevel.WARNING, "W001")]),
+        (None, "0.1.0", [(ProblemLevel.WARNING, "W001")]),
         ("0.2", "0.1.0", [(ProblemLevel.WARNING, "W002")]),
         ("1.0", "1.4.2", []),
         ("1", "2.0.0", [(ProblemLevel.WARNING, "W002")]),

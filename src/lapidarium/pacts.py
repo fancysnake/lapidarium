@@ -628,13 +628,33 @@ class ThemeDTO(BaseModel):
 
     key: str
     name: str
-    version: str
-    engine: str
+    version: str | None
+    engine: str | None
     fonts: tuple[str, ...]
     has_stylesheet: bool
     tokens: dict[str, str]
     dark_tokens: dict[str, str]
     templates: tuple[str, ...]
+
+
+class StylesheetDTO(BaseModel):
+    """A stylesheet a page links: a static file path, or an external URL."""
+
+    model_config = ConfigDict(frozen=True)
+
+    href: str
+    external: bool
+
+
+class SiteThemeDTO(BaseModel):
+    """The active theme as pages see it: stylesheets in load order."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    name: str
+    version: str | None
+    stylesheets: tuple[StylesheetDTO, ...]
 
 
 class ProblemDTO(BaseModel):
@@ -650,7 +670,7 @@ class SiteDTO(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    theme: ThemeDTO
+    theme: SiteThemeDTO
     profile: ProfileDTO | None
     links: tuple[LinkDTO, ...]
     # Tints are filled in, derived from the colour where the type sets none.
@@ -733,9 +753,8 @@ class ThrottleProtocol(Protocol):
 
 
 class ThemeStoreProtocol(Protocol):
-    def base(self) -> ThemeDTO: ...
-
-    def active(self) -> ThemeDTO: ...
+    def layers(self) -> tuple[ThemeDTO, ...]:
+        """Return the layers in load order: the base first, the active theme last."""
 
     def engine_templates(self) -> frozenset[str]:
         """Paths of the templates the engine ships, as themes override them."""
@@ -803,7 +822,8 @@ class SchemaServiceProtocol(Protocol):
     ) -> list[str]:
         """Errors for the type's required relation fields `roles` leaves unlinked."""
 
-    def derive_tint(self, colour: str) -> str: ...
+    def derive_tint(self, colour: str, *, dark: bool = False) -> str:
+        """Mix over the dark background when `dark` and the theme has one."""
 
     def check_colours(self, colour: str, tint: str) -> list[str]:
         """Contrast errors for a type colour against the background and its tint."""
@@ -863,7 +883,7 @@ class OutreachServiceProtocol(Protocol):
 
 
 class ThemeServiceProtocol(Protocol):
-    def active(self) -> ThemeDTO: ...
+    def active(self) -> SiteThemeDTO: ...
 
     def check(self) -> list[ProblemDTO]:
         """Return what is wrong with the active theme, errors first."""
