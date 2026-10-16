@@ -477,6 +477,23 @@ def test_import_refuses_keys_and_slugs_that_are_not_file_names(repos):
     repos.transaction.atomic.assert_not_called()
 
 
+def test_import_refuses_list_filters_the_type_cannot_offer(repos):
+    repos.store.read.return_value = _bundle(
+        types=[type_data(list_filters=["year", "system", "gone"])], entries=[]
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "types/session.yaml": [
+            "List filter 'system' is neither year, tag nor one of the fields.",
+            "List filter 'gone' is neither year, tag nor one of the fields.",
+        ]
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
 def test_demos_come_from_the_store(repos):
     repos.store.demo_names.return_value = ("dev", "ttrpg")
     repos.store.read_demo.return_value = _bundle(types=[], entries=[])

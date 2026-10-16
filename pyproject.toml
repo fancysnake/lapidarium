@@ -30,7 +30,7 @@ requires-poetry = ">=2.0,<3"
 [tool.poetry.dependencies]
 django = "~6.1.0"
 django-environ = "^0.14.0"
-django-storages = { version = "^1.14.6", extras = ["s3"] }
+django-storages = { version = "^1.14.6", extras = ["google"] }
 django-unfold = "^0.108.0"
 gunicorn = "^26.0.0"
 httpx = "^0.28.1"
@@ -64,7 +64,7 @@ tingle = "^0.7.2"
 vulture = "^2.16"
 
 # BLACK
-cabinet = { git = "https://github.com/fancysnake/cabinet.git", rev = "v2.0.0" }
+cabinet = { git = "https://github.com/fancysnake/cabinet.git", rev = "v3.0.0" }
 
 [tool.black]
 line-length = 88

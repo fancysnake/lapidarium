@@ -9,6 +9,7 @@ from django.conf import settings
 from django.forms import Form
 from django.http import HttpRequest
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from pydantic import BaseModel
 
@@ -48,9 +49,16 @@ def render_page(
 
 
 def sender(request: HttpRequest) -> str:
-    """Who is asking, for rate limits: the client the proxy in front last saw."""
-    if forwarded := request.headers.get("x-forwarded-for", ""):
-        return forwarded.rsplit(",", 1)[-1].strip()
+    """Who is asking, for rate limits: the client the outermost trusted proxy saw.
+
+    Each trusted proxy appends the address it was reached from, so the entry
+    `TRUSTED_PROXY_HOPS` from the end is the first one a client cannot forge.
+    """
+    hops: int = settings.TRUSTED_PROXY_HOPS
+    header = request.headers.get("x-forwarded-for", "")
+    forwarded = [hop for part in header.split(",") if (hop := part.strip())]
+    if hops and len(forwarded) >= hops:
+        return forwarded[-hops]
     return str(request.META.get("REMOTE_ADDR", ""))
 
 
@@ -62,8 +70,21 @@ def cached[**P](view: Callable[P, HttpResponse]) -> Callable[P, HttpResponse]:
     return decorated
 
 
-def refusal(error: RateLimitedError | DeliveryError) -> tuple[str, HTTPStatus]:
-    """Return what a form page says about a refused attempt, and its status."""
-    if isinstance(error, RateLimitedError):
-        return "busy", HTTPStatus.TOO_MANY_REQUESTS
-    return "provider", HTTPStatus.BAD_GATEWAY
+def attempt(send: Callable[[], None]) -> tuple[str, HTTPStatus]:
+    """Run `send`; return what a form page says if it is refused, and the status."""
+    try:
+        send()
+    except RateLimitedError:
+        return (
+            _(
+                "That was a lot of tries in a short time. "
+                "Please wait a while and try again."
+            ),
+            HTTPStatus.TOO_MANY_REQUESTS,
+        )
+    except DeliveryError:
+        return (
+            _("Something went wrong on the way. Please try again later."),
+            HTTPStatus.BAD_GATEWAY,
+        )
+    return "", HTTPStatus.OK

@@ -227,11 +227,11 @@ class EntryRepository(EntryRepositoryProtocol):
         return [_entry_dto(entry) for entry in entries]
 
     @override
-    def search(self, terms: Sequence[str]) -> list[EntryDTO]:
-        entries = _published()
+    def search(self, terms: Sequence[str], *, limit: int) -> list[EntryDTO]:
+        entries = _published().order_by("type__order", "type__key", "slug")
         for term in terms:
             entries = entries.filter(search_text__icontains=term)
-        return [_entry_dto(entry) for entry in entries]
+        return [_entry_dto(entry) for entry in entries[:limit]]
 
     @override
     def save(self, data: EntryData) -> None:
