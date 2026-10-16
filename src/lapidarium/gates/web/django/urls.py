@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
@@ -27,4 +28,6 @@ urlpatterns = [
     path("calendar.ics", ical_feed, name="ical"),
     path("<slug:route>/", listing, name="listing"),
     path("<slug:route>/<slug:slug>/", detail, name="detail"),
+    # Uploads in development; empty when DEBUG is off.
+    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
