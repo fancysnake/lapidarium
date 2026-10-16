@@ -49,7 +49,9 @@ An instance is configured through the environment. Beyond the Django basics
 | `NEWSLETTER_BACKEND` | `log` | `log` or `mailchimp` |
 | `MAILCHIMP_API_KEY`, `MAILCHIMP_LIST_ID` | empty | Mailchimp audience, required with `mailchimp`; new subscribers confirm by mail |
 | `TRUSTED_PROXY_HOPS` | `1` in production, else `0` | Proxies in front that append to `X-Forwarded-For`; rate limits key on the address the outermost one saw |
-| `AWS_STORAGE_BUCKET_NAME` | empty | Turns on S3 media storage |
+| `GS_BUCKET_NAME` | empty | Turns on GCS media storage; the bucket must allow public read |
+| `GS_LOCATION` | empty | Path prefix for media inside the bucket |
+| `GOOGLE_APPLICATION_CREDENTIALS` | empty | Service-account key file for GCS; unneeded on GCP with an attached account |
 
 The contact form appears once the profile has an e-mail address.
 

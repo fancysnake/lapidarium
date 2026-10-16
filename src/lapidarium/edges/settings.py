@@ -14,10 +14,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     ADMIN_URL=(str, "admin/"),
     ALLOWED_HOSTS=(list, ["localhost"]),
-    AWS_STORAGE_BUCKET_NAME=(str, ""),
     CACHE_URL=(str, "locmemcache://"),
     DEFAULT_FROM_EMAIL=(str, "webmaster@localhost"),
     EMAIL_URL=(str, "consolemail://"),
+    GS_BUCKET_NAME=(str, ""),
+    GS_LOCATION=(str, ""),
     MAILCHIMP_API_KEY=(str, ""),
     MAILCHIMP_LIST_ID=(str, ""),
     NEWSLETTER_BACKEND=(str, "log"),
@@ -127,17 +128,27 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")
 
-AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-# The S3 backend reads AWS_* from the environment itself; the bucket name is
-# the switch that turns it on.
+GS_BUCKET_NAME = env("GS_BUCKET_NAME")
+GS_LOCATION = env("GS_LOCATION")
+
+# Media goes to GCS when a bucket is named, the filesystem otherwise. The client
+# finds credentials itself (GOOGLE_APPLICATION_CREDENTIALS, or the attached
+# service account on GCP). The bucket serves objects publicly, so URLs carry no
+# signature.
 STORAGES = {
-    "default": {
-        "BACKEND": (
-            "storages.backends.s3.S3Storage"
-            if AWS_STORAGE_BUCKET_NAME
-            else "django.core.files.storage.FileSystemStorage"
-        )
-    },
+    "default": (
+        {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "bucket_name": GS_BUCKET_NAME,
+                "location": GS_LOCATION,
+                "default_acl": None,
+                "querystring_auth": False,
+            },
+        }
+        if GS_BUCKET_NAME
+        else {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+    ),
     "staticfiles": {
         "BACKEND": (
             "whitenoise.storage.CompressedManifestStaticFilesStorage"
