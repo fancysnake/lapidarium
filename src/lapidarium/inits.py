@@ -81,7 +81,11 @@ class Process:
 
     @cached_property
     def theme(self) -> ThemeService:
-        return ThemeService(store=self.themes, engine_version=version("lapidarium"))
+        return ThemeService(
+            store=self.themes,
+            engine_version=version("lapidarium"),
+            static_prefix=settings.THEME_STATIC_PREFIX,
+        )
 
     @cached_property
     def newsletter(self) -> NewsletterProtocol:
@@ -132,10 +136,7 @@ class Services(ServicesProtocol):
 
     @cached_property
     def schema(self) -> SchemaService:
-        return SchemaService(
-            background=self.theme.background(),
-            dark_background=self.theme.dark_background(),
-        )
+        return SchemaService(background=self.theme.background())
 
     @cached_property
     def content_export(self) -> ContentExportService:
@@ -173,11 +174,7 @@ class Services(ServicesProtocol):
     def site(self) -> SiteService:
         repos = self._repositories
         return SiteService(
-            schema=self.schema,
-            types=repos.entry_types,
-            profile=repos.profile,
-            theme=self.theme,
-            site_name=settings.SITE_NAME,
+            types=repos.entry_types, profile=repos.profile, site_name=settings.SITE_NAME
         )
 
     @cached_property
@@ -209,8 +206,9 @@ class ServiceInjectionMiddleware[Response]:
     """Attach `request.services` so views reach mills through protocols only."""
 
     def __init__(self, get_response: Callable[[RootRequestProtocol], Response]) -> None:
-        # Middleware loads once, with the app: a newsletter that cannot work stops
-        # the start.
+        # Middleware loads once, with the app: a theme or a newsletter that cannot
+        # work stops the start.
+        _ = PROCESS.theme
         _ = PROCESS.newsletter
         self.get_response = get_response
 

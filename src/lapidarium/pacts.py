@@ -78,6 +78,20 @@ class ProblemLevel(StrEnum):
     WARNING = "warning"
 
 
+class ThemeProblem(StrEnum):
+    """A breach of the theme contract; the code's first letter gives its level."""
+
+    MISSING_REQUIRED = "E001"
+    LOW_CONTRAST = "E002"
+    NO_ENGINE = "W001"
+    OTHER_ENGINE = "W002"
+    STALE_OVERRIDE = "W003"
+
+    @property
+    def level(self) -> ProblemLevel:
+        return ProblemLevel.ERROR if self.startswith("E") else ProblemLevel.WARNING
+
+
 class Outcome(StrEnum):
     ONGOING = "ongoing"
     FINISHED = "finished"
@@ -186,6 +200,16 @@ REQUIRED_TOKENS = frozenset(
         "--gutter",
     }
 )
+# Text colour on background colour: each pair must read, so each token is #rrggbb.
+CONTRAST_PAIRS = (
+    ("--color-text", "--color-bg"),
+    ("--color-brand", "--color-bg"),
+    ("--color-brand-contrast", "--color-brand"),
+    ("--color-type-default", "--color-bg"),
+    ("--color-type-default", "--color-type-default-tint"),
+)
+PAIRED_TOKENS = frozenset(token for pair in CONTRAST_PAIRS for token in pair)
+HEX_COLOUR = r"#[0-9a-fA-F]{6}"
 
 # Cache alias for rendered public pages; every content commit clears it.
 PAGE_CACHE = "pages"
@@ -660,8 +684,7 @@ class SiteThemeDTO(BaseModel):
 class ProblemDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    level: ProblemLevel
-    code: str
+    code: ThemeProblem
     message: str
 
 
@@ -670,15 +693,11 @@ class SiteDTO(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    theme: SiteThemeDTO
     profile: ProfileDTO | None
     # The profile's name, or the site name when the profile has none.
     owner_name: str
     links: tuple[LinkDTO, ...]
-    # Tints are filled in, derived from the colour where the type sets none.
     types: tuple[EntryTypeDTO, ...]
-    # The same types tinted over the dark background; empty without a dark scheme.
-    dark_types: tuple[EntryTypeDTO, ...]
     menu: tuple[EntryTypeDTO, ...]
 
 
@@ -827,9 +846,6 @@ class SchemaServiceProtocol(Protocol):
     def derive_tint(self, colour: str) -> str:
         """Mix `colour` over the page background."""
 
-    def dark_tint(self, colour: str) -> str | None:
-        """Mix `colour` over the dark background; None without a dark scheme."""
-
     def check_colours(self, colour: str, tint: str) -> list[str]:
         """Contrast errors for a type colour against the background and its tint."""
 
@@ -895,9 +911,6 @@ class ThemeServiceProtocol(Protocol):
 
     def background(self) -> str:
         """Return the page background type colours must stand out against."""
-
-    def dark_background(self) -> str | None:
-        """Return the background of the dark scheme, if the theme has one."""
 
 
 class ServicesProtocol(Protocol):

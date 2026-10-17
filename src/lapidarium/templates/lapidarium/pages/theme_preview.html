@@ -5,7 +5,7 @@
   <main class="container page">
     <div>
       <h1 class="page__title">{% translate "Theme preview" %}</h1>
-      <p class="page__lead">{{ site.theme.name }} ({{ site.theme.key }}){% if site.theme.version %} {{ site.theme.version }}{% endif %}</p>
+      <p class="page__lead">{{ theme.name }} ({{ theme.key }}){% if theme.version %} {{ theme.version }}{% endif %}</p>
     </div>
     <section aria-labelledby="problems-title">
       <h2 class="section-title" id="problems-title">{% translate "Checks" %}</h2>
@@ -13,7 +13,7 @@
         <ul class="panel__list">
           {% for problem in problems %}
             <li class="notice">
-              <span class="label">{{ problem.level }} {{ problem.code }}</span> {{ problem.message }}
+              <span class="label">{{ problem.code.level }} {{ problem.code }}</span> {{ problem.message }}
             </li>
           {% endfor %}
         </ul>

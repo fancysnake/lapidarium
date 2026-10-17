@@ -26,14 +26,13 @@
           href="{% url 'rss' %}">
     {% include "lapidarium/components/stylesheets.html" %}
     <style>
-      {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {{ entry_type.tint }}; }
+      {# 12% is TINT_MIX, the share derive_tint mixes. #}
+      {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: color-mix(in srgb, var(--type-color) 12%, var(--color-bg)); }
       {% endfor %}
-      {% if site.dark_types %}
-        @media (prefers-color-scheme: dark) {
-          {% for entry_type in site.dark_types %}[data-type="{{ entry_type.key }}"] { --type-tint: {{ entry_type.tint }}; }
-          {% endfor %}
-        }
-      {% endif %}
+      @media (prefers-color-scheme: light) {
+        {% for entry_type in site.types %}{% if entry_type.tint %}[data-type="{{ entry_type.key }}"] { --type-tint: {{ entry_type.tint }}; }
+        {% endif %}{% endfor %}
+      }
     </style>
     <script type="module" src="{% static 'lapidarium/js/enhance.js' %}"></script>
   </head>

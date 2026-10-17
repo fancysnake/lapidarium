@@ -18,10 +18,10 @@ services:
       DATABASE_URL: ${DATABASE_URL:?}
       SITE_NAME: ${SITE_NAME:-lapidarium}
       ADMIN_URL: ${ADMIN_URL:-admin/}
-      # An empty bucket name keeps media on the filesystem. The key file path
-      # points at a service-account JSON mounted into the container (a Coolify
-      # file mount); leave it empty on GCP, where the attached account is used.
-      GS_BUCKET_NAME: ${GS_BUCKET_NAME:-}
+      # The key file path points at a service-account JSON mounted into the
+      # container (a Coolify file mount); leave it empty on GCP, where the
+      # attached account is used.
+      GS_BUCKET_NAME: ${GS_BUCKET_NAME:?}
       GS_LOCATION: ${GS_LOCATION:-}
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
     ports:

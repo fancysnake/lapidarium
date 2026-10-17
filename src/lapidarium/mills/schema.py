@@ -142,9 +142,8 @@ def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str
 class SchemaService(SchemaServiceProtocol):
     """Type schemas: metadata, role built-ins, parts, colours."""
 
-    def __init__(self, background: str, *, dark_background: str | None) -> None:
+    def __init__(self, background: str) -> None:
         self._background = background
-        self._dark_background = dark_background
 
     @override
     def validate_metadata(
@@ -277,12 +276,6 @@ class SchemaService(SchemaServiceProtocol):
     @override
     def derive_tint(self, colour: str) -> str:
         return mix(colour, self._background, share=TINT_MIX)
-
-    @override
-    def dark_tint(self, colour: str) -> str | None:
-        if self._dark_background is None:
-            return None
-        return mix(colour, self._dark_background, share=TINT_MIX)
 
     @override
     def check_colours(self, colour: str, tint: str) -> list[str]:

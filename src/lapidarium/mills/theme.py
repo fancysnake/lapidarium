@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING, override
 
 from lapidarium.mills.colour import contrast_ratio
 from lapidarium.pacts import (
+    CONTRAST_PAIRS,
     REQUIRED_TOKENS,
     ProblemDTO,
-    ProblemLevel,
     SiteThemeDTO,
     StylesheetDTO,
+    ThemeProblem,
     ThemeServiceProtocol,
 )
 from lapidarium.specs import CONTRAST_FLOOR
@@ -19,20 +19,9 @@ from lapidarium.specs import CONTRAST_FLOOR
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
 
-    from lapidarium.pacts import ThemeStoreProtocol
+    from lapidarium.pacts import ThemeDTO, ThemeStoreProtocol
 
-_HEX = re.compile(r"#[0-9a-fA-F]{6}")
-_FALLBACK_BACKGROUND = "#ffffff"
 _ENGINE_STYLESHEET = "lapidarium/css/base.css"
-# Text colour on background colour: each pair must read.
-_PAIRS = (
-    ("--color-text", "--color-bg"),
-    ("--color-brand", "--color-bg"),
-    ("--color-brand-contrast", "--color-brand"),
-    ("--color-type-default", "--color-bg"),
-    ("--color-type-default", "--color-type-default-tint"),
-)
-_PAIRED = sorted({token for pair in _PAIRS for token in pair})
 
 
 def _release(version: str) -> tuple[str, ...]:
@@ -44,24 +33,12 @@ def _release(version: str) -> tuple[str, ...]:
 def _contrast_problems(
     tokens: Mapping[str, str], *, scheme: str
 ) -> Iterator[ProblemDTO]:
-    for token in _PAIRED:
-        if token in tokens and not _HEX.fullmatch(tokens[token]):
-            yield ProblemDTO(
-                level=ProblemLevel.ERROR,
-                code="E003",
-                message=(
-                    f"{token} ({scheme}) is {tokens[token]!r}; the contrast check"
-                    " needs #rrggbb."
-                ),
-            )
-    for text, background in _PAIRS:
-        first, second = tokens.get(text, ""), tokens.get(background, "")
-        if not (_HEX.fullmatch(first) and _HEX.fullmatch(second)):
+    for text, background in CONTRAST_PAIRS:
+        if text not in tokens or background not in tokens:
             continue
-        if (ratio := contrast_ratio(first, second)) < CONTRAST_FLOOR:
+        if (ratio := contrast_ratio(tokens[text], tokens[background])) < CONTRAST_FLOOR:
             yield ProblemDTO(
-                level=ProblemLevel.ERROR,
-                code="E002",
+                code=ThemeProblem.LOW_CONTRAST,
                 message=(
                     f"{text} on {background} ({scheme}) has contrast"
                     f" {ratio:.2f}:1, needs {CONTRAST_FLOOR}:1."
@@ -69,10 +46,38 @@ def _contrast_problems(
             )
 
 
-class ThemeService(ThemeServiceProtocol):
-    """Read through `store`; checked against `engine_version`."""
+def _site_theme(layers: tuple[ThemeDTO, ...], *, static_prefix: str) -> SiteThemeDTO:
+    fonts = [url for layer in layers for url in layer.fonts]
+    paths = [
+        *(f"{static_prefix}/{layer.key}/tokens.css" for layer in layers),
+        _ENGINE_STYLESHEET,
+        *(
+            f"{static_prefix}/{layer.key}/theme.css"
+            for layer in layers
+            if layer.has_stylesheet
+        ),
+    ]
+    active = layers[-1]
+    return SiteThemeDTO(
+        key=active.key,
+        name=active.name,
+        version=active.version,
+        stylesheets=(
+            *(StylesheetDTO(href=url, external=True) for url in fonts),
+            *(StylesheetDTO(href=path, external=False) for path in paths),
+        ),
+    )
 
-    def __init__(self, *, store: ThemeStoreProtocol, engine_version: str) -> None:
+
+class ThemeService(ThemeServiceProtocol):
+    """Read through `store`; checked against `engine_version`.
+
+    Each layer's static files are served under `static_prefix`/<key>.
+    """
+
+    def __init__(
+        self, *, store: ThemeStoreProtocol, engine_version: str, static_prefix: str
+    ) -> None:
         self._store = store
         self._engine_version = engine_version
         self._layers = store.layers()
@@ -84,41 +89,15 @@ class ThemeService(ThemeServiceProtocol):
             self._light |= layer.tokens
             self._dark |= layer.tokens | layer.dark_tokens
         self._has_dark = any(layer.dark_tokens for layer in self._layers)
+        self._active = _site_theme(self._layers, static_prefix=static_prefix)
 
     @override
     def active(self) -> SiteThemeDTO:
-        fonts = [url for layer in self._layers for url in layer.fonts]
-        paths = [
-            *(f"themes/{layer.key}/tokens.css" for layer in self._layers),
-            _ENGINE_STYLESHEET,
-            *(
-                f"themes/{layer.key}/theme.css"
-                for layer in self._layers
-                if layer.has_stylesheet
-            ),
-        ]
-        active = self._layers[-1]
-        return SiteThemeDTO(
-            key=active.key,
-            name=active.name,
-            version=active.version,
-            stylesheets=(
-                *(StylesheetDTO(href=url, external=True) for url in fonts),
-                *(StylesheetDTO(href=path, external=False) for path in paths),
-            ),
-        )
+        return self._active
 
     @override
     def background(self) -> str:
-        """White unless `--color-bg` is `#rrggbb`; `check` reports it when not."""
-        background = self._light.get("--color-bg", "")
-        return background if _HEX.fullmatch(background) else _FALLBACK_BACKGROUND
-
-    @override
-    def dark_background(self) -> str | None:
-        """None without a dark scheme, or unless its `--color-bg` is `#rrggbb`."""
-        background = self._dark.get("--color-bg", "")
-        return background if self._has_dark and _HEX.fullmatch(background) else None
+        return self._light["--color-bg"]
 
     @override
     def check(self) -> list[ProblemDTO]:
@@ -132,8 +111,7 @@ class ThemeService(ThemeServiceProtocol):
     def _missing_tokens(self) -> Iterator[ProblemDTO]:
         for token in sorted(REQUIRED_TOKENS - self._light.keys()):
             yield ProblemDTO(
-                level=ProblemLevel.ERROR,
-                code="E001",
+                code=ThemeProblem.MISSING_REQUIRED,
                 message=f"No theme defines the required token {token}.",
             )
 
@@ -146,14 +124,12 @@ class ThemeService(ThemeServiceProtocol):
         active = self._layers[-1]
         if active.engine is None:
             yield ProblemDTO(
-                level=ProblemLevel.WARNING,
-                code="W001",
+                code=ThemeProblem.NO_ENGINE,
                 message=f"Theme {active.key!r} declares no engine version.",
             )
         elif _release(active.engine) != _release(self._engine_version):
             yield ProblemDTO(
-                level=ProblemLevel.WARNING,
-                code="W002",
+                code=ThemeProblem.OTHER_ENGINE,
                 message=(
                     f"Theme {active.key!r} is built for engine {active.engine};"
                     f" this is {self._engine_version}."
@@ -164,7 +140,6 @@ class ThemeService(ThemeServiceProtocol):
         engine_templates = self._store.engine_templates()
         for path in sorted(set(self._layers[-1].templates) - engine_templates):
             yield ProblemDTO(
-                level=ProblemLevel.WARNING,
-                code="W003",
+                code=ThemeProblem.STALE_OVERRIDE,
                 message=f"Theme overrides {path}, which the engine no longer has.",
             )

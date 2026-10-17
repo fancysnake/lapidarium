@@ -31,10 +31,21 @@ def bare_theme_fixture(*, settings, monkeypatch, tmp_path):
 def test_the_base_theme_loads_its_tokens_only(site):
     response = site.get("/")
 
-    assert response.context["site"].theme.key == "base"
     assert "/static/themes/base/tokens.css" in response.text
     assert "fonts.googleapis.com" not in response.text
-    assert "prefers-color-scheme" not in response.text
+
+
+def test_type_tints_mix_over_the_background_unless_set_for_the_light_scheme(site):
+    response = site.get("/")
+
+    text = response.text
+    session = next(t for t in response.context["site"].types if t.key == "session")
+    mixed = "--type-tint: color-mix(in srgb, var(--type-color) 12%, var(--color-bg));"
+    set_tint = f'[data-type="session"] {{ --type-tint: {session.tint}; }}'
+    assert (
+        f'[data-type="session"] {{ --type-color: {session.colour}; {mixed} }}' in text
+    )
+    assert text.index("@media (prefers-color-scheme: light)") < text.index(set_tint)
 
 
 @pytest.mark.usefixtures("dusk")
@@ -42,11 +53,9 @@ def test_another_theme_loads_over_the_base(site):
     response = site.get("/")
 
     text = response.text
-    assert response.context["site"].theme.key == "dusk"
     assert "fonts.googleapis.com/css2?family=Gabarito" in text
     assert text.index("themes/base/tokens.css") < text.index("themes/dusk/tokens.css")
     assert "/static/themes/dusk/theme.css" in text
-    assert "@media (prefers-color-scheme: dark)" in text
 
 
 @pytest.mark.usefixtures("dusk")
@@ -75,6 +84,7 @@ def test_the_preview_shows_components_and_checks(site):
     response = site.get("/admin/theme-preview/")
 
     assert response.status_code == HTTPStatus.OK
+    assert response.context["theme"].key == "base"
     assert response.context["problems"] == ()
     assert len(response.context["home"].doors) == 5
     assert "The theme meets the contract." in response.text

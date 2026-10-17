@@ -28,7 +28,7 @@ def theme_check(
     # Checks run outside any request, so nothing has attached the services.
     factory: Callable[[], ServicesProtocol] = import_string(settings.SERVICES_FACTORY)
     return [
-        (checks.Error if p.level == ProblemLevel.ERROR else checks.Warning)(
+        (checks.Error if p.code.level == ProblemLevel.ERROR else checks.Warning)(
             p.message, id=f"lapidarium.{p.code}"
         )
         for p in factory().theme.check()

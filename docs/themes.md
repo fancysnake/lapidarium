@@ -57,18 +57,19 @@ breaking change.
 | Spacing | `--space-1` … `--space-9`, `--max-width`, `--gutter` |
 
 The engine reads tokens only from top-level `:root` rules. A dark scheme sets
-tokens again inside `@media (prefers-color-scheme: dark) { :root { … } }`, and
-the engine then derives each content type's tint against the dark `--color-bg`
-as well. A `tokens.css` that does not parse stops the start.
+tokens again inside `@media (prefers-color-scheme: dark) { :root { … } }`.
 
 `--color-bg`, `--color-text`, `--color-brand`, `--color-brand-contrast`,
 `--color-type-default` and `--color-type-default-tint` must be `#rrggbb`, so
-that their contrast can be checked.
+that their contrast can be checked. A `tokens.css` that does not parse, or sets
+one of these to anything else, stops the start.
 
 ### Content type colours
 
 Content type colours are not tokens: each type's colour and tint are set in the
 admin and emitted as `[data-type="<key>"] { --type-color; --type-tint }`.
+The tint mixes 12% of the colour into `--color-bg`, so it follows the dark
+scheme; a tint set in the admin replaces it in the light scheme only.
 Components read only `--type-color` and `--type-tint`, so a door, a card, a
 menu marker and a what's-new line all take the colour of their type.
 
@@ -78,11 +79,11 @@ Stable, BEM-style. Target these from `theme.css`.
 
 | Component | Classes |
 |---|---|
-| Page frame | `.site-bar`, `.site-header`, `.site-logo`, `.site-logo__mark`, `.site-nav`, `.site-nav__marker`, `.site-footer`, `.site-footer__inner`, `.footer-links` |
+| Page frame | `.site-header`, `.site-logo`, `.site-logo__mark`, `.site-logo__name`, `.site-logo__handle`, `.site-nav`, `.site-footer`, `.site-footer__inner`, `.footer-links` |
 | Layout | `.container`, `.page`, `.page__title`, `.page__lead`, `.section-title`, `.label`, `.empty`, `.notice` |
 | Buttons and forms | `.btn`, `.btn--primary`, `.btn--type`, `.input`, `.form`, `.form__field`, `.form__errors`, `.newsletter`, `.newsletter__title`, `.newsletter__row` |
-| Home | `.hero`, `.hero__name`, `.hero__stats`, `.hero__rule`, `.hero__lead`, `.hero__portrait`, `.doors`, `.door`, `.door__label`, `.door__title`, `.door__meta`, `.door__image`, `.door__more`, `.home-bottom`, `.next-up__label`, `.next-up__title` |
-| Lists | `.cards`, `.card`, `.card__image`, `.card__title`, `.card__summary`, `.card__meta`, `.type-label`, `.stats`, `.filters`, `.pagination`, `.gallery`, `.gallery__item`, `.feed`, `.feed__item`, `.feed__type`, `.feed__title`, `.timeline` |
+| Home | `.hero`, `.hero__name`, `.hero__name--quiet`, `.hero__stats`, `.hero__lead`, `.hero__portrait`, `.hero__aside`, `.hero__actions`, `.home-doors`, `.doors`, `.door`, `.door__label`, `.door__title`, `.door__meta`, `.door__image`, `.door__more`, `.home-bottom`, `.home-bottom__aside`, `.next-up__label`, `.next-up__title`, `.follow`, `.follow__title` |
+| Lists | `.cards`, `.card`, `.card__image`, `.card__title`, `.card__summary`, `.card__meta`, `.type-label`, `.stats`, `.filters`, `.pagination`, `.gallery`, `.gallery__item`, `.feed`, `.feed__item`, `.feed__type`, `.feed__title`, `.feed__meta`, `.feed__change`, `.chip`, `.timeline` |
 | Detail pages | `.breadcrumb`, `.detail-hero`, `.detail-hero__title`, `.detail-hero__summary`, `.detail-hero__cover`, `.detail-layout`, `.detail-layout__main`, `.detail-layout__aside`, `.panel`, `.panel--typed`, `.panel__title`, `.panel__label`, `.related-item`, `.author-box` |
 | Parts | `.part-text`, `.part-figure`, `.part-audio`, `.video-facade`, `.video-facade__play`, `.link-card`, `.link-card__icon` |
 | Frames | `.framed`, `.framed__inner`; set `--frame-color` and `--frame-tint` to recolour |
@@ -101,7 +102,6 @@ files so that an override replaces one piece, not a page.
 |---|---|---|
 | `lapidarium.E001` | error | a required token is defined by neither the base nor the theme |
 | `lapidarium.E002` | error | text, brand or type fallback colour has contrast below 4.5:1 against its background, in either scheme |
-| `lapidarium.E003` | error | a colour the contrast check reads is not `#rrggbb` |
 | `lapidarium.W001` | warning | `theme.toml` declares no engine version |
 | `lapidarium.W002` | warning | the theme is built for another engine release |
 | `lapidarium.W003` | warning | the theme overrides a template the engine no longer has |

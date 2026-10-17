@@ -17,10 +17,10 @@ def test_reads_manifest_tokens_dark_tokens_and_templates(tmp_path):
     (theme / "tokens.css").write_text(
         "/* --color-skip: #000; */\n"
         '@import url("fonts.css");\n'
-        ":root { --color-bg: #fff; --gutter: 32px }\n"
-        ".card { --color-bg: #eee; }\n"
+        ":root { color: black; --color-bg: #ffffff; --gutter: 32px }\n"
+        ".card { --color-bg: #eeeeee; }\n"
         "@media (max-width: 40rem) { :root { --gutter: 16px; } }\n"
-        "@media (prefers-color-scheme: dark) { :root { --color-bg: #111; } }\n"
+        "@media (prefers-color-scheme: dark) { :root { --color-bg: #111111; } }\n"
     )
 
     dto = read_theme(theme)
@@ -29,14 +29,14 @@ def test_reads_manifest_tokens_dark_tokens_and_templates(tmp_path):
     assert (dto.name, dto.version, dto.engine) == ("Night", "2.0", "0.1")
     assert dto.fonts == ("https://f",)
     assert dto.has_stylesheet is True
-    assert dto.tokens == {"--color-bg": "#fff", "--gutter": "32px"}
-    assert dto.dark_tokens == {"--color-bg": "#111"}
+    assert dto.tokens == {"--color-bg": "#ffffff", "--gutter": "32px"}
+    assert dto.dark_tokens == {"--color-bg": "#111111"}
     assert dto.templates == ("lapidarium/base.html",)
 
 
 def test_a_bare_theme_needs_only_tokens(tmp_path):
     (tmp_path / "bare").mkdir()
-    (tmp_path / "bare" / "tokens.css").write_text(":root { --color-bg: #fff; }")
+    (tmp_path / "bare" / "tokens.css").write_text(":root { --color-bg: #ffffff; }")
 
     dto = read_theme(tmp_path / "bare")
 
@@ -57,7 +57,7 @@ def test_tokens_that_do_not_parse_name_the_file(*, tmp_path, css):
 def test_errors_inside_a_block_count_lines_from_the_top_of_the_file(tmp_path):
     (tmp_path / "broken").mkdir()
     (tmp_path / "broken" / "tokens.css").write_text(
-        ":root { --color-bg: #fff; }\n"
+        ":root { --color-bg: #ffffff; }\n"
         "@media (prefers-color-scheme: dark) {\n"
         "  :root {\n"
         "    --color-bg #111;\n"
@@ -67,6 +67,26 @@ def test_errors_inside_a_block_count_lines_from_the_top_of_the_file(tmp_path):
 
     with pytest.raises(ImproperlyConfigured, match=r"broken/tokens\.css, line 4"):
         read_theme(tmp_path / "broken")
+
+
+@pytest.mark.parametrize(
+    "css",
+    (
+        ":root { --gutter: 4px; }\n:root { --color-bg: white; }",
+        (
+            ":root { --gutter: 4px; }\n"
+            "@media (prefers-color-scheme: dark) { :root { --color-text: #eee; } }"
+        ),
+    ),
+)
+def test_colours_the_contrast_check_reads_must_be_rrggbb(*, tmp_path, css):
+    (tmp_path / "soft").mkdir()
+    (tmp_path / "soft" / "tokens.css").write_text(css)
+
+    with pytest.raises(
+        ImproperlyConfigured, match=r"soft/tokens\.css, line 2: --color-.* #rrggbb"
+    ):
+        read_theme(tmp_path / "soft")
 
 
 def test_the_base_theme_defines_every_required_token():

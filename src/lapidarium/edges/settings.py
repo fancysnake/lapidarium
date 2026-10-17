@@ -61,11 +61,15 @@ def _theme_dir(name: str) -> Path:
     raise ImproperlyConfigured(msg)
 
 
-# Each layer loads over the one before; a site theme named `base` replaces the
-# engine's.
-THEME_LAYERS: tuple[Path, ...] = tuple(
-    {d.name: d for d in (ENGINE_THEMES / "base", _theme_dir(SITE_THEME))}.values()
+# Each layer loads over the one before.
+_SITE_THEME_DIR = _theme_dir(SITE_THEME)
+THEME_LAYERS: tuple[Path, ...] = (
+    (_SITE_THEME_DIR,)
+    if _SITE_THEME_DIR.name == "base"
+    else (ENGINE_THEMES / "base", _SITE_THEME_DIR)
 )
+# Where each layer's directory is served from: <prefix>/<name>/.
+THEME_STATIC_PREFIX = "themes"
 ADMIN_URL = env("ADMIN_URL")
 
 INSTALLED_APPS = [
@@ -152,7 +156,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT")
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    *((f"themes/{d.name}", d) for d in THEME_LAYERS),
+    *((f"{THEME_STATIC_PREFIX}/{d.name}", d) for d in THEME_LAYERS),
 ]
 MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")

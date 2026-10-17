@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.theme import ThemeService
-from lapidarium.pacts import REQUIRED_TOKENS, ProblemLevel, ThemeDTO
+from lapidarium.pacts import REQUIRED_TOKENS, ProblemLevel, ThemeDTO, ThemeProblem
 
 COMPLETE = dict.fromkeys(REQUIRED_TOKENS, "1rem") | {
     "--color-bg": "#ffffff",
@@ -37,11 +37,11 @@ def _service(*, base=None, active=None, engine="0.1.0", templates=frozenset()):
     base = base or _theme(tokens=COMPLETE)
     store.layers.return_value = (base, active) if active else (base,)
     store.engine_templates.return_value = templates
-    return ThemeService(store=store, engine_version=engine)
+    return ThemeService(store=store, engine_version=engine, static_prefix="themes")
 
 
 def _codes(problems):
-    return [(p.level, p.code) for p in problems]
+    return [p.code for p in problems]
 
 
 def test_a_complete_theme_has_no_problems():
@@ -58,12 +58,16 @@ def test_active_tokens_override_the_base():
 
 
 def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
+    # Over the base's dark #000000, --color-text would fail the contrast check.
     base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#000000"})
     active = _theme("x", tokens={"--color-bg": "#fafafa"})
 
-    service = _service(base=base, active=active)
+    assert _service(base=base, active=active).check() == []
 
-    assert service.dark_background() == "#fafafa"
+
+def test_a_problem_takes_its_level_from_its_code():
+    assert ThemeProblem.LOW_CONTRAST.level == ProblemLevel.ERROR
+    assert ThemeProblem.STALE_OVERRIDE.level == ProblemLevel.WARNING
 
 
 def test_the_page_loads_fonts_then_tokens_then_engine_css_then_theme_css():
@@ -94,41 +98,21 @@ def test_the_base_alone_loads_once():
     ]
 
 
-def test_a_background_that_is_not_hex_falls_back_to_white_and_is_an_error():
-    service = _service(active=_theme("x", tokens={"--color-bg": "white"}))
-
-    assert service.background() == "#ffffff"
-    assert [p.message for p in service.check()] == [
-        "--color-bg (light) is 'white'; the contrast check needs #rrggbb."
-    ]
-
-
-def test_a_dark_background_that_is_not_hex_drops_the_dark_scheme():
-    dark = {"--color-bg": "rgb(0 0 0)"}
-    service = _service(active=_theme("x", dark_tokens=dark))
-
-    assert service.dark_background() is None
-    assert _codes(service.check()) == [(ProblemLevel.ERROR, "E003")]
-
-
 def test_missing_tokens_are_errors():
     base = _theme(tokens={k: v for k, v in COMPLETE.items() if k != "--gutter"})
 
     problems = _service(base=base).check()
 
-    assert _codes(problems) == [(ProblemLevel.ERROR, "E001")]
+    assert _codes(problems) == [ThemeProblem.MISSING_REQUIRED]
     assert "--gutter" in problems[0].message
 
 
-def test_low_contrast_and_colours_that_are_not_hex_are_errors():
-    active = _theme(
-        "pale", tokens={"--color-brand": "#dddddd", "--color-type-default": "var(--x)"}
-    )
+def test_low_contrast_is_an_error():
+    active = _theme("pale", tokens={"--color-brand": "#dddddd"})
 
     problems = _service(active=active).check()
 
     assert [p.message.split(" has")[0] for p in problems] == [
-        "--color-type-default (light) is 'var(--x)'; the contrast check needs #rrggbb.",
         "--color-brand on --color-bg (light)",
         "--color-brand-contrast on --color-brand (light)",
     ]
@@ -140,7 +124,6 @@ def test_dark_tokens_are_checked_too():
 
     problems = service.check()
 
-    assert service.dark_background() == "#111111"
     assert [p.message.split(" has")[0] for p in problems] == [
         "--color-text on --color-bg (dark)",
         "--color-brand on --color-bg (dark)",
@@ -148,17 +131,13 @@ def test_dark_tokens_are_checked_too():
     ]
 
 
-def test_no_dark_background_without_dark_tokens():
-    assert _service().dark_background() is None
-
-
 @pytest.mark.parametrize(
     ("declared", "engine", "codes"),
     (
-        (None, "0.1.0", [(ProblemLevel.WARNING, "W001")]),
-        ("0.2", "0.1.0", [(ProblemLevel.WARNING, "W002")]),
+        (None, "0.1.0", [ThemeProblem.NO_ENGINE]),
+        ("0.2", "0.1.0", [ThemeProblem.OTHER_ENGINE]),
         ("1.0", "1.4.2", []),
-        ("1", "2.0.0", [(ProblemLevel.WARNING, "W002")]),
+        ("1", "2.0.0", [ThemeProblem.OTHER_ENGINE]),
     ),
 )
 def test_engine_versions(*, declared, engine, codes):
@@ -174,5 +153,5 @@ def test_overrides_of_templates_the_engine_lacks_are_warnings():
         active=active, templates=frozenset({"lapidarium/base.html"})
     ).check()
 
-    assert _codes(problems) == [(ProblemLevel.WARNING, "W003")]
+    assert _codes(problems) == [ThemeProblem.STALE_OVERRIDE]
     assert "lapidarium/gone.html" in problems[0].message

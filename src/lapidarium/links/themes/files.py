@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import re
 import tomllib
 from typing import TYPE_CHECKING, NoReturn, Protocol, override
 
 import tinycss2
 from django.core.exceptions import ImproperlyConfigured
 
-from lapidarium.pacts import ThemeDTO, ThemeStoreProtocol
+from lapidarium.pacts import HEX_COLOUR, PAIRED_TOKENS, ThemeDTO, ThemeStoreProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, Sequence
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 
 _ROOT = ":root"
 _DARK = "(prefers-color-scheme:dark)"
+_HEX = re.compile(HEX_COLOUR)
 
 
 def _fail(path: Path, *, line: int, message: str) -> NoReturn:
@@ -71,8 +73,16 @@ def _root_tokens(rules: Iterable[_Rule], path: Path) -> dict[str, str]:
         ):
             if item.type == "error":
                 _fail(path, line=item.source_line, message=item.message)
-            if item.type == "declaration" and item.name.startswith("--"):
-                tokens[item.name] = tinycss2.serialize(item.value).strip()
+            if item.type != "declaration" or not item.name.startswith("--"):
+                continue
+            value = tinycss2.serialize(item.value).strip()
+            if item.name in PAIRED_TOKENS and not _HEX.fullmatch(value):
+                _fail(
+                    path,
+                    line=item.source_line,
+                    message=f"{item.name} is {value!r}; it must be #rrggbb.",
+                )
+            tokens[item.name] = value
     return tokens
 
 
@@ -80,13 +90,26 @@ def _optional(value: object) -> str | None:
     return None if value is None else str(value)
 
 
+def _relative_files(root: Path) -> tuple[str, ...]:
+    """Every file under `root`, as sorted POSIX paths relative to it."""
+    return tuple(
+        sorted(
+            file.relative_to(root).as_posix()
+            for file in root.rglob("*")
+            if file.is_file()
+        )
+    )
+
+
 def read_theme(directory: Path) -> ThemeDTO:
-    """`ImproperlyConfigured` when `tokens.css` does not parse."""
+    """`ImproperlyConfigured` when `tokens.css` does not parse or breaks the contract.
+
+    The contract: each colour the contrast check reads is `#rrggbb`.
+    """
     manifest = directory / "theme.toml"
     meta = tomllib.loads(manifest.read_text()) if manifest.is_file() else {}
     path = directory / "tokens.css"
     rules = _rules(path.read_text(), path)
-    templates = directory / "templates"
     return ThemeDTO(
         key=directory.name,
         name=str(meta.get("name", directory.name)),
@@ -100,13 +123,7 @@ def read_theme(directory: Path) -> ThemeDTO:
             for block in _dark_blocks(rules)
             for name, value in _root_tokens(_rules(block, path), path).items()
         },
-        templates=tuple(
-            sorted(
-                path.relative_to(templates).as_posix()
-                for path in templates.rglob("*")
-                if path.is_file()
-            )
-        ),
+        templates=_relative_files(directory / "templates"),
     )
 
 
@@ -115,11 +132,7 @@ class ThemeFiles(ThemeStoreProtocol):
 
     def __init__(self, *, layers: Sequence[Path], engine_templates: Path) -> None:
         self._layers = tuple(read_theme(directory) for directory in layers)
-        self._engine_templates = frozenset(
-            path.relative_to(engine_templates).as_posix()
-            for path in engine_templates.rglob("*")
-            if path.is_file()
-        )
+        self._engine_templates = frozenset(_relative_files(engine_templates))
 
     @override
     def layers(self) -> tuple[ThemeDTO, ...]:
