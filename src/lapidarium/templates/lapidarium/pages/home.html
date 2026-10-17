@@ -4,35 +4,47 @@
   <main>
     <section class="container hero" aria-labelledby="hero-name">
       <div class="hero__text">
-        <h1 class="hero__name" id="hero-name">
+        <h1 class="hero__name{% if site.profile.tagline %} hero__name--quiet{% endif %}"
+            id="hero-name">
           {% if site.profile %}
             {{ site.profile.name }}
           {% else %}
             {{ site_name }}
           {% endif %}
         </h1>
-        {% if site.profile.handle %}<p class="hero__stats">{{ site.profile.handle }}</p>{% endif %}
-        <div class="hero__rule" aria-hidden="true">
-          {% for entry_type in site.menu %}<span data-type="{{ entry_type.key }}"></span>{% endfor %}
-        </div>
         {% if site.profile.tagline %}<p class="hero__lead">{{ site.profile.tagline }}</p>{% endif %}
         <div class="hero__actions">
           <a class="btn btn--primary" href="#newsletter">{% translate "Subscribe to the newsletter" %}</a>
           {% if site.profile.email %}
-            <a class="btn btn--ghost" href="{% url 'contact' %}">{% translate "Write to me" %}</a>
+            <a class="btn" href="{% url 'contact' %}">{% translate "Write to me" %}</a>
           {% endif %}
         </div>
       </div>
-      {% if site.profile.photo %}
-        <div class="hero__portrait">
-          <img src="{{ site.profile.photo.url }}" alt="{{ site.profile.photo.alt }}">
+      {% if home.next_up %}
+        <aside class="hero__aside"
+               data-type="{{ home.next_up.entry.type_key }}"
+               aria-labelledby="next-up-title">
+          <div class="framed">
+            <div class="framed__inner">
+              <div class="next-up__label label">{% translate "Next up" %}</div>
+              <h2 class="next-up__title" id="next-up-title">
+                <a href="{% entry_url home.next_up.entry %}">{{ home.next_up.entry.title }}</a>
+              </h2>
+              {% include "lapidarium/components/when.html" with entry=home.next_up.entry role=home.next_up.entry_type.role %}
+              <a href="{% url 'ical' %}">{% translate "Add to your calendar (.ics)" %}</a>
+            </div>
+          </div>
+        </aside>
+      {% elif site.profile.photo %}
+        <div class="hero__aside">
+          <div class="hero__portrait">
+            <img src="{{ site.profile.photo.url }}" alt="{{ site.profile.photo.alt }}">
+          </div>
         </div>
       {% endif %}
     </section>
     {% if home.doors %}
-      <section class="container"
-               aria-labelledby="doors-title"
-               style="padding-bottom: var(--space-8)">
+      <section class="container home-doors" aria-labelledby="doors-title">
         <h2 class="section-title" id="doors-title">{% translate "What you will find here" %}</h2>
         <div class="doors">
           {% for door in home.doors %}
@@ -55,22 +67,22 @@
           <p class="empty">{% translate "Nothing here yet." %}</p>
         {% endif %}
       </section>
-      {% if home.next_up %}
-        <aside class="home-bottom__aside"
-               data-type="{{ home.next_up.entry.type_key }}"
-               aria-labelledby="next-up-title">
-          <div class="framed">
-            <div class="framed__inner">
-              <div class="next-up__label label">{% translate "Next up" %}</div>
-              <h2 class="next-up__title" id="next-up-title">
-                <a href="{% entry_url home.next_up.entry %}">{{ home.next_up.entry.title }}</a>
-              </h2>
-              {% include "lapidarium/components/when.html" with entry=home.next_up.entry role=home.next_up.entry_type.role %}
-              <a href="{% url 'ical' %}">{% translate "Add to your calendar (.ics)" %}</a>
-            </div>
-          </div>
-        </aside>
-      {% endif %}
+      <aside class="home-bottom__aside" aria-labelledby="follow-title">
+        <section class="follow">
+          <h2 class="follow__title" id="follow-title">{% translate "Follow without an account" %}</h2>
+          <ul>
+            <li>
+              <a href="{% url 'rss' %}">RSS</a>
+            </li>
+            <li>
+              <a href="#newsletter">{% translate "Newsletter" %}</a>
+            </li>
+            <li>
+              <a href="{% url 'ical' %}">{% translate "Calendar (.ics)" %}</a>
+            </li>
+          </ul>
+        </section>
+      </aside>
     </div>
   </main>
 {% endblock main %}
