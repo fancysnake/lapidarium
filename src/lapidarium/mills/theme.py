@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts import ThemeDTO, ThemeStoreProtocol
 
 _ENGINE_STYLESHEET = "lapidarium/css/base.css"
+_BACKGROUND = "--color-bg"
 
 
 def _release(version: str) -> tuple[str, ...]:
@@ -73,6 +74,7 @@ class ThemeService(ThemeServiceProtocol):
     """Read through `store`; checked against `engine_version`.
 
     Each layer's static files are served under `static_prefix`/<key>.
+    `ValueError` when no layer sets `--color-bg`: the colour checks need it.
     """
 
     def __init__(
@@ -88,6 +90,9 @@ class ThemeService(ThemeServiceProtocol):
         for layer in self._layers:
             self._light |= layer.tokens
             self._dark |= layer.tokens | layer.dark_tokens
+        if _BACKGROUND not in self._light:
+            msg = f"No theme defines the required token {_BACKGROUND}."
+            raise ValueError(msg)
         self._has_dark = any(layer.dark_tokens for layer in self._layers)
         self._active = _site_theme(self._layers, static_prefix=static_prefix)
 
@@ -97,7 +102,7 @@ class ThemeService(ThemeServiceProtocol):
 
     @override
     def background(self) -> str:
-        return self._light["--color-bg"]
+        return self._light[_BACKGROUND]
 
     @override
     def check(self) -> list[ProblemDTO]:

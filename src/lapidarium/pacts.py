@@ -198,6 +198,9 @@ REQUIRED_TOKENS = frozenset(
         *(f"--space-{step}" for step in range(1, 10)),
         "--max-width",
         "--gutter",
+        "--radius",
+        "--radius-lg",
+        "--line-strong",
     }
 )
 # Text colour on background colour: each pair must read, so each token is #rrggbb.

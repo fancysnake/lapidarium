@@ -55,6 +55,7 @@ breaking change.
 | Fonts | `--font-body`, `--font-display`, `--font-label` |
 | Type scale | `--text-base`, `--text-label`, `--text-h1`, `--text-h1-detail`, `--text-h2` |
 | Spacing | `--space-1` … `--space-9`, `--max-width`, `--gutter` |
+| Shape | `--radius`, `--radius-lg`, `--line-strong` |
 
 The engine reads tokens only from top-level `:root` rules. A dark scheme sets
 tokens again inside `@media (prefers-color-scheme: dark) { :root { … } }`.

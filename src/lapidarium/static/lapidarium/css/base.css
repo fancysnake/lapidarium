@@ -728,7 +728,6 @@ textarea.input { min-height: 10rem; padding-block: var(--space-3); }
 }
 
 @media (max-width: 40rem) {
-  :root { --text-h1: 2.5rem; --text-h1-detail: 2.25rem; --text-h2: 1.5rem; }
   .hero { padding-block: var(--space-5) var(--space-7); }
   .feed__item { grid-template-columns: auto minmax(0, 1fr); }
   .feed__meta { grid-column: 1 / -1; }

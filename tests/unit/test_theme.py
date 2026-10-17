@@ -107,6 +107,22 @@ def test_missing_tokens_are_errors():
     assert "--gutter" in problems[0].message
 
 
+def test_a_missing_colour_is_reported_once_not_contrast_checked():
+    base = _theme(tokens={k: v for k, v in COMPLETE.items() if k != "--color-brand"})
+
+    problems = _service(base=base).check()
+
+    assert _codes(problems) == [ThemeProblem.MISSING_REQUIRED]
+    assert "--color-brand" in problems[0].message
+
+
+def test_a_theme_without_a_background_fails_to_load():
+    base = _theme(tokens={k: v for k, v in COMPLETE.items() if k != "--color-bg"})
+
+    with pytest.raises(ValueError, match="--color-bg"):
+        _service(base=base)
+
+
 def test_low_contrast_is_an_error():
     active = _theme("pale", tokens={"--color-brand": "#dddddd"})
 

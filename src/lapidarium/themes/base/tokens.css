@@ -53,5 +53,10 @@
 }
 
 @media (max-width: 40rem) {
-  :root { --gutter: 16px; }
+  :root {
+    --text-h1: 2.5rem;
+    --text-h1-detail: 2.25rem;
+    --text-h2: 1.5rem;
+    --gutter: 16px;
+  }
 }
