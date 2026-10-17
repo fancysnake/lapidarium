@@ -380,6 +380,8 @@ ignore_names = [
     "ordering_field",
     "separator",
     "sidebar_navigation",
+    # Context processors, called by dotted path from settings
+    "theme_stylesheets",
     # Pydantic
     "model_config",
     # Columns kept for feeds and enum members stored as data, not named in code

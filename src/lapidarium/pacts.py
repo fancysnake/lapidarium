@@ -672,6 +672,8 @@ class SiteDTO(BaseModel):
 
     theme: SiteThemeDTO
     profile: ProfileDTO | None
+    # The profile's name, or the site name when the profile has none.
+    owner_name: str
     links: tuple[LinkDTO, ...]
     # Tints are filled in, derived from the colour where the type sets none.
     types: tuple[EntryTypeDTO, ...]
@@ -822,8 +824,11 @@ class SchemaServiceProtocol(Protocol):
     ) -> list[str]:
         """Errors for the type's required relation fields `roles` leaves unlinked."""
 
-    def derive_tint(self, colour: str, *, dark: bool = False) -> str:
-        """Mix over the dark background when `dark` and the theme has one."""
+    def derive_tint(self, colour: str) -> str:
+        """Mix `colour` over the page background."""
+
+    def dark_tint(self, colour: str) -> str | None:
+        """Mix `colour` over the dark background; None without a dark scheme."""
 
     def check_colours(self, colour: str, tint: str) -> list[str]:
         """Contrast errors for a type colour against the background and its tint."""

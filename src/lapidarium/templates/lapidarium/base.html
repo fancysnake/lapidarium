@@ -24,10 +24,7 @@
           type="application/rss+xml"
           title="{% translate "What's new" %}"
           href="{% url 'rss' %}">
-    {% for sheet in site.theme.stylesheets %}
-      <link rel="stylesheet"
-            href="{% if sheet.external %}{{ sheet.href }}{% else %}{% static sheet.href %}{% endif %}">
-    {% endfor %}
+    {% include "lapidarium/components/stylesheets.html" %}
     <style>
       {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {{ entry_type.tint }}; }
       {% endfor %}
@@ -43,17 +40,16 @@
   <body>
     <div class="container">
       <header class="site-header">
-        {% firstof site.profile.name site_name as owner_name %}
         <a class="site-logo" href="{% url 'home' %}">
           <span class="site-logo__mark" aria-hidden="true">
             {% if site.profile.photo %}
               <img src="{{ site.profile.photo.url }}" alt="">
             {% else %}
-              {{ owner_name|first }}
+              {{ site.owner_name|first }}
             {% endif %}
           </span>
           <span>
-            <span class="site-logo__name">{{ owner_name }}</span>
+            <span class="site-logo__name">{{ site.owner_name }}</span>
             {% if site.profile.handle %}<span class="site-logo__handle">{{ site.profile.handle }}</span>{% endif %}
           </span>
         </a>

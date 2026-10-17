@@ -80,8 +80,8 @@ class Process:
         )
 
     @cached_property
-    def engine_version(self) -> str:
-        return version("lapidarium")
+    def theme(self) -> ThemeService:
+        return ThemeService(store=self.themes, engine_version=version("lapidarium"))
 
     @cached_property
     def newsletter(self) -> NewsletterProtocol:
@@ -177,6 +177,7 @@ class Services(ServicesProtocol):
             types=repos.entry_types,
             profile=repos.profile,
             theme=self.theme,
+            site_name=settings.SITE_NAME,
         )
 
     @cached_property
@@ -192,7 +193,7 @@ class Services(ServicesProtocol):
 
     @cached_property
     def theme(self) -> ThemeService:
-        return ThemeService(store=PROCESS.themes, engine_version=PROCESS.engine_version)
+        return PROCESS.theme
 
     @cached_property
     def outreach(self) -> OutreachService:
@@ -210,7 +211,7 @@ class ServiceInjectionMiddleware[Response]:
     def __init__(self, get_response: Callable[[RootRequestProtocol], Response]) -> None:
         # Middleware loads once, with the app: a newsletter that cannot work stops
         # the start.
-        newsletter_backend()
+        _ = PROCESS.newsletter
         self.get_response = get_response
 
     def __call__(self, request: RootRequestProtocol) -> Response:

@@ -80,7 +80,7 @@ Stable, BEM-style. Target these from `theme.css`.
 |---|---|
 | Page frame | `.site-bar`, `.site-header`, `.site-logo`, `.site-logo__mark`, `.site-nav`, `.site-nav__marker`, `.site-footer`, `.site-footer__inner`, `.footer-links` |
 | Layout | `.container`, `.page`, `.page__title`, `.page__lead`, `.section-title`, `.label`, `.empty`, `.notice` |
-| Buttons and forms | `.btn`, `.btn--primary`, `.btn--ghost`, `.btn--type`, `.input`, `.form`, `.form__field`, `.form__errors`, `.newsletter`, `.newsletter__title`, `.newsletter__row` |
+| Buttons and forms | `.btn`, `.btn--primary`, `.btn--type`, `.input`, `.form`, `.form__field`, `.form__errors`, `.newsletter`, `.newsletter__title`, `.newsletter__row` |
 | Home | `.hero`, `.hero__name`, `.hero__stats`, `.hero__rule`, `.hero__lead`, `.hero__portrait`, `.doors`, `.door`, `.door__label`, `.door__title`, `.door__meta`, `.door__image`, `.door__more`, `.home-bottom`, `.next-up__label`, `.next-up__title` |
 | Lists | `.cards`, `.card`, `.card__image`, `.card__title`, `.card__summary`, `.card__meta`, `.type-label`, `.stats`, `.filters`, `.pagination`, `.gallery`, `.gallery__item`, `.feed`, `.feed__item`, `.feed__type`, `.feed__title`, `.timeline` |
 | Detail pages | `.breadcrumb`, `.detail-hero`, `.detail-hero__title`, `.detail-hero__summary`, `.detail-hero__cover`, `.detail-layout`, `.detail-layout__main`, `.detail-layout__aside`, `.panel`, `.panel--typed`, `.panel__title`, `.panel__label`, `.related-item`, `.author-box` |

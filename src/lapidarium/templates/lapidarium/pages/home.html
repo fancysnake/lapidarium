@@ -6,11 +6,7 @@
       <div class="hero__text">
         <h1 class="hero__name{% if site.profile.tagline %} hero__name--quiet{% endif %}"
             id="hero-name">
-          {% if site.profile %}
-            {{ site.profile.name }}
-          {% else %}
-            {{ site_name }}
-          {% endif %}
+          {{ site.owner_name }}
         </h1>
         {% if site.profile.tagline %}<p class="hero__lead">{{ site.profile.tagline }}</p>{% endif %}
         <div class="hero__actions">

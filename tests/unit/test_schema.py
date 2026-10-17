@@ -52,7 +52,7 @@ def _type(*fields, allowed=(PartKind.TEXT,), required=()):
 
 @pytest.fixture(name="schema")
 def schema_fixture():
-    return SchemaService(background=WHITE)
+    return SchemaService(background=WHITE, dark_background=None)
 
 
 @pytest.mark.parametrize(
@@ -353,11 +353,11 @@ def test_derive_tint_is_a_light_mix_with_the_background(schema):
     assert schema.derive_tint(BLACK) == "#e0e0e0"
 
 
-def test_derive_tint_mixes_with_the_dark_background_when_the_theme_has_one(schema):
+def test_dark_tint_mixes_with_the_dark_background_when_the_theme_has_one(schema):
     dark = SchemaService(background=WHITE, dark_background=BLACK)
 
-    assert dark.derive_tint(WHITE, dark=True) == "#1f1f1f"
-    assert schema.derive_tint(BLACK, dark=True) == "#e0e0e0"
+    assert dark.dark_tint(WHITE) == "#1f1f1f"
+    assert schema.dark_tint(BLACK) is None
 
 
 def test_check_colours(schema):

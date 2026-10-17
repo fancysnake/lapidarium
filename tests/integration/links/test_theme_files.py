@@ -54,6 +54,21 @@ def test_tokens_that_do_not_parse_name_the_file(*, tmp_path, css):
         read_theme(tmp_path / "broken")
 
 
+def test_errors_inside_a_block_count_lines_from_the_top_of_the_file(tmp_path):
+    (tmp_path / "broken").mkdir()
+    (tmp_path / "broken" / "tokens.css").write_text(
+        ":root { --color-bg: #fff; }\n"
+        "@media (prefers-color-scheme: dark) {\n"
+        "  :root {\n"
+        "    --color-bg #111;\n"
+        "  }\n"
+        "}\n"
+    )
+
+    with pytest.raises(ImproperlyConfigured, match=r"broken/tokens\.css, line 4"):
+        read_theme(tmp_path / "broken")
+
+
 def test_the_base_theme_defines_every_required_token():
     base = read_theme(settings.ENGINE_THEMES / "base")
 

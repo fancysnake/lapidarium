@@ -44,7 +44,7 @@ DEBUG: bool = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
 
-SITE_NAME = env("SITE_NAME")
+SITE_NAME: str = env("SITE_NAME")
 
 # Themes: the engine ships `base`, always loaded first; an
 # instance adds its own directories, searched before the engine's.
@@ -112,6 +112,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "lapidarium.gates.web.django.rendering.theme_stylesheets",
             ],
             "debug": DEBUG or ENV == "test",
         },

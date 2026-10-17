@@ -49,6 +49,18 @@ def test_another_theme_loads_over_the_base(site):
     assert "@media (prefers-color-scheme: dark)" in text
 
 
+@pytest.mark.usefixtures("dusk")
+def test_the_not_found_page_wears_the_theme(site):
+    response = site.get("/nope/")
+
+    text = response.text
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert "fonts.googleapis.com/css2?family=Gabarito" in text
+    assert text.index("themes/base/tokens.css") < text.index("themes/dusk/tokens.css")
+    assert "/static/lapidarium/css/base.css" in text
+    assert "/static/themes/dusk/theme.css" in text
+
+
 def test_the_preview_is_for_staff(site):
     response = site.get("/admin/theme-preview/")
 

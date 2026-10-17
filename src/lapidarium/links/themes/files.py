@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import re
 import tomllib
-from typing import TYPE_CHECKING, NoReturn, override
+from typing import TYPE_CHECKING, NoReturn, Protocol, override
 
 import tinycss2
 from django.core.exceptions import ImproperlyConfigured
@@ -12,10 +11,11 @@ from django.core.exceptions import ImproperlyConfigured
 from lapidarium.pacts import ThemeDTO, ThemeStoreProtocol
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Iterable, Iterator, Sequence
     from pathlib import Path
 
-_DARK = re.compile(r"^@media.*prefers-color-scheme\s*:\s*dark")
+_ROOT = ":root"
+_DARK = "(prefers-color-scheme:dark)"
 
 
 def _fail(path: Path, *, line: int, message: str) -> NoReturn:
@@ -23,27 +23,51 @@ def _fail(path: Path, *, line: int, message: str) -> NoReturn:
     raise ImproperlyConfigured(msg)
 
 
-def _rules(css: str, path: Path) -> Iterator[tuple[str, str]]:
-    """Each rule with a block in `css`: its prelude, and the CSS inside the block."""
+class _Rule(Protocol):
+    """A tinycss2 rule with a block, as read here; tinycss2 ships no types."""
+
+    type: str
+    # Set on at-rules only.
+    lower_at_keyword: str
+    prelude: list[object]
+    content: list[object]
+
+
+def _prelude(rule: _Rule) -> str:
+    """Return the prelude of `rule` lowercased, without whitespace."""
+    return "".join(str(tinycss2.serialize(rule.prelude)).split()).lower()
+
+
+def _rules(css: str | list[object], path: Path) -> list[_Rule]:
+    """Each rule with a block in `css`: a file's text, or the tokens of a block."""
+    rules: list[_Rule] = []
     for rule in tinycss2.parse_rule_list(css, skip_comments=True, skip_whitespace=True):
         if rule.type == "error":
             _fail(path, line=rule.source_line, message=rule.message)
-        if rule.content is None:
-            continue
-        prelude = tinycss2.serialize(rule.prelude).strip()
-        if rule.type == "at-rule":
-            prelude = f"@{rule.lower_at_keyword} {prelude}"
-        yield prelude, tinycss2.serialize(rule.content)
+        if rule.content is not None:
+            rules.append(rule)
+    return rules
 
 
-def _root_tokens(css: str, path: Path) -> dict[str, str]:
-    """Return the custom properties that `:root` rules directly in `css` set."""
+def _dark_blocks(rules: Iterable[_Rule]) -> Iterator[list[object]]:
+    """Yield the tokens inside each dark-scheme `@media` among `rules`."""
+    for rule in rules:
+        if (
+            rule.type == "at-rule"
+            and rule.lower_at_keyword == "media"
+            and _DARK in _prelude(rule)
+        ):
+            yield rule.content
+
+
+def _root_tokens(rules: Iterable[_Rule], path: Path) -> dict[str, str]:
+    """Return the custom properties that the `:root` rules among `rules` set."""
     tokens: dict[str, str] = {}
-    for prelude, body in _rules(css, path):
-        if prelude != ":root":
+    for rule in rules:
+        if rule.type != "qualified-rule" or _prelude(rule) != _ROOT:
             continue
         for item in tinycss2.parse_blocks_contents(
-            body, skip_comments=True, skip_whitespace=True
+            rule.content, skip_comments=True, skip_whitespace=True
         ):
             if item.type == "error":
                 _fail(path, line=item.source_line, message=item.message)
@@ -61,7 +85,7 @@ def read_theme(directory: Path) -> ThemeDTO:
     manifest = directory / "theme.toml"
     meta = tomllib.loads(manifest.read_text()) if manifest.is_file() else {}
     path = directory / "tokens.css"
-    css = path.read_text()
+    rules = _rules(path.read_text(), path)
     templates = directory / "templates"
     return ThemeDTO(
         key=directory.name,
@@ -70,12 +94,11 @@ def read_theme(directory: Path) -> ThemeDTO:
         engine=_optional(meta.get("engine")),
         fonts=tuple(str(url) for url in meta.get("fonts", [])),
         has_stylesheet=(directory / "theme.css").is_file(),
-        tokens=_root_tokens(css, path),
+        tokens=_root_tokens(rules, path),
         dark_tokens={
             name: value
-            for prelude, body in _rules(css, path)
-            if _DARK.search(prelude)
-            for name, value in _root_tokens(body, path).items()
+            for block in _dark_blocks(rules)
+            for name, value in _root_tokens(_rules(block, path), path).items()
         },
         templates=tuple(
             sorted(

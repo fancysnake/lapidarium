@@ -62,6 +62,10 @@ def test_requests_share_one_newsletter(monkeypatch):
     build.assert_called_once_with()
 
 
+def test_requests_share_one_theme():
+    assert Services().theme is Services().theme
+
+
 @pytest.mark.parametrize(
     ("backend", "expected"),
     (("log", LogNewsletter), ("mailchimp", MailchimpNewsletter)),
@@ -81,8 +85,9 @@ def test_newsletter_follows_the_setting(*, settings, monkeypatch, backend, expec
     (("mailchump", "", ""), ("mailchimp", "", "list"), ("mailchimp", "key-us1", "")),
 )
 def test_a_newsletter_that_cannot_work_stops_the_start(
-    *, settings, backend, api_key, list_id
+    *, settings, monkeypatch, backend, api_key, list_id
 ):
+    monkeypatch.setattr("lapidarium.inits.PROCESS", Process())
     settings.NEWSLETTER_BACKEND = backend
     settings.MAILCHIMP_API_KEY = api_key
     settings.MAILCHIMP_LIST_ID = list_id
