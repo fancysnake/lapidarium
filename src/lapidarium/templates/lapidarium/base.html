@@ -24,34 +24,40 @@
           type="application/rss+xml"
           title="{% translate "What's new" %}"
           href="{% url 'rss' %}">
-    <link rel="stylesheet"
-          href="{% static 'lapidarium/themes/base/tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
+    {% include "lapidarium/components/stylesheets.html" %}
     <style>
-      {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {{ entry_type.tint }}; }
+      {# 12% is TINT_MIX, the share derive_tint mixes. #}
+      {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: color-mix(in srgb, var(--type-color) 12%, var(--color-bg)); }
       {% endfor %}
+      @media (prefers-color-scheme: light) {
+        {% for entry_type in site.types %}{% if entry_type.tint %}[data-type="{{ entry_type.key }}"] { --type-tint: {{ entry_type.tint }}; }
+        {% endif %}{% endfor %}
+      }
     </style>
     <script type="module" src="{% static 'lapidarium/js/enhance.js' %}"></script>
   </head>
   <body>
-    <div class="site-bar" aria-hidden="true">
-      {% for entry_type in site.menu %}<span data-type="{{ entry_type.key }}"></span>{% endfor %}
-    </div>
     <div class="container">
       <header class="site-header">
         <a class="site-logo" href="{% url 'home' %}">
-          {% if site.profile %}
-            {{ site.profile.name }}
-          {% else %}
-            {{ site_name }}
-          {% endif %}
+          <span class="site-logo__mark" aria-hidden="true">
+            {% if site.profile.photo %}
+              <img src="{{ site.profile.photo.url }}" alt="">
+            {% else %}
+              {{ site.owner_name|first }}
+            {% endif %}
+          </span>
+          <span>
+            <span class="site-logo__name">{{ site.owner_name }}</span>
+            {% if site.profile.handle %}<span class="site-logo__handle">{{ site.profile.handle }}</span>{% endif %}
+          </span>
         </a>
         <nav class="site-nav label" aria-label="{% translate "Main menu" %}">
           <ul>
             {% for entry_type in site.menu %}
               <li data-type="{{ entry_type.key }}">
                 <a href="{% url 'listing' route=entry_type.route %}"
-                   {% if entry_type.route == current_route %}aria-current="page"{% endif %}><span class="site-nav__marker" aria-hidden="true"></span>{{ entry_type.label_plural }}</a>
+                   {% if entry_type.route == current_route %}aria-current="page"{% endif %}>{{ entry_type.label_plural }}</a>
               </li>
             {% endfor %}
             <li>

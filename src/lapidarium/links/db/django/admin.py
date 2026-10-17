@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import TYPE_CHECKING, ClassVar, TypedDict, cast, override
+from typing import TYPE_CHECKING, ClassVar, NotRequired, TypedDict, cast, override
 
 from django import forms
 from django.conf import settings
@@ -122,7 +122,7 @@ class NavItem(TypedDict):
     title: str
     icon: str
     link: str
-    permission: Callable[[HttpRequest], bool]
+    permission: NotRequired[Callable[[HttpRequest], bool]]
 
 
 class NavGroup(TypedDict):
@@ -181,6 +181,11 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                 _item(gettext("Content types"), icon="category", model="entrytype"),
                 _item(gettext("Profile"), icon="person", model="profile"),
                 _item(gettext("Links"), icon="link", model="link"),
+                {
+                    "title": gettext("Theme preview"),
+                    "icon": "palette",
+                    "link": reverse("theme_preview"),
+                },
             ],
         },
     ]

@@ -1,7 +1,7 @@
 ---
 # Production shape for Coolify: the prebuilt image plus PostgreSQL. Media goes
-# to S3-compatible storage, so no media volume. Set the runtime env in Coolify
-# (SECRET_KEY, ALLOWED_HOSTS, DATABASE_URL, AWS_*, SITE_NAME, ADMIN_URL).
+# to a GCS bucket, so no media volume. Set the runtime env in Coolify
+# (SECRET_KEY, ALLOWED_HOSTS, DATABASE_URL, GS_*, SITE_NAME, ADMIN_URL).
 name: lapidarium
 
 services:
@@ -18,12 +18,12 @@ services:
       DATABASE_URL: ${DATABASE_URL:?}
       SITE_NAME: ${SITE_NAME:-lapidarium}
       ADMIN_URL: ${ADMIN_URL:-admin/}
-      # An empty bucket name keeps media on the filesystem; the rest are read by
-      # boto3 only when it is set.
-      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME:-}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-}
+      # The key file path points at a service-account JSON mounted into the
+      # container (a Coolify file mount); leave it empty on GCP, where the
+      # attached account is used.
+      GS_BUCKET_NAME: ${GS_BUCKET_NAME:?}
+      GS_LOCATION: ${GS_LOCATION:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
     ports:
       - '127.0.0.1:${WEB_PORT:-8000}:8000'
     restart: always

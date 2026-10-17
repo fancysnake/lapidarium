@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 22:12+0200\n"
+"POT-Creation-Date: 2026-10-17 08:40+0200\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -22,6 +22,12 @@ msgid "Your name"
 msgstr ""
 
 msgid "Message"
+msgstr ""
+
+msgid "That was a lot of tries in a short time. Please wait a while and try again."
+msgstr ""
+
+msgid "Something went wrong on the way. Please try again later."
 msgstr ""
 
 msgid "Content"
@@ -52,6 +58,9 @@ msgid "Profile"
 msgstr ""
 
 msgid "Links"
+msgstr ""
+
+msgid "Theme preview"
 msgstr ""
 
 msgid "choices"
@@ -158,8 +167,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "%d entry skipped: a published entry may only link to published ones."
-msgid_plural ""
-"%d entries skipped: a published entry may only link to published ones."
+msgid_plural "%d entries skipped: a published entry may only link to published ones."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -431,8 +439,7 @@ msgid "What are you adding?"
 msgstr ""
 
 #, python-format
-msgid ""
-"No content types yet. <a href=\"%(add_type_url)s\">Define one</a> first."
+msgid "No content types yet. <a href=\"%(add_type_url)s\">Define one</a> first."
 msgstr ""
 
 msgid "What's new"
@@ -466,6 +473,9 @@ msgid "More about me"
 msgstr ""
 
 msgid "Want to hear about what comes next?"
+msgstr ""
+
+msgid "Leave this empty"
 msgstr ""
 
 msgid "Date"
@@ -513,9 +523,6 @@ msgstr ""
 msgid "Subscribe"
 msgstr ""
 
-msgid "Leave this empty"
-msgstr ""
-
 msgid "ongoing"
 msgstr ""
 
@@ -536,13 +543,6 @@ msgid "Page %(page)s of %(pages)s"
 msgstr ""
 
 msgid "Older"
-msgstr ""
-
-msgid ""
-"That was a lot of tries in a short time. Please wait a while and try again."
-msgstr ""
-
-msgid "Something went wrong on the way. Please try again later."
 msgstr ""
 
 msgid "Where to find me"
@@ -569,6 +569,12 @@ msgstr ""
 msgid "Subscribe to the newsletter"
 msgstr ""
 
+msgid "Next up"
+msgstr ""
+
+msgid "Add to your calendar (.ics)"
+msgstr ""
+
 msgid "What you will find here"
 msgstr ""
 
@@ -578,10 +584,7 @@ msgstr ""
 msgid "Nothing here yet."
 msgstr ""
 
-msgid "Next up"
-msgstr ""
-
-msgid "Add to your calendar (.ics)"
+msgid "Follow without an account"
 msgstr ""
 
 msgid "Filter"
@@ -604,6 +607,24 @@ msgstr ""
 
 #, python-format
 msgid "Nothing matches “%(query)s”."
+msgstr ""
+
+msgid "Checks"
+msgstr ""
+
+msgid "The theme meets the contract."
+msgstr ""
+
+msgid "Content type colours"
+msgstr ""
+
+msgid "Type and buttons"
+msgstr ""
+
+msgid "Body text with"
+msgstr ""
+
+msgid "a link"
 msgstr ""
 
 msgid "Follow by RSS"
