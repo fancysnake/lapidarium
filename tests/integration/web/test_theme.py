@@ -13,10 +13,9 @@ from lapidarium.gates.web.django.checks import theme_check
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
 
-@pytest.fixture(name="gm_screen")
-def gm_screen_fixture(settings, monkeypatch):
-    themes = settings.ENGINE_THEMES
-    settings.THEME_LAYERS = (themes / "base", themes / "gm-screen")
+@pytest.fixture(name="dusk")
+def dusk_fixture(*, settings, monkeypatch, layered_theme):
+    settings.THEME_LAYERS = (settings.ENGINE_THEMES / "base", layered_theme)
     monkeypatch.setattr(inits, "PROCESS", inits.Process())
 
 
@@ -38,17 +37,15 @@ def test_the_base_theme_loads_its_tokens_only(site):
     assert "prefers-color-scheme" not in response.text
 
 
-@pytest.mark.usefixtures("gm_screen")
+@pytest.mark.usefixtures("dusk")
 def test_another_theme_loads_over_the_base(site):
     response = site.get("/")
 
     text = response.text
-    assert response.context["site"].theme.key == "gm-screen"
-    assert "fonts.googleapis.com/css2?family=Spectral" in text
-    assert text.index("themes/base/tokens.css") < text.index(
-        "themes/gm-screen/tokens.css"
-    )
-    assert "/static/themes/gm-screen/theme.css" in text
+    assert response.context["site"].theme.key == "dusk"
+    assert "fonts.googleapis.com/css2?family=Gabarito" in text
+    assert text.index("themes/base/tokens.css") < text.index("themes/dusk/tokens.css")
+    assert "/static/themes/dusk/theme.css" in text
     assert "@media (prefers-color-scheme: dark)" in text
 
 

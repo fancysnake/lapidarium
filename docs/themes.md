@@ -11,9 +11,8 @@ same semantic HTML for every theme; a theme overrides it at three levels.
 
 ## Choosing a theme
 
-Set `SITE_THEME` to the theme's directory name. The engine ships `base` (black,
-white and greys) and `gm-screen` (serif type, green brand, a dark scheme). An
-instance keeps its own themes in directories listed in `SITE_THEME_DIRS`
+Set `SITE_THEME` to the theme's directory name. The engine ships one theme,
+`base`: black, white and greys on system fonts. An instance keeps its own themes in directories listed in `SITE_THEME_DIRS`
 (comma-separated); those are searched before the engine's. An instance theme
 named `base` replaces the engine's, so it must set every required token.
 
@@ -29,10 +28,10 @@ themes/<name>/
 `theme.toml`:
 
 ```toml
-name = "GM screen"
+name = "Dusk"
 version = "1.0.0"
 engine = "0.1"        # the engine release the theme is built for
-fonts = ["https://fonts.googleapis.com/css2?family=Spectral&display=swap"]
+fonts = ["https://fonts.googleapis.com/css2?family=Gabarito&display=swap"]
 ```
 
 Every page loads, in order: the font stylesheets, `base/tokens.css`, the

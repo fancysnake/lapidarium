@@ -36,9 +36,8 @@ All notable changes to this project are documented here. The format follows
 - Themes: `SITE_THEME` picks a theme directory (`theme.toml`, `tokens.css`,
   optional `theme.css` and template overrides) from `SITE_THEME_DIRS` or the
   engine; the base tokens always load first. System checks for required tokens,
-  contrast, engine version and stale template overrides. A `gm-screen` example
-  theme with a dark scheme; staff-only theme preview; type colours checked
-  against the active theme's background.
+  contrast, engine version and stale template overrides; staff-only theme
+  preview; type colours checked against the active theme's background.
 - Polish and English UI catalogs; `mise run i18n:make` and `i18n:compile`.
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.

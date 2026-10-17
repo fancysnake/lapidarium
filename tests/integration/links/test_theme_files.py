@@ -54,21 +54,19 @@ def test_tokens_that_do_not_parse_name_the_file(*, tmp_path, css):
         read_theme(tmp_path / "broken")
 
 
-@pytest.mark.parametrize("name", ("base", "gm-screen"))
-def test_shipped_themes_with_the_base_define_every_required_token(name):
+def test_the_base_theme_defines_every_required_token():
     base = read_theme(settings.ENGINE_THEMES / "base")
-    theme = read_theme(settings.ENGINE_THEMES / name)
 
-    assert {**base.tokens, **theme.tokens}.keys() >= REQUIRED_TOKENS
+    assert base.tokens.keys() >= REQUIRED_TOKENS
 
 
-def test_store_reads_layers_in_order_and_engine_templates():
+def test_store_reads_layers_in_order_and_engine_templates(layered_theme):
     store = ThemeFiles(
-        layers=(settings.ENGINE_THEMES / "base", settings.ENGINE_THEMES / "gm-screen"),
+        layers=(settings.ENGINE_THEMES / "base", layered_theme),
         engine_templates=settings.ENGINE_TEMPLATES,
     )
 
     base, active = store.layers()
-    assert (base.key, active.key) == ("base", "gm-screen")
+    assert (base.key, active.key) == ("base", "dusk")
     assert active.dark_tokens["--color-bg"] == "#121412"
     assert "lapidarium/base.html" in store.engine_templates()

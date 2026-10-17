@@ -46,7 +46,7 @@ ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
 
 SITE_NAME = env("SITE_NAME")
 
-# Themes: the engine ships `base` (always loaded first) and `gm-screen`; an
+# Themes: the engine ships `base`, always loaded first; an
 # instance adds its own directories, searched before the engine's.
 ENGINE_THEMES = BASE_DIR / "themes"
 ENGINE_TEMPLATES: Path = BASE_DIR / "templates"
