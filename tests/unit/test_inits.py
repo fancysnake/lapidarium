@@ -3,7 +3,12 @@ from unittest.mock import MagicMock
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-from lapidarium.inits import ServiceInjectionMiddleware, Services, build_newsletter
+from lapidarium.inits import (
+    Process,
+    ServiceInjectionMiddleware,
+    Services,
+    build_newsletter,
+)
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
 from lapidarium.mills.catalogue import CatalogueService
@@ -42,9 +47,10 @@ def test_services_are_built_once_per_container():
     assert isinstance(services.outreach, OutreachService)
 
 
-def test_middleware_shares_one_newsletter_across_requests(monkeypatch):
+def test_requests_share_one_newsletter(monkeypatch):
     build = MagicMock()
     monkeypatch.setattr("lapidarium.inits.build_newsletter", build)
+    monkeypatch.setattr("lapidarium.inits.PROCESS", Process())
     middleware = ServiceInjectionMiddleware(MagicMock())
     first, second = MagicMock(), MagicMock()
 
@@ -54,6 +60,10 @@ def test_middleware_shares_one_newsletter_across_requests(monkeypatch):
     assert isinstance(first.services.outreach, OutreachService)
     assert isinstance(second.services.outreach, OutreachService)
     build.assert_called_once_with()
+
+
+def test_requests_share_one_theme():
+    assert Services().theme is Services().theme
 
 
 @pytest.mark.parametrize(
@@ -75,8 +85,9 @@ def test_newsletter_follows_the_setting(*, settings, monkeypatch, backend, expec
     (("mailchump", "", ""), ("mailchimp", "", "list"), ("mailchimp", "key-us1", "")),
 )
 def test_a_newsletter_that_cannot_work_stops_the_start(
-    *, settings, backend, api_key, list_id
+    *, settings, monkeypatch, backend, api_key, list_id
 ):
+    monkeypatch.setattr("lapidarium.inits.PROCESS", Process())
     settings.NEWSLETTER_BACKEND = backend
     settings.MAILCHIMP_API_KEY = api_key
     settings.MAILCHIMP_LIST_ID = list_id

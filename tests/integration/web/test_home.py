@@ -56,6 +56,16 @@ def test_an_empty_site_still_has_a_home_page(browser):
     assert 'href="/contact/"' not in response.text
 
 
+def test_the_portrait_takes_the_hero_aside_without_an_upcoming_event(site):
+    Entry.objects.filter(type__key="event").delete()
+
+    response = site.get("/")
+
+    assert response.context["home"].next_up is None
+    assert response.context["site"].profile.photo is not None
+    assert 'class="hero__portrait"' in response.text
+
+
 def test_a_profile_without_photo_or_tagline(site):
     Profile.objects.update(photo=None, tagline="", handle="", email="")
     EntryType.objects.update(door_enabled=False)

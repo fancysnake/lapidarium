@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from django.http import HttpResponse
 
-    from lapidarium.pacts import ServicesProtocol
+    from lapidarium.pacts import ServicesProtocol, StylesheetDTO
 
 
 # What views hand templates: DTOs, forms and a few plain values.
@@ -46,6 +46,11 @@ def render_page(
         **context,
     }
     return render(request, template, page, status=status)
+
+
+def theme_stylesheets(request: RootRequest) -> dict[str, tuple[StylesheetDTO, ...]]:
+    """Context processor: the theme's stylesheets, also for pages without `site`."""
+    return {"theme_stylesheets": request.services.theme.active().stylesheets}
 
 
 def sender(request: HttpRequest) -> str:

@@ -1,0 +1,5 @@
+{% load static %}
+{% for sheet in theme_stylesheets %}
+  <link rel="stylesheet"
+        href="{% if sheet.external %}{{ sheet.href }}{% else %}{% static sheet.href %}{% endif %}">
+{% endfor %}

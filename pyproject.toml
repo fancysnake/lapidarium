@@ -40,6 +40,7 @@ pillow = "^12.1.1"
 psycopg = { version = "^3.2.9", extras = ["binary"] }
 pydantic = "^2.13.5"
 pyyaml = "^6.0.3"
+tinycss2 = "^1.5.1"
 whitenoise = "^6.12.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -160,7 +161,7 @@ init_typed = true
 django_settings_module = "lapidarium.edges.settings"
 
 [[tool.mypy.overrides]]
-module = ["environ", "markdown", "unfold.*"]
+module = ["environ", "markdown", "tinycss2", "unfold.*"]
 ignore_missing_imports = true
 
 # The ORM, settings, the request cycle and parsed YAML surface as Any; relaxed
@@ -169,6 +170,7 @@ ignore_missing_imports = true
 module = [
     "lapidarium.edges.settings",
     "lapidarium.links.content_files.*",
+    "lapidarium.links.themes.*",
     "lapidarium.links.db.django.*",
     "lapidarium.gates.web.django.*",
 ]
@@ -378,6 +380,8 @@ ignore_names = [
     "ordering_field",
     "separator",
     "sidebar_navigation",
+    # Context processors, called by dotted path from settings
+    "theme_stylesheets",
     # Pydantic
     "model_config",
     # Columns kept for feeds and enum members stored as data, not named in code
@@ -400,9 +404,11 @@ ignore_names = [
     "to",
     # DTO fields only templates read
     "contents",
+    "href",
     "menu",
     "next_up",
     "panel",
+    "stylesheets",
     "timeline",
     "total",
     # Form fields read from cleaned_data

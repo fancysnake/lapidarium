@@ -52,6 +52,8 @@ An instance is configured through the environment. Beyond the Django basics
 | `GS_BUCKET_NAME` | empty | Turns on GCS media storage; the bucket must allow public read |
 | `GS_LOCATION` | empty | Path prefix for media inside the bucket |
 | `GOOGLE_APPLICATION_CREDENTIALS` | empty | Service-account key file for GCS; unneeded on GCP with an attached account |
+| `SITE_THEME` | `base` | Active theme, see [docs/themes.md](docs/themes.md) |
+| `SITE_THEME_DIRS` | empty | Extra theme directories, searched first |
 
 The contact form appears once the profile has an e-mail address.
 

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import datetime as dt
-import math
 from typing import TYPE_CHECKING, override
 from urllib.parse import urlsplit
 
+from lapidarium.mills.colour import contrast_ratio, mix
 from lapidarium.pacts import (
     BUILTIN_DEFAULTS,
     CONTAINER_ROLES,
@@ -42,37 +42,7 @@ if TYPE_CHECKING:
         MetadataValue,
     )
 
-_LINEAR_THRESHOLD = 0.04045
 _BLANK = frozenset({None, ""})
-
-
-def _rgb(colour: str) -> tuple[int, int, int]:
-    value = colour.removeprefix("#")
-    red, green, blue = (int(value[i : i + 2], 16) for i in range(0, 6, 2))
-    return red, green, blue
-
-
-def _luminance(colour: str) -> float:
-    def linear(channel: int) -> float:
-        if (srgb := channel / 255) <= _LINEAR_THRESHOLD:
-            return srgb / 12.92
-        return math.pow((srgb + 0.055) / 1.055, 2.4)
-
-    red, green, blue = (linear(c) for c in _rgb(colour))
-    return 0.2126 * red + 0.7152 * green + 0.0722 * blue
-
-
-def contrast_ratio(first: str, second: str) -> float:
-    """WCAG contrast ratio of two `#rrggbb` colours."""
-    lighter, darker = sorted((_luminance(first), _luminance(second)), reverse=True)
-    return (lighter + 0.05) / (darker + 0.05)
-
-
-def mix(colour: str, background: str, *, share: float) -> str:
-    """`share` of `colour` laid over `background`, as `#rrggbb`."""
-    channels = zip(_rgb(colour), _rgb(background), strict=True)
-    mixed = (round(c * share + b * (1 - share)) for c, b in channels)
-    return "#" + "".join(f"{c:02x}" for c in mixed)
 
 
 def _host(url: str) -> str | None:
@@ -172,8 +142,9 @@ def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str
 class SchemaService(SchemaServiceProtocol):
     """Type schemas: metadata, role built-ins, parts, colours."""
 
-    def __init__(self, background: str) -> None:
+    def __init__(self, background: str, *, dark_background: str | None) -> None:
         self._background = background
+        self._dark_background = dark_background
 
     @override
     def validate_metadata(
@@ -306,6 +277,12 @@ class SchemaService(SchemaServiceProtocol):
     @override
     def derive_tint(self, colour: str) -> str:
         return mix(colour, self._background, share=TINT_MIX)
+
+    @override
+    def dark_tint(self, colour: str) -> str | None:
+        if self._dark_background is None:
+            return None
+        return mix(colour, self._dark_background, share=TINT_MIX)
 
     @override
     def check_colours(self, colour: str, tint: str) -> list[str]:

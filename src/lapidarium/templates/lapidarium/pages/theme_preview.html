@@ -1,0 +1,97 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Theme preview" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="container page">
+    <div>
+      <h1 class="page__title">{% translate "Theme preview" %}</h1>
+      <p class="page__lead">{{ site.theme.name }} ({{ site.theme.key }}){% if site.theme.version %} {{ site.theme.version }}{% endif %}</p>
+    </div>
+    <section aria-labelledby="problems-title">
+      <h2 class="section-title" id="problems-title">{% translate "Checks" %}</h2>
+      {% if problems %}
+        <ul class="panel__list">
+          {% for problem in problems %}
+            <li class="notice">
+              <span class="label">{{ problem.level }} {{ problem.code }}</span> {{ problem.message }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="notice">{% translate "The theme meets the contract." %}</p>
+      {% endif %}
+    </section>
+    <section aria-labelledby="types-title">
+      <h2 class="section-title" id="types-title">{% translate "Content type colours" %}</h2>
+      <ul class="cards">
+        {% for entry_type in site.types %}
+          <li class="card" data-type="{{ entry_type.key }}">
+            {% include "lapidarium/components/type-label.html" %}
+            <span class="card__meta">{{ entry_type.colour }} · <code>[data-type="{{ entry_type.key }}"]</code></span>
+            <span class="btn btn--type">{{ entry_type.label_plural }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section aria-labelledby="type-title">
+      <h2 class="section-title" id="type-title">{% translate "Type and buttons" %}</h2>
+      <p class="label">.label</p>
+      <p>
+        {% translate "Body text with" %} <a href="#type-title">{% translate "a link" %}</a>.
+      </p>
+      <div class="hero__actions">
+        <span class="btn btn--primary">.btn--primary</span>
+        <span class="btn">.btn</span>
+      </div>
+      <p class="notice">.notice</p>
+      <p class="empty">{% translate "Nothing here yet." %}</p>
+    </section>
+    {% if home.doors %}
+      <section aria-labelledby="doors-title">
+        <h2 class="section-title" id="doors-title">.door</h2>
+        <div class="doors">
+          {% for door in home.doors %}
+            {% include "lapidarium/components/door.html" %}
+          {% endfor %}
+        </div>
+      </section>
+      <section aria-labelledby="cards-title">
+        <h2 class="section-title" id="cards-title">.card</h2>
+        <ul class="cards">
+          {% for door in home.doors %}
+            <li>{% include "lapidarium/components/card.html" with card=door.pick %}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+    <div class="home-bottom">
+      <section class="home-bottom__feed" aria-labelledby="feed-title">
+        <h2 class="section-title" id="feed-title">.feed</h2>
+        <ul class="feed">
+          {% for item in home.whats_new %}
+            {% include "lapidarium/components/feed-item.html" %}
+          {% endfor %}
+        </ul>
+      </section>
+      <aside class="home-bottom__aside">
+        <section class="panel panel--typed" aria-labelledby="panel-title">
+          <h2 class="panel__title" id="panel-title">.panel</h2>
+          <dl class="stats">
+            <dt>dt</dt>
+            <dd>dd</dd>
+          </dl>
+        </section>
+      </aside>
+    </div>
+    <section aria-labelledby="form-title">
+      <h2 class="section-title" id="form-title">.form</h2>
+      <div class="form">
+        {% include "lapidarium/components/contact-fields.html" %}
+        <ul class="form__errors">
+          <li>.form__errors</li>
+        </ul>
+      </div>
+    </section>
+    {% include "lapidarium/components/author-box.html" %}
+  </main>
+{% endblock main %}

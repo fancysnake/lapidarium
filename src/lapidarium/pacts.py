@@ -73,6 +73,11 @@ class EntryStatus(StrEnum):
     PUBLISHED = "published"
 
 
+class ProblemLevel(StrEnum):
+    ERROR = "error"
+    WARNING = "warning"
+
+
 class Outcome(StrEnum):
     ONGOING = "ongoing"
     FINISHED = "finished"
@@ -150,6 +155,38 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 }
 SUMMARY_MAX_LENGTH = 200
 EXPORT_FORMAT_VERSION = 1
+# The theme contract: every token a page may rely on. Renaming one breaks themes.
+REQUIRED_TOKENS = frozenset(
+    {
+        "--color-bg",
+        "--color-surface",
+        "--color-surface-2",
+        "--color-surface-band",
+        "--color-text",
+        "--color-text-strong",
+        "--color-text-muted",
+        "--color-border",
+        "--color-border-soft",
+        "--color-link",
+        "--color-link-hover",
+        "--color-brand",
+        "--color-brand-contrast",
+        "--color-type-default",
+        "--color-type-default-tint",
+        "--font-body",
+        "--font-display",
+        "--font-label",
+        "--text-base",
+        "--text-label",
+        "--text-h1",
+        "--text-h1-detail",
+        "--text-h2",
+        *(f"--space-{step}" for step in range(1, 10)),
+        "--max-width",
+        "--gutter",
+    }
+)
+
 # Cache alias for rendered public pages; every content commit clears it.
 PAGE_CACHE = "pages"
 
@@ -584,15 +621,64 @@ class DetailDTO(BaseModel):
     siblings: tuple[CardDTO, ...]
 
 
+class ThemeDTO(BaseModel):
+    """A theme directory as read: `theme.toml` and the tokens its CSS sets."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    name: str
+    version: str | None
+    engine: str | None
+    fonts: tuple[str, ...]
+    has_stylesheet: bool
+    tokens: dict[str, str]
+    dark_tokens: dict[str, str]
+    templates: tuple[str, ...]
+
+
+class StylesheetDTO(BaseModel):
+    """A stylesheet a page links: a static file path, or an external URL."""
+
+    model_config = ConfigDict(frozen=True)
+
+    href: str
+    external: bool
+
+
+class SiteThemeDTO(BaseModel):
+    """The active theme as pages see it: stylesheets in load order."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    name: str
+    version: str | None
+    stylesheets: tuple[StylesheetDTO, ...]
+
+
+class ProblemDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    level: ProblemLevel
+    code: str
+    message: str
+
+
 class SiteDTO(BaseModel):
     """What every public page shows around its content."""
 
     model_config = ConfigDict(frozen=True)
 
+    theme: SiteThemeDTO
     profile: ProfileDTO | None
+    # The profile's name, or the site name when the profile has none.
+    owner_name: str
     links: tuple[LinkDTO, ...]
     # Tints are filled in, derived from the colour where the type sets none.
     types: tuple[EntryTypeDTO, ...]
+    # The same types tinted over the dark background; empty without a dark scheme.
+    dark_types: tuple[EntryTypeDTO, ...]
     menu: tuple[EntryTypeDTO, ...]
 
 
@@ -668,6 +754,14 @@ class ThrottleProtocol(Protocol):
         """Count one attempt under `key`; False once `limit` are used in `window`."""
 
 
+class ThemeStoreProtocol(Protocol):
+    def layers(self) -> tuple[ThemeDTO, ...]:
+        """Return the layers in load order: the base first, the active theme last."""
+
+    def engine_templates(self) -> frozenset[str]:
+        """Paths of the templates the engine ships, as themes override them."""
+
+
 class AccountRepositoryProtocol(Protocol):
     def ensure_superuser(self, username: str, *, password: str) -> bool:
         """Create the superuser or reset it to `password`; True when created."""
@@ -730,7 +824,11 @@ class SchemaServiceProtocol(Protocol):
     ) -> list[str]:
         """Errors for the type's required relation fields `roles` leaves unlinked."""
 
-    def derive_tint(self, colour: str) -> str: ...
+    def derive_tint(self, colour: str) -> str:
+        """Mix `colour` over the page background."""
+
+    def dark_tint(self, colour: str) -> str | None:
+        """Mix `colour` over the dark background; None without a dark scheme."""
 
     def check_colours(self, colour: str, tint: str) -> list[str]:
         """Contrast errors for a type colour against the background and its tint."""
@@ -789,6 +887,19 @@ class OutreachServiceProtocol(Protocol):
         """Mail the profile; `NotFoundError` without an address to mail to."""
 
 
+class ThemeServiceProtocol(Protocol):
+    def active(self) -> SiteThemeDTO: ...
+
+    def check(self) -> list[ProblemDTO]:
+        """Return what is wrong with the active theme, errors first."""
+
+    def background(self) -> str:
+        """Return the page background type colours must stand out against."""
+
+    def dark_background(self) -> str | None:
+        """Return the background of the dark scheme, if the theme has one."""
+
+
 class ServicesProtocol(Protocol):
     """The flat service namespace a gate reaches as `request.services`."""
 
@@ -812,6 +923,9 @@ class ServicesProtocol(Protocol):
 
     @property
     def outreach(self) -> OutreachServiceProtocol: ...
+
+    @property
+    def theme(self) -> ThemeServiceProtocol: ...
 
 
 class RootRequestProtocol(Protocol):

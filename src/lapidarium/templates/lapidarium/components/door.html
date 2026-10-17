@@ -1,6 +1,6 @@
 {% load i18n lapidarium %}
 <article class="door" data-type="{{ door.entry_type.key }}">
-  <div class="door__label label">{{ door.label }}</div>
+  <div class="door__label">{{ door.label }}</div>
   {% with entry=door.pick.entry %}
     {% if entry.cover %}
       <img class="door__image"

@@ -7,6 +7,7 @@ module of its own is only needed for values the environment cannot express.
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 # src/lapidarium
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +32,8 @@ env = environ.Env(
     MEDIA_URL=(str, "/media/"),
     SECRET_KEY=str,
     SITE_NAME=(str, "lapidarium"),
+    SITE_THEME=(str, "base"),
+    SITE_THEME_DIRS=(list, []),
     STATIC_ROOT=(str, "staticfiles"),
     TIME_ZONE=(str, "Europe/Warsaw"),
 )
@@ -41,7 +44,28 @@ DEBUG: bool = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
 
-SITE_NAME = env("SITE_NAME")
+SITE_NAME: str = env("SITE_NAME")
+
+# Themes: the engine ships `base`, always loaded first; an
+# instance adds its own directories, searched before the engine's.
+ENGINE_THEMES = BASE_DIR / "themes"
+ENGINE_TEMPLATES: Path = BASE_DIR / "templates"
+SITE_THEME: str = env("SITE_THEME")
+
+
+def _theme_dir(name: str) -> Path:
+    for root in (*(Path(d) for d in env("SITE_THEME_DIRS")), ENGINE_THEMES):
+        if (root / name / "tokens.css").is_file():
+            return root / name
+    msg = f"SITE_THEME {name!r}: no theme directory with a tokens.css."
+    raise ImproperlyConfigured(msg)
+
+
+# Each layer loads over the one before; a site theme named `base` replaces the
+# engine's.
+THEME_LAYERS: tuple[Path, ...] = tuple(
+    {d.name: d for d in (ENGINE_THEMES / "base", _theme_dir(SITE_THEME))}.values()
+)
 ADMIN_URL = env("ADMIN_URL")
 
 INSTALLED_APPS = [
@@ -80,13 +104,15 @@ SERVICES_FACTORY = "lapidarium.inits.Services"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        # Later layers override earlier ones and the engine, file by file.
+        "DIRS": [*(d / "templates" for d in reversed(THEME_LAYERS)), ENGINE_TEMPLATES],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "lapidarium.gates.web.django.rendering.theme_stylesheets",
             ],
             "debug": DEBUG or ENV == "test",
         },
@@ -124,7 +150,10 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT")
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    *((f"themes/{d.name}", d) for d in THEME_LAYERS),
+]
 MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")
 

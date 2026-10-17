@@ -2,7 +2,7 @@ import datetime as dt
 
 import pytest
 
-from lapidarium.mills.schema import SchemaService, contrast_ratio, mix
+from lapidarium.mills.schema import SchemaService
 from lapidarium.pacts import (
     FIELD_DEFAULTS,
     EntryTypeDTO,
@@ -52,16 +52,7 @@ def _type(*fields, allowed=(PartKind.TEXT,), required=()):
 
 @pytest.fixture(name="schema")
 def schema_fixture():
-    return SchemaService(background=WHITE)
-
-
-def test_contrast_ratio_spans_one_to_twenty_one():
-    assert contrast_ratio(BLACK, WHITE) == pytest.approx(21)
-    assert contrast_ratio("#777777", "#777777") == pytest.approx(1)
-
-
-def test_mix_lays_a_share_of_one_colour_over_another():
-    assert mix(BLACK, WHITE, share=0.5) == "#808080"
+    return SchemaService(background=WHITE, dark_background=None)
 
 
 @pytest.mark.parametrize(
@@ -360,6 +351,13 @@ def test_check_relation_roles_wants_required_fields_linked(schema):
 
 def test_derive_tint_is_a_light_mix_with_the_background(schema):
     assert schema.derive_tint(BLACK) == "#e0e0e0"
+
+
+def test_dark_tint_mixes_with_the_dark_background_when_the_theme_has_one(schema):
+    dark = SchemaService(background=WHITE, dark_background=BLACK)
+
+    assert dark.dark_tint(WHITE) == "#1f1f1f"
+    assert schema.dark_tint(BLACK) is None
 
 
 def test_check_colours(schema):

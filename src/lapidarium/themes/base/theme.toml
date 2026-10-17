@@ -1,0 +1,6 @@
+# The engine's own theme, and the fallback under every other: black, white and
+# greys. A layout that reads here reads under any coloured theme.
+name = "Base"
+version = "1.0.0"
+engine = "0.1"
+fonts = []
