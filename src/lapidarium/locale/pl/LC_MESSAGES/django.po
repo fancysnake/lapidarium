@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 22:12+0200\n"
+"POT-Creation-Date: 2026-10-17 08:40+0200\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -23,6 +23,12 @@ msgstr "Twoje imię"
 
 msgid "Message"
 msgstr "Wiadomość"
+
+msgid "That was a lot of tries in a short time. Please wait a while and try again."
+msgstr "To dużo prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie."
+
+msgid "Something went wrong on the way. Please try again later."
+msgstr "Coś poszło nie tak po drodze. Spróbuj ponownie później."
 
 msgid "Content"
 msgstr "Treści"
@@ -53,6 +59,9 @@ msgstr "Profil"
 
 msgid "Links"
 msgstr "Linki"
+
+msgid "Theme preview"
+msgstr "Podgląd motywu"
 
 msgid "choices"
 msgstr "wartości do wyboru"
@@ -470,6 +479,9 @@ msgstr "Więcej o mnie"
 msgid "Want to hear about what comes next?"
 msgstr "Chcesz wiedzieć, co będzie dalej?"
 
+msgid "Leave this empty"
+msgstr "Zostaw to pole puste"
+
 msgid "Date"
 msgstr "Data"
 
@@ -515,9 +527,6 @@ msgstr "Nowe wpisy i gdzie się spotkać, od czasu do czasu. Bez algorytmu pomi�
 msgid "Subscribe"
 msgstr "Zapisz mnie"
 
-msgid "Leave this empty"
-msgstr "Zostaw to pole puste"
-
 msgid "ongoing"
 msgstr "w toku"
 
@@ -539,12 +548,6 @@ msgstr "Strona %(page)s z %(pages)s"
 
 msgid "Older"
 msgstr "Starsze"
-
-msgid "That was a lot of tries in a short time. Please wait a while and try again."
-msgstr "To dużo prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie."
-
-msgid "Something went wrong on the way. Please try again later."
-msgstr "Coś poszło nie tak po drodze. Spróbuj ponownie później."
 
 msgid "Where to find me"
 msgstr "Gdzie mnie znaleźć"
@@ -570,6 +573,12 @@ msgstr "W środku"
 msgid "Subscribe to the newsletter"
 msgstr "Zapisz się na newsletter"
 
+msgid "Next up"
+msgstr "Następne"
+
+msgid "Add to your calendar (.ics)"
+msgstr "Dodaj do kalendarza (.ics)"
+
 msgid "What you will find here"
 msgstr "Co tu znajdziesz"
 
@@ -579,11 +588,8 @@ msgstr "Wszystkie nowości"
 msgid "Nothing here yet."
 msgstr "Jeszcze nic tu nie ma."
 
-msgid "Next up"
-msgstr "Następne"
-
-msgid "Add to your calendar (.ics)"
-msgstr "Dodaj do kalendarza (.ics)"
+msgid "Follow without an account"
+msgstr "Obserwuj bez zakładania konta"
 
 msgid "Filter"
 msgstr "Filtruj"
@@ -606,6 +612,24 @@ msgstr "Szukaj"
 #, python-format
 msgid "Nothing matches “%(query)s”."
 msgstr "Nic nie pasuje do „%(query)s”."
+
+msgid "Checks"
+msgstr "Sprawdzenia"
+
+msgid "The theme meets the contract."
+msgstr "Motyw spełnia kontrakt."
+
+msgid "Content type colours"
+msgstr "Kolory rodzajów treści"
+
+msgid "Type and buttons"
+msgstr "Krój i przyciski"
+
+msgid "Body text with"
+msgstr "Tekst główny z"
+
+msgid "a link"
+msgstr "linkiem"
 
 msgid "Follow by RSS"
 msgstr "Obserwuj przez RSS"

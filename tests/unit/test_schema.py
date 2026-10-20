@@ -2,7 +2,7 @@ import datetime as dt
 
 import pytest
 
-from lapidarium.mills.schema import SchemaService, contrast_ratio, mix
+from lapidarium.mills.schema import SchemaService
 from lapidarium.pacts import (
     FIELD_DEFAULTS,
     EntryTypeDTO,
@@ -53,15 +53,6 @@ def _type(*fields, allowed=(PartKind.TEXT,), required=()):
 @pytest.fixture(name="schema")
 def schema_fixture():
     return SchemaService(background=WHITE)
-
-
-def test_contrast_ratio_spans_one_to_twenty_one():
-    assert contrast_ratio(BLACK, WHITE) == pytest.approx(21)
-    assert contrast_ratio("#777777", "#777777") == pytest.approx(1)
-
-
-def test_mix_lays_a_share_of_one_colour_over_another():
-    assert mix(BLACK, WHITE, share=0.5) == "#808080"
 
 
 @pytest.mark.parametrize(
