@@ -1,4 +1,7 @@
-"""System checks: the active theme against the theme contract, at every start."""
+"""System checks: the active theme against the theme contract.
+
+Django runs them on `check`, `migrate` and `runserver`; gunicorn alone does not.
+"""
 
 from __future__ import annotations
 

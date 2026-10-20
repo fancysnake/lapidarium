@@ -72,7 +72,7 @@ admin and emitted as `[data-type="<key>"] { --type-color; --type-tint }`.
 The tint mixes 12% of the colour into `--color-bg`, so it follows the dark
 scheme; a tint set in the admin replaces it in the light scheme only.
 Components read only `--type-color` and `--type-tint`, so a door, a card, a
-menu marker and a what's-new line all take the colour of their type.
+menu item and a what's-new line all take the colour of their type.
 
 ## Component classes
 
@@ -87,7 +87,7 @@ Stable, BEM-style. Target these from `theme.css`.
 | Lists | `.cards`, `.card`, `.card__image`, `.card__title`, `.card__summary`, `.card__meta`, `.type-label`, `.stats`, `.filters`, `.pagination`, `.gallery`, `.gallery__item`, `.feed`, `.feed__item`, `.feed__type`, `.feed__title`, `.feed__meta`, `.feed__change`, `.chip`, `.timeline` |
 | Detail pages | `.breadcrumb`, `.detail-hero`, `.detail-hero__title`, `.detail-hero__summary`, `.detail-hero__cover`, `.detail-layout`, `.detail-layout__main`, `.detail-layout__aside`, `.panel`, `.panel--typed`, `.panel__title`, `.panel__label`, `.related-item`, `.author-box` |
 | Parts | `.part-text`, `.part-figure`, `.part-audio`, `.video-facade`, `.video-facade__play`, `.link-card`, `.link-card__icon` |
-| Frames | `.framed`, `.framed__inner`; set `--frame-color` and `--frame-tint` to recolour |
+| Frames | `.framed`, `.framed__inner`; set `--frame-color` to recolour |
 
 ## Overriding a template
 
@@ -97,7 +97,8 @@ files so that an override replaces one piece, not a page.
 
 ## Checks
 
-`manage.py check` (and every start) checks the active theme:
+Every command that runs Django's system checks (`check`, `migrate`,
+`runserver`, and so the container start) checks the active theme:
 
 | Id | Level | When |
 |---|---|---|
