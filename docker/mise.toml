@@ -1,5 +1,7 @@
 # Container-side mise config. The host's tasks.toml is not included here.
 
+min_version = "2026.9"
+
 [settings]
 jobs = 1
 
