@@ -4,10 +4,11 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 
 from lapidarium.inits import (
+    Process,
     ServiceInjectionMiddleware,
     Services,
+    build_newsletter,
     feed_sources,
-    newsletter,
 )
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
@@ -51,6 +52,25 @@ def test_services_are_built_once_per_container():
     assert isinstance(services.content_health, ContentHealthService)
 
 
+def test_requests_share_one_newsletter(monkeypatch):
+    build = MagicMock()
+    monkeypatch.setattr("lapidarium.inits.build_newsletter", build)
+    monkeypatch.setattr("lapidarium.inits.PROCESS", Process())
+    middleware = ServiceInjectionMiddleware(MagicMock())
+    first, second = MagicMock(), MagicMock()
+
+    middleware(first)
+    middleware(second)
+
+    assert isinstance(first.services.outreach, OutreachService)
+    assert isinstance(second.services.outreach, OutreachService)
+    build.assert_called_once_with()
+
+
+def test_requests_share_one_theme():
+    assert Services().theme is Services().theme
+
+
 @pytest.mark.parametrize(
     ("backend", "expected"),
     (("log", LogNewsletter), ("mailchimp", MailchimpNewsletter)),
@@ -60,8 +80,25 @@ def test_newsletter_follows_the_setting(*, settings, monkeypatch, backend, expec
         monkeypatch.delenv(name, raising=False)
     settings.NEWSLETTER_BACKEND = backend
     settings.MAILCHIMP_API_KEY = "key-us1"
+    settings.MAILCHIMP_LIST_ID = "list"
 
-    assert isinstance(newsletter(), expected)
+    assert isinstance(build_newsletter(), expected)
+
+
+@pytest.mark.parametrize(
+    ("backend", "api_key", "list_id"),
+    (("mailchump", "", ""), ("mailchimp", "", "list"), ("mailchimp", "key-us1", "")),
+)
+def test_a_newsletter_that_cannot_work_stops_the_start(
+    *, settings, monkeypatch, backend, api_key, list_id
+):
+    monkeypatch.setattr("lapidarium.inits.PROCESS", Process())
+    settings.NEWSLETTER_BACKEND = backend
+    settings.MAILCHIMP_API_KEY = api_key
+    settings.MAILCHIMP_LIST_ID = list_id
+
+    with pytest.raises(ImproperlyConfigured):
+        ServiceInjectionMiddleware(MagicMock())
 
 
 def test_feed_sources_come_from_the_setting(settings):

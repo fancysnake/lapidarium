@@ -18,6 +18,7 @@ def theme_preview(request: RootRequest) -> HttpResponse:
         request,
         "lapidarium/pages/theme_preview.html",
         home=request.services.catalogue.home(),
+        theme=request.services.theme.active(),
         problems=tuple(request.services.theme.check()),
         form=ContactForm(),
     )

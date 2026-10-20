@@ -5,18 +5,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.catalogue import Catalogue, CatalogueService, when
-from lapidarium.pacts import (
-    CardDTO,
-    DoorPick,
-    ExternalItemDTO,
-    FactDTO,
-    FeedChange,
-    FieldKind,
-    FilterDTO,
-    NotFoundError,
-    RelationRole,
-    TypeRole,
-)
+from lapidarium.pacts.catalogue import CardDTO, FactDTO, FeedChange, FilterDTO
+from lapidarium.pacts.content import NotFoundError, RelationRole
+from lapidarium.pacts.feeds import ExternalItemDTO
+from lapidarium.pacts.schema import DoorPick, FieldKind, TypeRole
 from lapidarium.specs import PAGE_SIZE, SEARCH_LIMIT, WHATS_NEW_HOME
 from tests.factories import NOW, entry_dto, field_dto, ref_dto, relation_dto, type_dto
 
@@ -472,15 +464,52 @@ def test_search_short_queries_find_nothing(query):
     repos.entries.search.assert_not_called()
 
 
-def test_search_searches_every_word_and_caps_the_results():
-    entries = [entry_dto(f"e{i}") for i in range(SEARCH_LIMIT + 1)]
-    service, repos = _service(entries=entries)
+def test_search_searches_every_word_up_to_the_limit():
+    service, repos = _service(entries=[entry_dto()])
 
     found = service.search(" space  moose ")
 
-    repos.entries.search.assert_called_once_with(["space", "moose"])
-    assert len(found) == SEARCH_LIMIT
-    assert found[0] == _card(entries[0])
+    repos.entries.search.assert_called_once_with(["space", "moose"], limit=SEARCH_LIMIT)
+    assert found == (_card(entry_dto()),)
+
+
+def test_search_cards_keep_relations_to_entries_that_did_not_match():
+    moose = entry_dto()
+    ballad = entry_dto(
+        "ballad", "song", relations=(relation_dto("inspired_by", "moose"),)
+    )
+    meme = entry_dto("x", "meme")
+    service, repos = _service(types=[SESSION, SONG], entries=[moose, ballad, meme])
+    repos.entries.search.return_value = [ballad, meme]
+
+    found = service.search("ballad")
+
+    assert found == (
+        _card(
+            ballad,
+            entry_type=SONG,
+            facts=(
+                FactDTO(
+                    label="Inspired_By",
+                    kind=FieldKind.RELATION,
+                    value=None,
+                    refs=(ref_dto("moose"),),
+                ),
+            ),
+        ),
+    )
+
+
+def test_timeline_lists_containers_newest_first():
+    initiative = type_dto("initiative", role=TypeRole.CONTAINER_TIMESPAN)
+    entries = [
+        entry_dto("old", "initiative", start_at=NOW - 900 * DAY),
+        entry_dto("new", "project", start_at=NOW),
+        entry_dto("session"),
+    ]
+    service, _ = _service(types=[SESSION, PROJECT, initiative], entries=entries)
+
+    assert [c.entry.slug for c in service.timeline()] == ["new", "old"]
 
 
 def test_upcoming_lists_calendar_entries_soonest_first():

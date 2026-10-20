@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, override
 
 from django.core.cache import cache
 
-from lapidarium.pacts import ThrottleProtocol
+from lapidarium.pacts.outreach import ThrottleProtocol
 
 if TYPE_CHECKING:
     import datetime as dt

@@ -30,8 +30,8 @@ requires-poetry = ">=2.0,<3"
 [tool.poetry.dependencies]
 django = "~6.1.0"
 django-environ = "^0.14.0"
-django-storages = { version = "^1.14.6", extras = ["s3"] }
-django-unfold = "^0.108.0"
+django-storages = { version = "^1.14.6", extras = ["google"] }
+django-unfold = "^0.110.0"
 gunicorn = "^26.0.0"
 httpx = "^0.28.1"
 markdown = "^3.10.2"
@@ -40,6 +40,7 @@ pillow = "^12.1.1"
 psycopg = { version = "^3.2.9", extras = ["binary"] }
 pydantic = "^2.13.5"
 pyyaml = "^6.0.3"
+tinycss2 = "^1.5.1"
 whitenoise = "^6.12.0"
 defusedxml = "^0.7.1"
 dulwich = "^1.2.17"
@@ -60,13 +61,13 @@ pytest = "^9.0.3"
 pytest-cov = "^7.0.0"
 pytest-django = "^4.14.0"
 pytest-xdist = "^3.8.0"
-ruff = "^0.16.0"
+ruff = "^0.17.0"
 taplo = "^0.9.3"
-tingle = "^0.7.2"
+tingle = "^0.8.0"
 vulture = "^2.16"
 
 # BLACK
-cabinet = { git = "https://github.com/fancysnake/cabinet.git", rev = "v2.0.0" }
+cabinet = { git = "https://github.com/fancysnake/cabinet.git", rev = "v3.0.0" }
 
 [tool.black]
 line-length = 88
@@ -162,7 +163,7 @@ init_typed = true
 django_settings_module = "lapidarium.edges.settings"
 
 [[tool.mypy.overrides]]
-module = ["defusedxml.*", "environ", "markdown", "unfold.*"]
+module = ["defusedxml.*", "environ", "markdown", "tinycss2", "unfold.*"]
 ignore_missing_imports = true
 
 # The ORM, settings, the request cycle and parsed YAML surface as Any; relaxed
@@ -383,6 +384,8 @@ ignore_names = [
     "ordering_field",
     "separator",
     "sidebar_navigation",
+    # Context processors, called by dotted path from settings
+    "theme_stylesheets",
     # Pydantic
     "model_config",
     # Columns kept for feeds and enum members stored as data, not named in code
@@ -405,11 +408,11 @@ ignore_names = [
     "to",
     # DTO fields only templates read
     "contents",
-    "fonts",
-    "has_stylesheet",
+    "href",
     "menu",
     "next_up",
     "panel",
+    "stylesheets",
     "timeline",
     "total",
     # Form fields read from cleaned_data

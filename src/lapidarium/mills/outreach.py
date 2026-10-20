@@ -4,15 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import NotFoundError, OutreachServiceProtocol, RateLimitedError
+from lapidarium.pacts.content import NotFoundError
+from lapidarium.pacts.outreach import RateLimitedError
+from lapidarium.pacts.services import OutreachServiceProtocol
 from lapidarium.specs import OUTREACH_LIMIT, OUTREACH_WINDOW
 
 if TYPE_CHECKING:
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import ProfileRepositoryProtocol
+    from lapidarium.pacts.outreach import (
         ContactData,
         MailerProtocol,
         NewsletterProtocol,
-        ProfileRepositoryProtocol,
         ThrottleProtocol,
     )
 
@@ -46,10 +48,7 @@ class OutreachService(OutreachServiceProtocol):
         return bool(self._recipient())
 
     @override
-    def subscribe(self, email: str, *, trap: str, sender: str) -> None:
-        # A bot told it worked has no reason to try again.
-        if trap:
-            return
+    def subscribe(self, email: str, *, sender: str) -> None:
         self._count("newsletter", sender)
         self._newsletter.subscribe(email)
 
@@ -58,8 +57,6 @@ class OutreachService(OutreachServiceProtocol):
         if not (recipient := self._recipient()):
             msg = "profile e-mail"
             raise NotFoundError(msg)
-        if message["trap"]:
-            return
         self._count("contact", sender)
         self._mailer.send(
             {

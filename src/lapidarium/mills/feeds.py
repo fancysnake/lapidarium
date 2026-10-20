@@ -5,16 +5,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
-from lapidarium.pacts import DeliveryError, FeedSyncDTO, FeedSyncServiceProtocol
+from lapidarium.pacts.feeds import FeedSyncDTO
+from lapidarium.pacts.outreach import DeliveryError
+from lapidarium.pacts.services import FeedSyncServiceProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lapidarium.pacts import (
-        EntryRepositoryProtocol,
+    from lapidarium.pacts.content import EntryRepositoryProtocol
+    from lapidarium.pacts.db import TransactionProtocol
+    from lapidarium.pacts.feeds import (
         ExternalItemRepositoryProtocol,
         FeedSourceProtocol,
-        TransactionProtocol,
     )
 
 _SHORT_HOSTS = {"youtu.be": "youtube.com/watch"}

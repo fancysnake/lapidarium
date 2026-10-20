@@ -6,7 +6,7 @@ import pytest
 from django.template.loader import render_to_string
 
 from lapidarium.links.db.django.models import Entry, ExternalItem, Link, Profile
-from lapidarium.pacts import FeedChange
+from lapidarium.pacts.catalogue import FeedChange
 from tests.integration.web.conftest import NOW
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
@@ -16,10 +16,10 @@ def test_about_shows_profile_links_and_timeline(site):
     response = site.get("/about/")
 
     assert response.status_code == HTTPStatus.OK
-    about = response.context["about"]
-    assert about.profile.name == "Mira Kowalska"
-    assert [link.label for link in about.links] == ["YouTube", "itch.io"]
-    assert [c.entry.slug for c in about.timeline] == [
+    site_dto = response.context["site"]
+    assert site_dto.profile.name == "Mira Kowalska"
+    assert [link.label for link in site_dto.links] == ["YouTube", "itch.io"]
+    assert [c.entry.slug for c in response.context["timeline"]] == [
         "prowadzenie",
         "klatwa-strahda",
         "kampania-mothership",
@@ -33,9 +33,9 @@ def test_about_shows_profile_links_and_timeline(site):
 def test_about_without_a_profile(browser):
     response = browser.get("/about/")
 
-    assert response.context["about"].profile is None
+    assert response.context["site"].profile is None
     assert response.context["can_contact"] is False
-    assert response.context["about"].timeline == ()
+    assert response.context["timeline"] == ()
     assert "Where to find me" not in response.text
 
 

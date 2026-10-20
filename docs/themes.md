@@ -11,10 +11,10 @@ same semantic HTML for every theme; a theme overrides it at three levels.
 
 ## Choosing a theme
 
-Set `SITE_THEME` to the theme's directory name. The engine ships `base` (black,
-white and greys) and `gm-screen` (serif type, green brand, a dark scheme). An
-instance keeps its own themes in directories listed in `SITE_THEME_DIRS`
-(comma-separated); those are searched before the engine's.
+Set `SITE_THEME` to the theme's directory name. The engine ships one theme,
+`base`: black, white and greys on system fonts. An instance keeps its own themes in directories listed in `SITE_THEME_DIRS`
+(comma-separated); those are searched before the engine's. An instance theme
+named `base` replaces the engine's, so it must set every required token.
 
 ```text
 themes/<name>/
@@ -28,10 +28,10 @@ themes/<name>/
 `theme.toml`:
 
 ```toml
-name = "GM screen"
+name = "Dusk"
 version = "1.0.0"
 engine = "0.1"        # the engine release the theme is built for
-fonts = ["https://fonts.googleapis.com/css2?family=Spectral&display=swap"]
+fonts = ["https://fonts.googleapis.com/css2?family=Gabarito&display=swap"]
 ```
 
 Every page loads, in order: the font stylesheets, `base/tokens.css`, the
@@ -55,17 +55,24 @@ breaking change.
 | Fonts | `--font-body`, `--font-display`, `--font-label` |
 | Type scale | `--text-base`, `--text-label`, `--text-h1`, `--text-h1-detail`, `--text-h2` |
 | Spacing | `--space-1` … `--space-9`, `--max-width`, `--gutter` |
+| Shape | `--radius`, `--radius-lg`, `--line-strong` |
 
-A dark scheme sets tokens again inside
-`@media (prefers-color-scheme: dark) { :root { … } }`. The engine then derives
-each content type's tint against the dark `--color-bg` as well.
+The engine reads tokens only from top-level `:root` rules. A dark scheme sets
+tokens again inside `@media (prefers-color-scheme: dark) { :root { … } }`.
+
+`--color-bg`, `--color-text`, `--color-brand`, `--color-brand-contrast`,
+`--color-type-default` and `--color-type-default-tint` must be `#rrggbb`, so
+that their contrast can be checked. A `tokens.css` that does not parse, or sets
+one of these to anything else, stops the start.
 
 ### Content type colours
 
 Content type colours are not tokens: each type's colour and tint are set in the
 admin and emitted as `[data-type="<key>"] { --type-color; --type-tint }`.
+The tint mixes 12% of the colour into `--color-bg`, so it follows the dark
+scheme; a tint set in the admin replaces it in the light scheme only.
 Components read only `--type-color` and `--type-tint`, so a door, a card, a
-menu marker and a what's-new line all take the colour of their type.
+menu item and a what's-new line all take the colour of their type.
 
 ## Component classes
 
@@ -73,14 +80,14 @@ Stable, BEM-style. Target these from `theme.css`.
 
 | Component | Classes |
 |---|---|
-| Page frame | `.site-bar`, `.site-header`, `.site-logo`, `.site-logo__mark`, `.site-nav`, `.site-nav__marker`, `.site-footer`, `.site-footer__inner`, `.footer-links` |
+| Page frame | `.site-header`, `.site-logo`, `.site-logo__mark`, `.site-logo__name`, `.site-logo__handle`, `.site-nav`, `.site-footer`, `.site-footer__inner`, `.footer-links` |
 | Layout | `.container`, `.page`, `.page__title`, `.page__lead`, `.section-title`, `.label`, `.empty`, `.notice` |
-| Buttons and forms | `.btn`, `.btn--primary`, `.btn--ghost`, `.btn--type`, `.input`, `.form`, `.form__field`, `.form__errors`, `.newsletter`, `.newsletter__title`, `.newsletter__row` |
-| Home | `.hero`, `.hero__name`, `.hero__stats`, `.hero__rule`, `.hero__lead`, `.hero__portrait`, `.doors`, `.door`, `.door__label`, `.door__title`, `.door__meta`, `.door__image`, `.door__more`, `.home-bottom`, `.next-up__label`, `.next-up__title` |
-| Lists | `.cards`, `.card`, `.card__image`, `.card__title`, `.card__summary`, `.card__meta`, `.type-label`, `.stats`, `.filters`, `.pagination`, `.gallery`, `.gallery__item`, `.feed`, `.feed__item`, `.feed__type`, `.feed__title`, `.timeline` |
+| Buttons and forms | `.btn`, `.btn--primary`, `.btn--type`, `.input`, `.form`, `.form__field`, `.form__errors`, `.newsletter`, `.newsletter__title`, `.newsletter__row` |
+| Home | `.hero`, `.hero__name`, `.hero__name--quiet`, `.hero__stats`, `.hero__lead`, `.hero__portrait`, `.hero__aside`, `.hero__actions`, `.home-doors`, `.doors`, `.door`, `.door__label`, `.door__title`, `.door__meta`, `.door__image`, `.door__more`, `.home-bottom`, `.home-bottom__aside`, `.next-up__label`, `.next-up__title`, `.follow`, `.follow__title` |
+| Lists | `.cards`, `.card`, `.card__image`, `.card__title`, `.card__summary`, `.card__meta`, `.type-label`, `.stats`, `.filters`, `.pagination`, `.gallery`, `.gallery__item`, `.feed`, `.feed__item`, `.feed__type`, `.feed__title`, `.feed__meta`, `.feed__change`, `.chip`, `.timeline` |
 | Detail pages | `.breadcrumb`, `.detail-hero`, `.detail-hero__title`, `.detail-hero__summary`, `.detail-hero__cover`, `.detail-layout`, `.detail-layout__main`, `.detail-layout__aside`, `.panel`, `.panel--typed`, `.panel__title`, `.panel__label`, `.related-item`, `.author-box` |
 | Parts | `.part-text`, `.part-figure`, `.part-audio`, `.video-facade`, `.video-facade__play`, `.link-card`, `.link-card__icon` |
-| Frames | `.framed`, `.framed__inner`; set `--frame-color` and `--frame-tint` to recolour |
+| Frames | `.framed`, `.framed__inner`; set `--frame-color` to recolour |
 
 ## Overriding a template
 
@@ -90,7 +97,8 @@ files so that an override replaces one piece, not a page.
 
 ## Checks
 
-`manage.py check` (and every start) checks the active theme:
+Every command that runs Django's system checks (`check`, `migrate`,
+`runserver`, and so the container start) checks the active theme:
 
 | Id | Level | When |
 |---|---|---|

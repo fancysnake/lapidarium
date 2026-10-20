@@ -5,28 +5,24 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 
 from lapidarium.mills.catalogue import Catalogue, entry_ref
-from lapidarium.pacts import (
-    CONTAINER_ROLES,
-    ContentHealthServiceProtocol,
-    HealthIssueDTO,
-    NotFoundError,
-    Outcome,
-    TypeRole,
-)
+from lapidarium.pacts.content import NotFoundError, Outcome
+from lapidarium.pacts.health import HealthIssueDTO
+from lapidarium.pacts.schema import CONTAINER_ROLES, TypeRole
+from lapidarium.pacts.services import ContentHealthServiceProtocol
 from lapidarium.specs import STALE_AFTER
 
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Callable, Sequence
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         EntryDTO,
         EntryRepositoryProtocol,
-        EntryTypeRepositoryProtocol,
-        LinkCheckerProtocol,
-        MailerProtocol,
         ProfileRepositoryProtocol,
     )
+    from lapidarium.pacts.health import LinkCheckerProtocol
+    from lapidarium.pacts.outreach import MailerProtocol
+    from lapidarium.pacts.schema import EntryTypeRepositoryProtocol
 
 
 def _issue(code: str, message: str, *, entry: EntryDTO | None = None) -> HealthIssueDTO:
@@ -77,13 +73,13 @@ class ContentHealthService(ContentHealthServiceProtocol):
         self, catalogue: Catalogue, entry: EntryDTO
     ) -> list[HealthIssueDTO]:
         role = catalogue.types[entry.type_key].role
-        contents = catalogue.linking(entry, part_of=True)
+        contents = catalogue.contents(entry)
         issues: list[HealthIssueDTO] = []
         if role in CONTAINER_ROLES and not contents:
             issues.append(_issue("H001", "This container holds nothing.", entry=entry))
         if role == TypeRole.CALENDAR and self._is_over(entry):
             linked = [
-                *catalogue.linking(entry, part_of=False),
+                *catalogue.backlinks(entry),
                 *contents,
                 *(
                     target

@@ -10,16 +10,14 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
-from lapidarium.pacts import (
+from lapidarium.pacts.content import SUMMARY_MAX_LENGTH, EntryStatus, Outcome
+from lapidarium.pacts.schema import (
     DEFAULT_PARTS,
     FIELD_DEFAULTS,
-    SUMMARY_MAX_LENGTH,
     TYPE_DEFAULTS,
     DoorPick,
-    EntryStatus,
     FieldKind,
     Layout,
-    Outcome,
     PartKind,
     TypeRole,
     UrlKind,

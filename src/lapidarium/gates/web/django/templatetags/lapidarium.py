@@ -17,7 +17,8 @@ if TYPE_CHECKING:
 
     from django.template.context import Context
 
-    from lapidarium.pacts import EntryDTO, EntryRefDTO, HealthIssueDTO
+    from lapidarium.pacts.content import EntryDTO, EntryRefDTO
+    from lapidarium.pacts.health import HealthIssueDTO
 
 register = template.Library()
 

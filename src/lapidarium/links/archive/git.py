@@ -8,7 +8,8 @@ from dulwich import porcelain
 from dulwich.errors import GitProtocolError, NotGitRepository
 from dulwich.repo import Repo
 
-from lapidarium.pacts import ArchiveProtocol, DeliveryError, NotFoundError
+from lapidarium.pacts.content import ArchiveProtocol, NotFoundError
+from lapidarium.pacts.outreach import DeliveryError
 
 if TYPE_CHECKING:
     from pathlib import Path

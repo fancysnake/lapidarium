@@ -9,17 +9,20 @@ from django.conf import settings
 from django.forms import Form
 from django.http import HttpRequest
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from pydantic import BaseModel
 
-from lapidarium.pacts import PAGE_CACHE, DeliveryError, RateLimitedError
+from lapidarium.pacts.outreach import DeliveryError, RateLimitedError
+from lapidarium.pacts.site import PAGE_CACHE
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.http import HttpResponse
 
-    from lapidarium.pacts import ServicesProtocol
+    from lapidarium.pacts.services import ServicesProtocol
+    from lapidarium.pacts.theme import StylesheetDTO
 
 
 # What views hand templates: DTOs, forms and a few plain values.
@@ -47,10 +50,22 @@ def render_page(
     return render(request, template, page, status=status)
 
 
+def theme_stylesheets(request: RootRequest) -> dict[str, tuple[StylesheetDTO, ...]]:
+    """Context processor: the theme's stylesheets, also for pages without `site`."""
+    return {"theme_stylesheets": request.services.theme.active().stylesheets}
+
+
 def sender(request: HttpRequest) -> str:
-    """Who is asking, for rate limits: the client the proxy in front last saw."""
-    if forwarded := request.headers.get("x-forwarded-for", ""):
-        return forwarded.rsplit(",", 1)[-1].strip()
+    """Who is asking, for rate limits: the client the outermost trusted proxy saw.
+
+    Each trusted proxy appends the address it was reached from, so the entry
+    `TRUSTED_PROXY_HOPS` from the end is the first one a client cannot forge.
+    """
+    hops: int = settings.TRUSTED_PROXY_HOPS
+    header = request.headers.get("x-forwarded-for", "")
+    forwarded = [hop for part in header.split(",") if (hop := part.strip())]
+    if hops and len(forwarded) >= hops:
+        return forwarded[-hops]
     return str(request.META.get("REMOTE_ADDR", ""))
 
 
@@ -62,8 +77,21 @@ def cached[**P](view: Callable[P, HttpResponse]) -> Callable[P, HttpResponse]:
     return decorated
 
 
-def refusal(error: RateLimitedError | DeliveryError) -> tuple[str, HTTPStatus]:
-    """Return what a form page says about a refused attempt, and its status."""
-    if isinstance(error, RateLimitedError):
-        return "busy", HTTPStatus.TOO_MANY_REQUESTS
-    return "provider", HTTPStatus.BAD_GATEWAY
+def attempt(send: Callable[[], None]) -> tuple[str, HTTPStatus]:
+    """Run `send`; return what a form page says if it is refused, and the status."""
+    try:
+        send()
+    except RateLimitedError:
+        return (
+            _(
+                "That was a lot of tries in a short time. "
+                "Please wait a while and try again."
+            ),
+            HTTPStatus.TOO_MANY_REQUESTS,
+        )
+    except DeliveryError:
+        return (
+            _("Something went wrong on the way. Please try again later."),
+            HTTPStatus.BAD_GATEWAY,
+        )
+    return "", HTTPStatus.OK

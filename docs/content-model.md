@@ -273,7 +273,7 @@ W repo silnika jest projekt `example/` z danymi demonstracyjnymi (fixture) do de
 - progi walidacji (np. minimalna liczba artykułów do pokazania drzwi)
 
 ### 5.3 Deployment
-- Jeden obraz: gunicorn + Whitenoise; usługa Postgres; wolumen na media (albo S3-kompatybilny storage).
+- Jeden obraz: gunicorn + Whitenoise; usługa Postgres; media w buckecie GCS (bez bucketu: wolumen).
 - `docker-compose.yml` gotowy pod Coolify; zadania cykliczne: `fetch_feeds`, `export_content`, `check_content`.
 - Panel admina pod niestandardowym adresem; opcjonalnie 2FA.
 - Cache: cache widoków czyszczony sygnałem przy zapisie `Entry` (strona jest w praktyce tylko do odczytu, więc to wystarcza).
@@ -344,5 +344,4 @@ Kod silnika na licencji permisywnej (np. MIT). Treść instancji osobno, przez p
 2. **Adapter newslettera na start:** Listmonk (self-hosted, pełna kontrola) czy usługa zewnętrzna (mniej utrzymania).
 3. **itch i inne źródła:** jakie feedy są faktycznie dostępne; ewentualnie ręczne wpisy przez `syndication`.
 4. **Zgoda graczy:** czy ksywki w sesjach i AAR wymagają pola zgody.
-5. **Media:** wolumen na Coolify czy storage S3-kompatybilny (wpływa na backup i eksport).
-6. **Kolory typów dla artykułów, projektów i inicjatyw:** dobrać, gdy te działy pojawią się na stronie.
+5. **Kolory typów dla artykułów, projektów i inicjatyw:** dobrać, gdy te działy pojawią się na stronie.

@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.feeds import FeedSyncService, same_page
-from lapidarium.pacts import DeliveryError, FeedSyncDTO, SyndicationLinkDTO
+from lapidarium.pacts.content import SyndicationLinkDTO
+from lapidarium.pacts.feeds import FeedSyncDTO
+from lapidarium.pacts.outreach import DeliveryError
 from tests.factories import NOW, entry_dto
 
 VIDEO = "https://www.youtube.com/watch?v=abc"

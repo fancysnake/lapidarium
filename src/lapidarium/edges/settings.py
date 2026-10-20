@@ -15,11 +15,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     ADMIN_URL=(str, "admin/"),
     ALLOWED_HOSTS=(list, ["localhost"]),
-    AWS_STORAGE_BUCKET_NAME=(str, ""),
     CACHE_URL=(str, "locmemcache://"),
     DEFAULT_FROM_EMAIL=(str, "webmaster@localhost"),
     FEED_SOURCES=(list, []),
     EMAIL_URL=(str, "consolemail://"),
+    GS_BUCKET_NAME=(str, ""),
+    GS_LOCATION=(str, ""),
     MAILCHIMP_API_KEY=(str, ""),
     MAILCHIMP_LIST_ID=(str, ""),
     NEWSLETTER_BACKEND=(str, "log"),
@@ -44,13 +45,12 @@ DEBUG: bool = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
 
-SITE_NAME = env("SITE_NAME")
+SITE_NAME: str = env("SITE_NAME")
 
-# Themes: the engine ships `base` (always loaded first) and `gm-screen`; an
+# Themes: the engine ships `base`, always loaded first; an
 # instance adds its own directories, searched before the engine's.
 ENGINE_THEMES = BASE_DIR / "themes"
 ENGINE_TEMPLATES: Path = BASE_DIR / "templates"
-BASE_THEME_DIR: Path = ENGINE_THEMES / "base"
 SITE_THEME: str = env("SITE_THEME")
 
 
@@ -62,7 +62,15 @@ def _theme_dir(name: str) -> Path:
     raise ImproperlyConfigured(msg)
 
 
-THEME_DIR: Path = _theme_dir(SITE_THEME)
+# Each layer loads over the one before.
+_SITE_THEME_DIR = _theme_dir(SITE_THEME)
+THEME_LAYERS: tuple[Path, ...] = (
+    (_SITE_THEME_DIR,)
+    if _SITE_THEME_DIR.name == "base"
+    else (ENGINE_THEMES / "base", _SITE_THEME_DIR)
+)
+# Where each layer's directory is served from: <prefix>/<name>/.
+THEME_STATIC_PREFIX = "themes"
 ADMIN_URL = env("ADMIN_URL")
 
 INSTALLED_APPS = [
@@ -101,14 +109,15 @@ SERVICES_FACTORY = "lapidarium.inits.Services"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # The theme's templates override the engine's, file by file.
-        "DIRS": [THEME_DIR / "templates", ENGINE_TEMPLATES],
+        # Later layers override earlier ones and the engine, file by file.
+        "DIRS": [*(d / "templates" for d in reversed(THEME_LAYERS)), ENGINE_TEMPLATES],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "lapidarium.gates.web.django.rendering.theme_stylesheets",
             ],
             "debug": DEBUG or ENV == "test",
         },
@@ -148,23 +157,32 @@ STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT")
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    ("themes/base", BASE_THEME_DIR),
-    *([(f"themes/{SITE_THEME}", THEME_DIR)] if THEME_DIR != BASE_THEME_DIR else []),
+    *((f"{THEME_STATIC_PREFIX}/{d.name}", d) for d in THEME_LAYERS),
 ]
 MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")
 
-AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-# The S3 backend reads AWS_* from the environment itself; the bucket name is
-# the switch that turns it on.
+GS_BUCKET_NAME = env("GS_BUCKET_NAME")
+GS_LOCATION = env("GS_LOCATION")
+
+# Media goes to GCS when a bucket is named, the filesystem otherwise. The client
+# finds credentials itself (GOOGLE_APPLICATION_CREDENTIALS, or the attached
+# service account on GCP). The bucket serves objects publicly, so URLs carry no
+# signature.
 STORAGES = {
-    "default": {
-        "BACKEND": (
-            "storages.backends.s3.S3Storage"
-            if AWS_STORAGE_BUCKET_NAME
-            else "django.core.files.storage.FileSystemStorage"
-        )
-    },
+    "default": (
+        {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "bucket_name": GS_BUCKET_NAME,
+                "location": GS_LOCATION,
+                "default_acl": None,
+                "querystring_auth": False,
+            },
+        }
+        if GS_BUCKET_NAME
+        else {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+    ),
     "staticfiles": {
         "BACKEND": (
             "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -228,6 +246,11 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "INFO"},
 }
+
+# Proxies in front that append to X-Forwarded-For; 0 trusts the header not at all.
+TRUSTED_PROXY_HOPS: int = env.int(
+    "TRUSTED_PROXY_HOPS", default=1 if IS_PRODUCTION else 0
+)
 
 if IS_PRODUCTION:
     SECURE_SSL_REDIRECT = True

@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 
 from lapidarium.links.db.django.models import Entry, EntryType, Profile
-from lapidarium.pacts import FeedChange
+from lapidarium.pacts.catalogue import FeedChange
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -38,7 +38,9 @@ def test_home_shows_doors_whats_new_and_the_next_event(site):
     assert response.context["site_name"] == "lapidarium (test)"
     assert response.context["current_page"] == "home"
     assert not response.context["current_route"]
-    assert '[data-type="session"] { --type-color: #6b3fa0;' in response.text
+    assert (
+        '[data-type="session"] { --type-color: #6b3fa0; --type-tint:' in response.text
+    )
     assert 'href="/contact/"' in response.text
 
 
@@ -52,6 +54,16 @@ def test_an_empty_site_still_has_a_home_page(browser):
     assert response.context["site"].profile is None
     assert "Nothing here yet." in response.text
     assert 'href="/contact/"' not in response.text
+
+
+def test_the_portrait_takes_the_hero_aside_without_an_upcoming_event(site):
+    Entry.objects.filter(type__key="event").delete()
+
+    response = site.get("/")
+
+    assert response.context["home"].next_up is None
+    assert response.context["site"].profile.photo is not None
+    assert 'class="hero__portrait"' in response.text
 
 
 def test_a_profile_without_photo_or_tagline(site):

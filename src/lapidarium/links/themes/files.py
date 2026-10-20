@@ -4,89 +4,144 @@ from __future__ import annotations
 
 import re
 import tomllib
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, NoReturn, Protocol, override
 
-from lapidarium.pacts import ThemeDTO, ThemeStoreProtocol
+import tinycss2
+from django.core.exceptions import ImproperlyConfigured
+
+from lapidarium.pacts.theme import (
+    HEX_COLOUR,
+    PAIRED_TOKENS,
+    ThemeDTO,
+    ThemeStoreProtocol,
+)
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator, Sequence
     from pathlib import Path
 
-_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
-_DECLARATION = re.compile(r"(--[\w-]+)\s*:\s*([^;{}]+)")
-_DARK = re.compile(r"prefers-color-scheme\s*:\s*dark")
+_ROOT = ":root"
+_DARK = "(prefers-color-scheme:dark)"
+_HEX = re.compile(HEX_COLOUR)
 
 
-def _media_blocks(css: str) -> tuple[str, list[tuple[str, str]]]:
-    """Split `css` into what lies outside `@media` and each query with its body."""
-    outside: list[str] = []
-    blocks: list[tuple[str, str]] = []
-    position = 0
-    while (start := css.find("@media", position)) != -1:
-        outside.append(css[position:start])
-        opening = css.index("{", start)
-        depth, index = 1, opening + 1
-        while depth:
-            depth += {"{": 1, "}": -1}.get(css[index], 0)
-            index += 1
-        blocks.append((css[start:opening], css[opening + 1 : index - 1]))
-        position = index
-    outside.append(css[position:])
-    return "".join(outside), blocks
+def _fail(path: Path, *, line: int, message: str) -> NoReturn:
+    msg = f"{path}, line {line}: {message}"
+    raise ImproperlyConfigured(msg)
 
 
-def _tokens(css: str) -> dict[str, str]:
-    return {name: value.strip() for name, value in _DECLARATION.findall(css)}
+class _Rule(Protocol):
+    """A tinycss2 rule with a block, as read here; tinycss2 ships no types."""
+
+    type: str
+    # Set on at-rules only.
+    lower_at_keyword: str
+    prelude: list[object]
+    content: list[object]
+
+
+def _prelude(rule: _Rule) -> str:
+    """Return the prelude of `rule` lowercased, without whitespace."""
+    return "".join(str(tinycss2.serialize(rule.prelude)).split()).lower()
+
+
+def _rules(css: str | list[object], path: Path) -> list[_Rule]:
+    """Each rule with a block in `css`: a file's text, or the tokens of a block."""
+    rules: list[_Rule] = []
+    for rule in tinycss2.parse_rule_list(css, skip_comments=True, skip_whitespace=True):
+        if rule.type == "error":
+            _fail(path, line=rule.source_line, message=rule.message)
+        if rule.content is not None:
+            rules.append(rule)
+    return rules
+
+
+def _dark_blocks(rules: Iterable[_Rule]) -> Iterator[list[object]]:
+    """Yield the tokens inside each dark-scheme `@media` among `rules`."""
+    for rule in rules:
+        if (
+            rule.type == "at-rule"
+            and rule.lower_at_keyword == "media"
+            and _DARK in _prelude(rule)
+        ):
+            yield rule.content
+
+
+def _root_tokens(rules: Iterable[_Rule], path: Path) -> dict[str, str]:
+    """Return the custom properties that the `:root` rules among `rules` set."""
+    tokens: dict[str, str] = {}
+    for rule in rules:
+        if rule.type != "qualified-rule" or _prelude(rule) != _ROOT:
+            continue
+        for item in tinycss2.parse_blocks_contents(
+            rule.content, skip_comments=True, skip_whitespace=True
+        ):
+            if item.type == "error":
+                _fail(path, line=item.source_line, message=item.message)
+            if item.type != "declaration" or not item.name.startswith("--"):
+                continue
+            value = tinycss2.serialize(item.value).strip()
+            if item.name in PAIRED_TOKENS and not _HEX.fullmatch(value):
+                _fail(
+                    path,
+                    line=item.source_line,
+                    message=f"{item.name} is {value!r}; it must be #rrggbb.",
+                )
+            tokens[item.name] = value
+    return tokens
+
+
+def _optional(value: object) -> str | None:
+    return None if value is None else str(value)
+
+
+def _relative_files(root: Path) -> tuple[str, ...]:
+    """Every file under `root`, as sorted POSIX paths relative to it."""
+    return tuple(
+        sorted(
+            file.relative_to(root).as_posix()
+            for file in root.rglob("*")
+            if file.is_file()
+        )
+    )
 
 
 def read_theme(directory: Path) -> ThemeDTO:
+    """`ImproperlyConfigured` when `tokens.css` does not parse or breaks the contract.
+
+    The contract: each colour the contrast check reads is `#rrggbb`.
+    """
     manifest = directory / "theme.toml"
     meta = tomllib.loads(manifest.read_text()) if manifest.is_file() else {}
-    css = _COMMENT.sub("", (directory / "tokens.css").read_text())
-    light, blocks = _media_blocks(css)
-    templates = directory / "templates"
+    path = directory / "tokens.css"
+    rules = _rules(path.read_text(), path)
     return ThemeDTO(
         key=directory.name,
         name=str(meta.get("name", directory.name)),
-        version=str(meta.get("version", "")),
-        engine=str(meta.get("engine", "")),
+        version=_optional(meta.get("version")),
+        engine=_optional(meta.get("engine")),
         fonts=tuple(str(url) for url in meta.get("fonts", [])),
         has_stylesheet=(directory / "theme.css").is_file(),
-        tokens=_tokens(light),
+        tokens=_root_tokens(rules, path),
         dark_tokens={
             name: value
-            for query, body in blocks
-            if _DARK.search(query)
-            for name, value in _tokens(body).items()
+            for block in _dark_blocks(rules)
+            for name, value in _root_tokens(_rules(block, path), path).items()
         },
-        templates=tuple(
-            sorted(
-                path.relative_to(templates).as_posix()
-                for path in templates.rglob("*")
-                if path.is_file()
-            )
-        ),
+        templates=_relative_files(directory / "templates"),
     )
 
 
 class ThemeFiles(ThemeStoreProtocol):
     """Read once per process: themes ship with the code and change with a deploy."""
 
-    def __init__(self, *, base: Path, active: Path, engine_templates: Path) -> None:
-        self._base = read_theme(base)
-        self._active = self._base if active == base else read_theme(active)
-        self._engine_templates = frozenset(
-            path.relative_to(engine_templates).as_posix()
-            for path in engine_templates.rglob("*")
-            if path.is_file()
-        )
+    def __init__(self, *, layers: Sequence[Path], engine_templates: Path) -> None:
+        self._layers = tuple(read_theme(directory) for directory in layers)
+        self._engine_templates = frozenset(_relative_files(engine_templates))
 
     @override
-    def base(self) -> ThemeDTO:
-        return self._base
-
-    @override
-    def active(self) -> ThemeDTO:
-        return self._active
+    def layers(self) -> tuple[ThemeDTO, ...]:
+        return self._layers
 
     @override
     def engine_templates(self) -> frozenset[str]:

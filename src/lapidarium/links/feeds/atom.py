@@ -10,7 +10,8 @@ from urllib.parse import urlsplit
 import httpx
 from defusedxml.ElementTree import ParseError, fromstring
 
-from lapidarium.pacts import DeliveryError, ExternalItemData, FeedSourceProtocol
+from lapidarium.pacts.feeds import ExternalItemData, FeedSourceProtocol
+from lapidarium.pacts.outreach import DeliveryError
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element

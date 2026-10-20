@@ -9,7 +9,7 @@ from dulwich import porcelain
 
 from lapidarium.links.db.django.models import Entry, ExternalItem, Profile
 from lapidarium.links.feeds.atom import AtomFeed
-from lapidarium.pacts import DeliveryError
+from lapidarium.pacts.outreach import DeliveryError
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root", "demo")]
 ITEM = {

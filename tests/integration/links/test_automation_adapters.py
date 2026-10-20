@@ -10,7 +10,8 @@ from lapidarium.links.db.django.models import Entry, EntryType, ExternalItem
 from lapidarium.links.db.django.repositories import ExternalItemRepository
 from lapidarium.links.feeds.atom import AtomFeed, youtube
 from lapidarium.links.linkcheck.httpx import HttpLinkChecker
-from lapidarium.pacts import DeliveryError, NotFoundError
+from lapidarium.pacts.content import NotFoundError
+from lapidarium.pacts.outreach import DeliveryError
 
 YOUTUBE = b"""<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"

@@ -6,12 +6,8 @@ from typing import TYPE_CHECKING, override
 from django.core.management.base import BaseCommand, CommandError
 
 from lapidarium.gates.cli.django.services import build_services
-from lapidarium.pacts import (
-    BundleValidationError,
-    DeliveryError,
-    ExportDTO,
-    NotFoundError,
-)
+from lapidarium.pacts.content import BundleValidationError, ExportDTO, NotFoundError
+from lapidarium.pacts.outreach import DeliveryError
 
 if TYPE_CHECKING:
     from argparse import ArgumentParser

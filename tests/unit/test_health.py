@@ -4,14 +4,14 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.health import ContentHealthService
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     MediaAssetDTO,
     NotFoundError,
     ProfileDTO,
     RelationRole,
     SyndicationLinkDTO,
-    TypeRole,
 )
+from lapidarium.pacts.schema import TypeRole
 from lapidarium.specs import STALE_AFTER
 from tests.factories import NOW, entry_dto, ref_dto, relation_dto, type_dto
 

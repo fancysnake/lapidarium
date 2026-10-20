@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.outreach import OutreachService
-from lapidarium.pacts import NotFoundError, ProfileDTO, RateLimitedError
+from lapidarium.pacts.content import NotFoundError, ProfileDTO
+from lapidarium.pacts.outreach import RateLimitedError
 from lapidarium.specs import OUTREACH_LIMIT, OUTREACH_WINDOW
 
 
@@ -26,8 +27,8 @@ def _service(profile=None, *, allowed=True):
     return service, deps
 
 
-def _message(trap=""):
-    return {"name": "Ola", "email": "ola@example.com", "message": "Hi!", "trap": trap}
+def _message():
+    return {"name": "Ola", "email": "ola@example.com", "message": "Hi!"}
 
 
 @pytest.mark.parametrize(
@@ -43,7 +44,7 @@ def test_can_contact_only_with_an_address(profile, expected):
 def test_subscribe_counts_the_attempt_and_subscribes():
     service, deps = _service()
 
-    service.subscribe("ola@example.com", trap="", sender="1.2.3.4")
+    service.subscribe("ola@example.com", sender="1.2.3.4")
 
     deps.throttle.allow.assert_called_once_with(
         "newsletter:1.2.3.4", limit=OUTREACH_LIMIT, window=OUTREACH_WINDOW
@@ -51,20 +52,11 @@ def test_subscribe_counts_the_attempt_and_subscribes():
     deps.newsletter.subscribe.assert_called_once_with("ola@example.com")
 
 
-def test_subscribe_a_filled_trap_is_let_go_quietly():
-    service, deps = _service()
-
-    service.subscribe("bot@example.com", trap="spam", sender="1.2.3.4")
-
-    deps.throttle.allow.assert_not_called()
-    deps.newsletter.subscribe.assert_not_called()
-
-
 def test_subscribe_too_many_attempts_are_refused():
     service, deps = _service(allowed=False)
 
     with pytest.raises(RateLimitedError):
-        service.subscribe("ola@example.com", trap="", sender="1.2.3.4")
+        service.subscribe("ola@example.com", sender="1.2.3.4")
     deps.newsletter.subscribe.assert_not_called()
 
 
@@ -91,15 +83,6 @@ def test_contact_without_an_address_there_is_no_one_to_mail():
 
     with pytest.raises(NotFoundError):
         service.contact(_message(), sender="1.2.3.4")
-    deps.mailer.send.assert_not_called()
-
-
-def test_contact_a_filled_trap_is_let_go_quietly():
-    service, deps = _service(_profile())
-
-    service.contact(_message(trap="spam"), sender="1.2.3.4")
-
-    deps.throttle.allow.assert_not_called()
     deps.mailer.send.assert_not_called()
 
 

@@ -27,6 +27,8 @@ def test_the_dashboard_summarises_them(admin_client):
 
 
 def test_nothing_to_look_at(admin_client):
+    admin_client.defaults["HTTP_ACCEPT_LANGUAGE"] = "en"
+
     response = admin_client.get("/admin/content-health/")
 
     assert response.context["issues"] == []

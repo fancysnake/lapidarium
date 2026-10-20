@@ -6,7 +6,9 @@ from django.core.management.base import BaseCommand, CommandError
 from pydantic import TypeAdapter
 
 from lapidarium.gates.cli.django.services import build_services
-from lapidarium.pacts import DeliveryError, HealthIssueDTO, NotFoundError
+from lapidarium.pacts.content import NotFoundError
+from lapidarium.pacts.health import HealthIssueDTO
+from lapidarium.pacts.outreach import DeliveryError
 
 _ISSUES = TypeAdapter(list[HealthIssueDTO])
 
