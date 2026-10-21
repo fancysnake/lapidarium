@@ -1,0 +1,59 @@
+---
+name: Release
+
+# The image goes to GHCR from build-image.yml on the same tag.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: # dry run: builds and publishes to TestPyPI
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@94c60b39bc2d90ab2f9bab27f38d3cc4812c1834 # v5
+      # Refuses to publish a wheel whose version is not the tag. Only a tag push
+      # is a release, even when a dry run starts from a tag.
+      - name: Check the tag matches the package version
+        if: github.event_name == 'push'
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          declared=$(mise exec -- poetry version -s)
+          if [ "$tagged" != "$declared" ]; then
+            echo "tag $GITHUB_REF_NAME does not match pyproject version $declared" >&2
+            exit 1
+          fi
+      # .mo files are build output; the wheel carries them, git does not.
+      - run: sudo apt-get install -y --no-install-recommends gettext
+      - run: mise run i18n:compile
+      - run: mise exec -- poetry build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dist
+          path: dist/
+
+  # Trusted publishing: `id-token: write` mints an OIDC token, so no API token
+  # is stored. A tag push publishes to PyPI, a dry run to TestPyPI.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && 'pypi' || 'testpypi' }}
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          repository-url: >-
+            ${{ github.event_name == 'push'
+            && 'https://upload.pypi.org/legacy/'
+            || 'https://test.pypi.org/legacy/' }}

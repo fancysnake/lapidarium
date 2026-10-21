@@ -16,6 +16,7 @@ env = environ.Env(
     ADMIN_URL=(str, "admin/"),
     ALLOWED_HOSTS=(list, ["localhost"]),
     CACHE_URL=(str, "locmemcache://"),
+    DATABASE_URL=str,
     DEFAULT_FROM_EMAIL=(str, "webmaster@localhost"),
     FEED_SOURCES=(list, []),
     EMAIL_URL=(str, "consolemail://"),

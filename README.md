@@ -1,5 +1,7 @@
 # lapidarium
 
+Documentation is at [lapidarium.fancysnake.dev](https://lapidarium.fancysnake.dev).
+
 Engine for a creator's portfolio site. You define the content types in the admin
 (sessions, songs, repos, talks, whatever you make); every entry is a page built
 from ordered parts: text, video, audio, image, file, link. The engine gives you
@@ -28,6 +30,7 @@ Day to day:
 mise run check        # format + lint
 mise run test:py      # all tests
 mise run fullcheck    # the commit gate
+mise run site:dev     # the documentation site; strict, a broken link fails it
 mise tasks            # everything else
 ```
 

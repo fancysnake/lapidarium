@@ -1,0 +1,77 @@
+site_name: lapidarium
+site_url: https://lapidarium.fancysnake.dev
+site_description: Engine for a creator's portfolio site, with content types defined in the admin.
+repo_url: https://github.com/fancysnake/lapidarium
+repo_name: fancysnake/lapidarium
+copyright: MIT
+
+# A link to a page that is not there is what rots first when a page is
+# renamed, and from here it fails `site:dev` as well as `site:build`.
+strict: true
+
+# Under strict a warning is a failure; anchors are how cross-references
+# between pages actually break, and MkDocs only logs them at info.
+validation:
+  anchors: warn
+
+# The original spec (Polish, partly superseded) and the static prototype stay in
+# the repo for the record; the manual is the pages below.
+exclude_docs: |
+  content-model.md
+  prototype/
+
+theme:
+  name: material
+  icon:
+    logo: material/diamond-stone
+  # The engine's own base theme is black and white; so is its manual.
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: green
+      toggle: {icon: material/weather-night, name: Switch to dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: green
+      toggle: {icon: material/weather-sunny, name: Switch to light mode}
+  features:
+    - content.code.copy
+    - navigation.top
+    - navigation.sections
+    - navigation.footer
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/fancysnake/lapidarium
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/lapidarium/
+    - icon: fontawesome/solid/globe
+      link: https://fancysnake.dev
+      name: fancysnake.dev
+
+markdown_extensions:
+  - toc: {permalink: true}
+  - pymdownx.highlight
+  - pymdownx.superfences
+  # The changelog page includes CHANGELOG.md, so the two cannot drift.
+  - pymdownx.snippets: {base_path: ["."], check_paths: true}
+
+nav:
+  - index.md
+  - getting-started.md
+  - Guide:
+      - content-types.md
+      - parts.md
+      - themes.md
+      - export-format.md
+  - Running a site:
+      - instance.md
+      - configuration.md
+      - cli.md
+      - operations.md
+  - Project:
+      - architecture.md
+      - changelog.md
