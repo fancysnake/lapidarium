@@ -1,6 +1,6 @@
 {% load i18n lapidarium %}
 <figure class="part-figure">
-  {% with embed=part.url|video_embed %}
+  {% with embed=detail.embeds|option:part.url %}
     {% if embed %}
       <a class="video-facade"
          href="{{ part.url }}"

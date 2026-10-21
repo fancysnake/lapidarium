@@ -5,21 +5,21 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 
 from lapidarium.mills.colour import contrast_ratio
-from lapidarium.pacts import (
+from lapidarium.pacts.services import ThemeServiceProtocol
+from lapidarium.pacts.theme import (
     CONTRAST_PAIRS,
     REQUIRED_TOKENS,
     ProblemDTO,
     SiteThemeDTO,
     StylesheetDTO,
     ThemeProblem,
-    ThemeServiceProtocol,
 )
 from lapidarium.specs import CONTRAST_FLOOR
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
 
-    from lapidarium.pacts import ThemeDTO, ThemeStoreProtocol
+    from lapidarium.pacts.theme import ThemeDTO, ThemeStoreProtocol
 
 _ENGINE_STYLESHEET = "lapidarium/css/base.css"
 _BACKGROUND = "--color-bg"

@@ -9,7 +9,6 @@ import nh3
 from django import template
 from django.utils.safestring import SafeString
 
-from lapidarium.gates.web.django import embeds
 from lapidarium.gates.web.django.paths import entry_path
 
 if TYPE_CHECKING:
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 
     from django.template.context import Context
 
-    from lapidarium.pacts import EntryDTO, EntryRefDTO
+    from lapidarium.pacts.content import EntryDTO, EntryRefDTO
 
 register = template.Library()
 
@@ -36,11 +35,6 @@ def absolute(context: Context, path: str) -> str:
 def markdown(text: str) -> SafeString:
     """Render markdown and keep only what nh3 lets through."""
     return SafeString(nh3.clean(markdown_lib.markdown(text)))
-
-
-@register.filter
-def video_embed(url: str) -> str:
-    return embeds.video_embed(url)
 
 
 @register.filter

@@ -1,0 +1,14 @@
+{% load i18n %}
+{% if issues %}
+  <ul class="flex flex-col gap-2">
+    {% for issue in issues %}
+      <li>
+        <span class="font-semibold">{{ issue.code }}</span>
+        {% if issue.entry %}{{ issue.entry.title }} ({{ issue.entry.type_key }}/{{ issue.entry.slug }}):{% endif %}
+        {{ issue.message }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>{% translate "Nothing to look at." %}</p>
+{% endif %}

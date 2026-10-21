@@ -9,7 +9,12 @@ from typing import TYPE_CHECKING, NoReturn, Protocol, override
 import tinycss2
 from django.core.exceptions import ImproperlyConfigured
 
-from lapidarium.pacts import HEX_COLOUR, PAIRED_TOKENS, ThemeDTO, ThemeStoreProtocol
+from lapidarium.pacts.theme import (
+    HEX_COLOUR,
+    PAIRED_TOKENS,
+    ThemeDTO,
+    ThemeStoreProtocol,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, Sequence

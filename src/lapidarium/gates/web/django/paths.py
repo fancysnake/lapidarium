@@ -7,7 +7,7 @@ from django.urls import reverse
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from lapidarium.pacts import EntryTypeDTO
+    from lapidarium.pacts.schema import EntryTypeDTO
 
 
 def entry_path(types: Iterable[EntryTypeDTO], *, type_key: str, slug: str) -> str:

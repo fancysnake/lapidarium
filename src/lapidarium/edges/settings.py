@@ -17,6 +17,7 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, ["localhost"]),
     CACHE_URL=(str, "locmemcache://"),
     DEFAULT_FROM_EMAIL=(str, "webmaster@localhost"),
+    FEED_SOURCES=(list, []),
     EMAIL_URL=(str, "consolemail://"),
     GS_BUCKET_NAME=(str, ""),
     GS_LOCATION=(str, ""),
@@ -220,6 +221,9 @@ MAILERS = {
 }
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 
+# Feeds `fetch_feeds` reads: youtube:<channel id>, github:<owner/repo>, atom:<url>.
+FEED_SOURCES: list[str] = env("FEED_SOURCES")
+
 # "log" or "mailchimp".
 NEWSLETTER_BACKEND: str = env("NEWSLETTER_BACKEND")
 MAILCHIMP_API_KEY: str = env("MAILCHIMP_API_KEY")
@@ -229,6 +233,9 @@ UNFOLD = {
     "SITE_TITLE": SITE_NAME,
     "SITE_HEADER": SITE_NAME,
     "SITE_SYMBOL": "museum",
+    "DASHBOARD_CALLBACK": (
+        "lapidarium.gates.web.django.content_health.dashboard_callback"
+    ),
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,

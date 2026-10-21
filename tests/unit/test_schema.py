@@ -3,14 +3,14 @@ import datetime as dt
 import pytest
 
 from lapidarium.mills.schema import SchemaService
-from lapidarium.pacts import (
+from lapidarium.pacts.content import RelationEndDTO
+from lapidarium.pacts.schema import (
     FIELD_DEFAULTS,
     EntryTypeDTO,
     FieldDefinitionDTO,
     FieldKind,
     MetadataValidationError,
     PartKind,
-    RelationEndDTO,
     TypeRole,
     UrlKind,
 )

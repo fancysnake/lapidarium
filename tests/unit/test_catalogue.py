@@ -5,18 +5,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.catalogue import Catalogue, CatalogueService, when
-from lapidarium.pacts import (
-    CardDTO,
-    DoorPick,
-    ExternalItemDTO,
-    FactDTO,
-    FeedChange,
-    FieldKind,
-    FilterDTO,
-    NotFoundError,
-    RelationRole,
-    TypeRole,
-)
+from lapidarium.pacts.catalogue import CardDTO, FactDTO, FeedChange, FilterDTO
+from lapidarium.pacts.content import NotFoundError, PartDTO, RelationRole
+from lapidarium.pacts.feeds import ExternalItemDTO
+from lapidarium.pacts.schema import DoorPick, FieldKind, PartKind, TypeRole
 from lapidarium.specs import PAGE_SIZE, SEARCH_LIMIT, WHATS_NEW_HOME
 from tests.factories import NOW, entry_dto, field_dto, ref_dto, relation_dto, type_dto
 
@@ -440,6 +432,26 @@ def test_detail_gathers_panel_containers_related_and_siblings():
     assert [c.entry.slug for c in detail.related] == ["ballad"]
     assert [c.entry.slug for c in detail.siblings] == ["sibling"]
     assert detail.contents == ()
+    assert detail.embeds == {}
+
+
+def test_detail_embeds_the_videos_it_knows_a_player_for():
+    def part(kind, url):
+        return PartDTO(kind=kind, text="", url=url, asset=None, caption="", options={})
+
+    moose = entry_dto(
+        "moose",
+        parts=(
+            part(PartKind.VIDEO, "https://youtu.be/abc"),
+            part(PartKind.VIDEO, "https://example.com/clip.mp4"),
+            part(PartKind.LINK, "https://youtu.be/xyz"),
+        ),
+    )
+    service, _ = _service(entries=[moose])
+
+    assert service.detail("sessions", "moose").embeds == {
+        "https://youtu.be/abc": "https://www.youtube-nocookie.com/embed/abc?autoplay=1"
+    }
 
 
 def test_detail_containers_list_their_contents():
@@ -525,3 +537,14 @@ def test_upcoming_lists_calendar_entries_soonest_first():
     service, _ = _service(types=[EVENT], entries=entries)
 
     assert [c.entry.slug for c in service.upcoming()] == ["soon", "later"]
+
+
+def test_upcoming_counts_an_entry_with_only_an_end():
+    entries = [
+        entry_dto("open-ended", "event", end_at=NOW + DAY),
+        entry_dto("ended", "event", end_at=NOW - DAY),
+        entry_dto("undated", "event"),
+    ]
+    service, _ = _service(types=[EVENT], entries=entries)
+
+    assert [c.entry.slug for c in service.upcoming()] == ["open-ended"]

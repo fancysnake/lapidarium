@@ -6,25 +6,26 @@ import re
 from functools import partial
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import (
+from lapidarium.pacts.catalogue import ListFilter
+from lapidarium.pacts.content import (
     BundleValidationError,
     ContentBundle,
-    ContentExportServiceProtocol,
-    ContentImportServiceProtocol,
     ContentSummaryDTO,
     EntryData,
     EntryDTO,
     EntryStatus,
-    EntryTypeData,
-    EntryTypeDTO,
-    ListFilter,
+    ExportDTO,
     LocalSetupDTO,
-    LocalSetupServiceProtocol,
-    MetadataValidationError,
     ProfileData,
     ProfileDTO,
     RelationEndDTO,
     RelationRole,
+)
+from lapidarium.pacts.schema import EntryTypeData, EntryTypeDTO, MetadataValidationError
+from lapidarium.pacts.services import (
+    ContentExportServiceProtocol,
+    ContentImportServiceProtocol,
+    LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
 from lapidarium.specs import SLUG_PATTERN
@@ -33,16 +34,16 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         AccountRepositoryProtocol,
+        ArchiveProtocol,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
-        EntryTypeRepositoryProtocol,
         MediaAssetRepositoryProtocol,
-        Metadata,
         ProfileRepositoryProtocol,
-        TransactionProtocol,
     )
+    from lapidarium.pacts.db import TransactionProtocol
+    from lapidarium.pacts.schema import EntryTypeRepositoryProtocol, Metadata
 
 type _EntryKey = tuple[str, str]
 
@@ -143,15 +144,33 @@ class ContentExportService(ContentExportServiceProtocol):
         assets: MediaAssetRepositoryProtocol,
         profile: ProfileRepositoryProtocol,
         store: ContentStoreProtocol,
+        archive: ArchiveProtocol,
     ) -> None:
         self._types = types
         self._entries = entries
         self._assets = assets
         self._profile = profile
         self._store = store
+        self._archive = archive
 
     @override
-    def export(self, root: Path) -> ContentSummaryDTO:
+    def export(self, root: Path, *, commit: bool, push: bool) -> ExportDTO:
+        if not (commit or push):
+            return ExportDTO(content=self._write(root), committed=False)
+        self._archive.check(root)
+        content = self._write(root)
+        committed = self._archive.commit(
+            root,
+            message=(
+                f"Export: {content.entries} entries, {content.types} types,"
+                f" {content.assets} assets"
+            ),
+        )
+        if push and committed:
+            self._archive.push(root)
+        return ExportDTO(content=content, committed=committed)
+
+    def _write(self, root: Path) -> ContentSummaryDTO:
         profile = self._profile.get()
         published = self._entries.list_published()
         if drafts := {

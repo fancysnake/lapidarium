@@ -22,31 +22,32 @@ from lapidarium.links.db.django.models import (
     SyndicationLink,
     Tag,
 )
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     AccountRepositoryProtocol,
     AssetData,
-    DoorPick,
     EntryDTO,
     EntryRefDTO,
     EntryRepositoryProtocol,
     EntryStatus,
-    EntryTypeDTO,
-    EntryTypeRepositoryProtocol,
-    ExternalItemDTO,
-    ExternalItemRepositoryProtocol,
-    FieldDefinitionDTO,
-    FieldKind,
-    Layout,
     LinkDTO,
     MediaAssetDTO,
     MediaAssetRepositoryProtocol,
     NotFoundError,
     PartDTO,
-    PartKind,
     ProfileDTO,
     ProfileRepositoryProtocol,
     RelationDTO,
     SyndicationLinkDTO,
+)
+from lapidarium.pacts.feeds import ExternalItemDTO, ExternalItemRepositoryProtocol
+from lapidarium.pacts.schema import (
+    DoorPick,
+    EntryTypeDTO,
+    EntryTypeRepositoryProtocol,
+    FieldDefinitionDTO,
+    FieldKind,
+    Layout,
+    PartKind,
     TypeRole,
     UrlKind,
 )
@@ -54,13 +55,15 @@ from lapidarium.pacts import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         EntryData,
-        EntryTypeData,
+        EntryKeyDTO,
         LinkData,
         ProfileData,
         RelationData,
     )
+    from lapidarium.pacts.feeds import ExternalItemData
+    from lapidarium.pacts.schema import EntryTypeData
 
 
 def field_dto(field: FieldDefinition) -> FieldDefinitionDTO:
@@ -378,3 +381,23 @@ class ExternalItemRepository(ExternalItemRepositoryProtocol):
     def list_recent(self, limit: int) -> list[ExternalItemDTO]:
         items = ExternalItem.objects.filter(entry__isnull=True)[:limit]
         return [ExternalItemDTO.model_validate(item) for item in items]
+
+    @override
+    def save(self, item: ExternalItemData, *, entry: EntryKeyDTO | None) -> bool:
+        linked = (
+            Entry.objects.filter(type__key=entry.type_key, slug=entry.slug).first()
+            if entry
+            else None
+        )
+        _, created = ExternalItem.objects.update_or_create(
+            source=item["source"],
+            external_id=item["external_id"],
+            defaults={
+                "title": item["title"],
+                "url": item["url"],
+                "published_at": item["published_at"],
+                "thumbnail_url": item["thumbnail_url"],
+                "entry": linked,
+            },
+        )
+        return created

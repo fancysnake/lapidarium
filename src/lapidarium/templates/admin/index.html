@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+{% block title %}
+  {% if subtitle %}{{ subtitle }} |{% endif %}
+  {{ title }} | {{ site_title|default:_("Django site admin") }}
+{% endblock title %}
+{% block branding %}
+  {% include "unfold/helpers/site_branding.html" %}
+{% endblock branding %}
+{% block content %}
+  <section class="bg-white border border-base-200 mb-6 p-6 rounded-default dark:bg-base-900 dark:border-base-800">
+    <h2 class="font-semibold mb-3 text-important">
+      <a href="{% url 'content_health' %}">{% translate "Content health" %}</a>
+    </h2>
+    {% include "admin/lapidarium/health-list.html" %}
+  </section>
+  {% include "unfold/helpers/dashboard_default.html" %}
+{% endblock content %}

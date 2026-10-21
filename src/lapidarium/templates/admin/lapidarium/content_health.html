@@ -1,0 +1,6 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block content %}
+  <p class="mb-4">{% translate "The same list `check_content` prints; dead links are checked only from the command line, with --links." %}</p>
+  {% include "admin/lapidarium/health-list.html" %}
+{% endblock content %}

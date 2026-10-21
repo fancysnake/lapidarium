@@ -7,23 +7,25 @@ from typing import TYPE_CHECKING, override
 from urllib.parse import urlsplit
 
 from lapidarium.mills.colour import contrast_ratio, mix
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
+    EntryStatus,
+    PartData,
+    RelationEndDTO,
+    RelationRole,
+)
+from lapidarium.pacts.schema import (
     CONTAINER_ROLES,
     ROLE_BUILTINS,
     ROLE_REQUIRED,
-    EntryStatus,
     EntryTypeDTO,
     FieldKind,
     MetadataValidationError,
-    PartData,
     PartKind,
-    RelationEndDTO,
-    RelationRole,
-    SchemaServiceProtocol,
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.services import SchemaServiceProtocol
 from lapidarium.specs import (
     CONTRAST_FLOOR,
     GITHUB_HOSTS,
@@ -35,7 +37,7 @@ from lapidarium.specs import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.schema import (
         FieldDefinitionDTO,
         Metadata,
         MetadataInput,

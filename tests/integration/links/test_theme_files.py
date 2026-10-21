@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from lapidarium.links.themes.files import ThemeFiles, read_theme
-from lapidarium.pacts import REQUIRED_TOKENS
+from lapidarium.pacts.theme import REQUIRED_TOKENS
 
 
 def test_reads_manifest_tokens_dark_tokens_and_templates(tmp_path):

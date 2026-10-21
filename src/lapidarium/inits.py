@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 
+from lapidarium.links.archive.git import GitArchive
 from lapidarium.links.content_files.markdown import ContentFilesStore
 from lapidarium.links.db.django.repositories import (
     AccountRepository,
@@ -21,6 +22,8 @@ from lapidarium.links.db.django.repositories import (
     ProfileRepository,
 )
 from lapidarium.links.db.django.transaction import DjangoTransaction
+from lapidarium.links.feeds.atom import AtomFeed
+from lapidarium.links.linkcheck.httpx import HttpLinkChecker
 from lapidarium.links.mail.django import DjangoMailer
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
@@ -32,16 +35,21 @@ from lapidarium.mills.content import (
     ContentImportService,
     LocalSetupService,
 )
+from lapidarium.mills.feeds import FeedSyncService
+from lapidarium.mills.health import ContentHealthService
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
 from lapidarium.mills.theme import ThemeService
-from lapidarium.pacts import NewsletterBackend, ServicesProtocol
+from lapidarium.pacts.outreach import NewsletterBackend
+from lapidarium.pacts.services import ServicesProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from lapidarium.pacts import NewsletterProtocol, RootRequestProtocol
+    from lapidarium.pacts.feeds import FeedSourceProtocol
+    from lapidarium.pacts.outreach import NewsletterProtocol
+    from lapidarium.pacts.services import RootRequestProtocol
 
 
 def newsletter_backend() -> NewsletterBackend:
@@ -96,6 +104,18 @@ class Process:
 PROCESS = Process()
 
 
+def feed_sources() -> list[FeedSourceProtocol]:
+    """Return a source per `FEED_SOURCES` item, `<kind>:<channel, repo or url>`."""
+    sources: list[FeedSourceProtocol] = []
+    for item in settings.FEED_SOURCES:
+        try:
+            sources.append(AtomFeed.from_setting(item))
+        except ValueError as exc:
+            msg = f"FEED_SOURCES: {exc}."
+            raise ImproperlyConfigured(msg) from exc
+    return sources
+
+
 class Repositories:
     """Flat repository registry; mills receive single protocols from it."""
 
@@ -147,6 +167,7 @@ class Services(ServicesProtocol):
             assets=repos.media_assets,
             profile=repos.profile,
             store=repos.content_files,
+            archive=GitArchive(),
         )
 
     @cached_property
@@ -191,6 +212,28 @@ class Services(ServicesProtocol):
     @cached_property
     def theme(self) -> ThemeService:
         return PROCESS.theme
+
+    @cached_property
+    def feed_sync(self) -> FeedSyncService:
+        repos = self._repositories
+        return FeedSyncService(
+            sources=feed_sources(),
+            external=repos.external_items,
+            entries=repos.entries,
+            transaction=DjangoTransaction(),
+        )
+
+    @cached_property
+    def content_health(self) -> ContentHealthService:
+        repos = self._repositories
+        return ContentHealthService(
+            types=repos.entry_types,
+            entries=repos.entries,
+            profile=repos.profile,
+            mailer=DjangoMailer(),
+            checker=HttpLinkChecker(),
+            clock=timezone.now,
+        )
 
     @cached_property
     def outreach(self) -> OutreachService:

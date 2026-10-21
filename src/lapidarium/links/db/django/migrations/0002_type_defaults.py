@@ -5,7 +5,7 @@ import functools
 import django.core.validators
 from django.db import migrations, models
 
-import lapidarium.pacts
+import lapidarium.pacts.schema
 
 
 class Migration(migrations.Migration):
@@ -18,7 +18,9 @@ class Migration(migrations.Migration):
             name="allowed_parts",
             field=models.JSONField(
                 blank=True,
-                default=functools.partial(list, (lapidarium.pacts.PartKind["TEXT"],)),
+                default=functools.partial(
+                    list, (lapidarium.pacts.schema.PartKind["TEXT"],)
+                ),
                 verbose_name="allowed parts",
             ),
         ),

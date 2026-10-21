@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 from lapidarium.mills.content import LocalSetupService
-from lapidarium.pacts import ContentSummaryDTO, LocalSetupDTO
+from lapidarium.pacts.content import ContentSummaryDTO, LocalSetupDTO
 
 
 def test_set_up_loads_the_demo_and_ensures_the_superuser_in_one_transaction():

@@ -43,15 +43,17 @@ from lapidarium.links.db.django.models import (
     Tag,
 )
 from lapidarium.links.db.django.repositories import entry_type_dto
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
-    ROLE_BUILTINS,
     EntryStatus,
+    RelationEndDTO,
+    RelationRole,
+)
+from lapidarium.pacts.schema import (
+    ROLE_BUILTINS,
     FieldKind,
     MetadataValidationError,
     PartKind,
-    RelationEndDTO,
-    RelationRole,
     TypeRole,
 )
 
@@ -65,12 +67,9 @@ if TYPE_CHECKING:
     from django.urls import URLPattern
     from django.utils.functional import _StrOrPromise
 
-    from lapidarium.pacts import (
-        MetadataInput,
-        PartData,
-        SchemaServiceProtocol,
-        ServicesProtocol,
-    )
+    from lapidarium.pacts.content import PartData
+    from lapidarium.pacts.schema import MetadataInput
+    from lapidarium.pacts.services import SchemaServiceProtocol, ServicesProtocol
 
     # Unfold's admin classes are Django's, restyled; type-check against Django's.
     EntryTypeAdminBase = admin.ModelAdmin[EntryType]
@@ -181,6 +180,11 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                 _item(gettext("Content types"), icon="category", model="entrytype"),
                 _item(gettext("Profile"), icon="person", model="profile"),
                 _item(gettext("Links"), icon="link", model="link"),
+                {
+                    "title": gettext("Content health"),
+                    "icon": "health_and_safety",
+                    "link": reverse("content_health"),
+                },
                 {
                     "title": gettext("Theme preview"),
                     "icon": "palette",

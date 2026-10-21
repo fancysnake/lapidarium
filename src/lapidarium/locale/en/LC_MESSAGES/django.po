@@ -15,6 +15,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "Content health"
+msgstr ""
+
 msgid "Your e-mail"
 msgstr ""
 
@@ -433,6 +436,15 @@ msgid "Back to the home page"
 msgstr ""
 
 msgid "Search"
+msgstr ""
+
+msgid "Django site admin"
+msgstr ""
+
+msgid "The same list `check_content` prints; dead links are checked only from the command line, with --links."
+msgstr ""
+
+msgid "Nothing to look at."
 msgstr ""
 
 msgid "What are you adding?"

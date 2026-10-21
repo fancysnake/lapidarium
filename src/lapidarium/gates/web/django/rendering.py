@@ -13,14 +13,16 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from pydantic import BaseModel
 
-from lapidarium.pacts import PAGE_CACHE, DeliveryError, RateLimitedError
+from lapidarium.pacts.outreach import DeliveryError, RateLimitedError
+from lapidarium.pacts.site import PAGE_CACHE
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.http import HttpResponse
 
-    from lapidarium.pacts import ServicesProtocol, StylesheetDTO
+    from lapidarium.pacts.services import ServicesProtocol
+    from lapidarium.pacts.theme import StylesheetDTO
 
 
 # What views hand templates: DTOs, forms and a few plain values.

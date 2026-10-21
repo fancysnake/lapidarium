@@ -21,12 +21,9 @@ from lapidarium.links.db.django.repositories import (
     MediaAssetRepository,
     ProfileRepository,
 )
-from lapidarium.pacts import (
-    FIELD_DEFAULTS,
-    TYPE_DEFAULTS,
-    ExternalItemDTO,
-    NotFoundError,
-)
+from lapidarium.pacts.content import NotFoundError
+from lapidarium.pacts.feeds import ExternalItemDTO
+from lapidarium.pacts.schema import FIELD_DEFAULTS, TYPE_DEFAULTS
 from tests.factories import entry_data
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]

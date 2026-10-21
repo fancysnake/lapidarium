@@ -11,7 +11,7 @@ from lapidarium.links.mail.django import DjangoMailer
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
 from lapidarium.links.throttle.django import CacheThrottle
-from lapidarium.pacts import DeliveryError
+from lapidarium.pacts.outreach import DeliveryError
 
 HOUR = dt.timedelta(hours=1)
 

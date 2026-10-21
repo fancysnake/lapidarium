@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, override
 
 from django.core.mail import EmailMessage
 
-from lapidarium.pacts import DeliveryError, MailerProtocol
+from lapidarium.pacts.outreach import DeliveryError, MailerProtocol
 
 if TYPE_CHECKING:
-    from lapidarium.pacts import MailData
+    from lapidarium.pacts.outreach import MailData
 
 
 class DjangoMailer(MailerProtocol):

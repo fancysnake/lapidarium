@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.site import SiteService
-from lapidarium.pacts import LinkDTO, ProfileDTO
+from lapidarium.pacts.content import LinkDTO, ProfileDTO
 from tests.factories import type_dto
 
 PROFILE = ProfileDTO(

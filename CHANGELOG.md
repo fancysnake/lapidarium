@@ -38,6 +38,12 @@ All notable changes to this project are documented here. The format follows
   engine; the base tokens always load first. System checks for required tokens,
   contrast, engine version and stale template overrides; staff-only theme
   preview; type colours checked against the active theme's background.
+- Automation: `fetch_feeds` reads YouTube channels, GitHub releases and Atom
+  feeds from `FEED_SOURCES` and ties items to the entries they copy;
+  `check_content` lists content that needs a look (`--json`, `--mail`,
+  `--links`, exit 1 when anything), also on the admin dashboard and its own
+  admin page; `export_content --commit --push` commits the export to a git
+  working copy. Coolify task recipes in `docs/operations.md`.
 - Polish and English UI catalogs; `mise run i18n:make` and `i18n:compile`.
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.
