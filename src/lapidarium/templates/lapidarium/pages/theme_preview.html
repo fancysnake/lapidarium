@@ -5,7 +5,7 @@
   <main class="container page">
     <div>
       <h1 class="page__title">{% translate "Theme preview" %}</h1>
-      <p class="page__lead">{{ site.theme.name }} ({{ site.theme.key }}) {{ site.theme.version }}</p>
+      <p class="page__lead">{{ theme.name }} ({{ theme.key }}){% if theme.version %} {{ theme.version }}{% endif %}</p>
     </div>
     <section aria-labelledby="problems-title">
       <h2 class="section-title" id="problems-title">{% translate "Checks" %}</h2>
@@ -13,7 +13,7 @@
         <ul class="panel__list">
           {% for problem in problems %}
             <li class="notice">
-              <span class="label">{{ problem.level }} {{ problem.code }}</span> {{ problem.message }}
+              <span class="label">{{ problem.code.level }} {{ problem.code }}</span> {{ problem.message }}
             </li>
           {% endfor %}
         </ul>
@@ -41,7 +41,7 @@
       </p>
       <div class="hero__actions">
         <span class="btn btn--primary">.btn--primary</span>
-        <span class="btn btn--ghost">.btn--ghost</span>
+        <span class="btn">.btn</span>
       </div>
       <p class="notice">.notice</p>
       <p class="empty">{% translate "Nothing here yet." %}</p>
@@ -86,18 +86,7 @@
     <section aria-labelledby="form-title">
       <h2 class="section-title" id="form-title">.form</h2>
       <div class="form">
-        {% for field in form %}
-          {% if field.name != "website" %}
-            <div class="form__field">
-              <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {% if field.name == "message" %}
-                <textarea class="input" id="{{ field.id_for_label }}"></textarea>
-              {% else %}
-                <input class="input" id="{{ field.id_for_label }}">
-              {% endif %}
-            </div>
-          {% endif %}
-        {% endfor %}
+        {% include "lapidarium/components/contact-fields.html" %}
         <ul class="form__errors">
           <li>.form__errors</li>
         </ul>

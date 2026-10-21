@@ -5,8 +5,9 @@ from http import HTTPStatus
 import pytest
 from django.core import mail
 
+from lapidarium.gates.web.django.rendering import sender
 from lapidarium.links.db.django.models import Profile
-from lapidarium.pacts import DeliveryError
+from lapidarium.pacts.outreach import DeliveryError
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -33,6 +34,16 @@ def test_subscribing_redirects_to_the_thanks(site, caplog):
     assert "check your inbox" in thanks.text
 
 
+def test_a_bot_subscription_is_thanked_and_ignored(site, caplog):
+    response = site.post(
+        "/newsletter/", {"email": "bot@example.com", "website": "http://spam"}
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"] == "/newsletter/?subscribed=1"
+    assert "bot@example.com" not in caplog.text
+
+
 def test_a_bad_address_is_shown_back(site):
     response = site.post("/newsletter/", {"email": "nope"})
 
@@ -50,7 +61,7 @@ def test_too_many_subscriptions_are_refused(site):
     response = site.post("/newsletter/", {"email": "ola@example.com"})
 
     assert response.status_code == HTTPStatus.TOO_MANY_REQUESTS
-    assert response.context["problem"] == "busy"
+    assert "lot of tries" in response.context["problem"]
     assert "lot of tries" in response.text
 
 
@@ -63,7 +74,7 @@ def test_a_provider_failure_is_reported(site, monkeypatch):
     response = site.post("/newsletter/", {"email": "ola@example.com"})
 
     assert response.status_code == HTTPStatus.BAD_GATEWAY
-    assert response.context["problem"] == "provider"
+    assert "went wrong" in response.context["problem"]
     assert "went wrong" in response.text
 
 
@@ -110,7 +121,7 @@ def test_too_many_messages_are_refused(site):
     response = site.post("/contact/", MESSAGE)
 
     assert response.status_code == HTTPStatus.TOO_MANY_REQUESTS
-    assert response.context["problem"] == "busy"
+    assert "lot of tries" in response.context["problem"]
 
 
 def test_a_mail_failure_is_reported(site, monkeypatch):
@@ -122,10 +133,26 @@ def test_a_mail_failure_is_reported(site, monkeypatch):
     response = site.post("/contact/", MESSAGE)
 
     assert response.status_code == HTTPStatus.BAD_GATEWAY
-    assert response.context["problem"] == "provider"
+    assert "went wrong" in response.context["problem"]
 
 
 def test_no_contact_page_without_an_address(site):
     Profile.objects.update(email="")
 
     assert site.get("/contact/").status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.parametrize(
+    ("hops", "forwarded", "expected"),
+    (
+        (0, "9.9.9.9", "127.0.0.1"),
+        (1, "", "127.0.0.1"),
+        (1, "9.9.9.9, 1.2.3.4", "1.2.3.4"),
+        (2, "9.9.9.9, 1.2.3.4, 5.6.7.8", "1.2.3.4"),
+        (2, "1.2.3.4", "127.0.0.1"),
+    ),
+)
+def test_sender_trusts_only_the_proxy_hops(*, rf, settings, hops, forwarded, expected):
+    settings.TRUSTED_PROXY_HOPS = hops
+
+    assert sender(rf.get("/", HTTP_X_FORWARDED_FOR=forwarded)) == expected

@@ -25,26 +25,29 @@ from typing import TYPE_CHECKING, override
 import yaml
 from pydantic import TypeAdapter, ValidationError
 
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EXPORT_FORMAT_VERSION,
-    FIELD_DEFAULTS,
-    TYPE_DEFAULTS,
     AssetData,
     BundleValidationError,
     ContentStoreProtocol,
     EntryData,
-    EntryTypeData,
     LinkData,
     NotFoundError,
-    PartKind,
     ProfileData,
+)
+from lapidarium.pacts.schema import (
+    FIELD_DEFAULTS,
+    TYPE_DEFAULTS,
+    EntryTypeData,
+    PartKind,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-    from lapidarium.pacts import ContentBundle, SettingDefault
+    from lapidarium.pacts.content import ContentBundle
+    from lapidarium.pacts.schema import SettingDefault
 
 DEMOS = Path(__file__).resolve().parent / "demos"
 MANIFEST = "lapidarium.yaml"
@@ -287,9 +290,7 @@ def _read_entry(path: Path) -> EntryData:
         for relation in loaded.pop("relations", [])
     ]
     return _ENTRY.validate_python(
-        _ENTRY_DEFAULTS
-        | loaded
-        | {
+        _ENTRY_DEFAULTS | loaded | {
             "type": path.parent.name,
             "slug": path.stem,
             "parts": parts,

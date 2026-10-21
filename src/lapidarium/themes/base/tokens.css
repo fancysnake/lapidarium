@@ -4,34 +4,34 @@
 :root {
   /* Surfaces and text */
   --color-bg: #ffffff;
-  --color-surface: #f6f6f4;
-  --color-surface-2: #ecece8;
-  --color-surface-band: #f1f1ee;
-  --color-text: #151515;
-  --color-text-strong: #333333;
+  --color-surface: #ffffff;
+  --color-surface-2: #ececea;
+  --color-surface-band: #f2f2f0;
+  --color-text: #161616;
+  --color-text-strong: #2e2e2e;
   --color-text-muted: #5a5a57;
-  --color-border: #dadad5;
-  --color-border-soft: #e8e8e4;
-  --color-link: #151515;
+  --color-border: #d9d9d5;
+  --color-border-soft: #e7e7e3;
+  --color-link: #161616;
   --color-link-hover: #5a5a57;
 
   /* Brand */
-  --color-brand: #151515;
+  --color-brand: #161616;
   --color-brand-contrast: #ffffff;
 
   /* Fallback for anything typed before its colour is known */
-  --color-type-default: #151515;
-  --color-type-default-tint: #f1f1ee;
+  --color-type-default: #161616;
+  --color-type-default-tint: #ececea;
 
-  /* Typography */
-  --font-body: Georgia, "Times New Roman", serif;
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-label: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
-  --text-base: 1.0625rem;
-  --text-label: 0.875rem;
-  --text-h1: 4rem;
-  --text-h1-detail: 4.25rem;
-  --text-h2: 2.125rem;
+  /* Typography: system faces only, so the engine loads nothing from outside */
+  --font-body: "Atkinson Hyperlegible", Verdana, "DejaVu Sans", system-ui, sans-serif;
+  --font-display: "Avenir Next", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-label: ui-monospace, "SF Mono", "Cascadia Mono", "DejaVu Sans Mono", monospace;
+  --text-base: 1rem;
+  --text-label: 0.75rem;
+  --text-h1: 3.25rem;
+  --text-h1-detail: 3.25rem;
+  --text-h2: 1.625rem;
 
   /* Spacing and layout */
   --space-1: 4px;
@@ -45,8 +45,18 @@
   --space-9: 72px;
   --max-width: 1180px;
   --gutter: 32px;
+
+  /* Shape */
+  --radius: 10px;
+  --radius-lg: 16px;
+  --line-strong: 2px;
 }
 
 @media (max-width: 40rem) {
-  :root { --gutter: 16px; }
+  :root {
+    --text-h1: 2.5rem;
+    --text-h1-detail: 2.25rem;
+    --text-h2: 1.5rem;
+    --gutter: 16px;
+  }
 }

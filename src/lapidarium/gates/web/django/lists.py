@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from django.http import Http404
 
 from lapidarium.gates.web.django.rendering import RootRequest, cached, render_page
-from lapidarium.pacts import NotFoundError
+from lapidarium.pacts.content import NotFoundError
 
 if TYPE_CHECKING:
     from django.http import HttpResponse

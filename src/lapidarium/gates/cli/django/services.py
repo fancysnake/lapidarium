@@ -8,7 +8,7 @@ from django.utils.module_loading import import_string
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from lapidarium.pacts import ServicesProtocol
+    from lapidarium.pacts.services import ServicesProtocol
 
 
 def build_services() -> ServicesProtocol:

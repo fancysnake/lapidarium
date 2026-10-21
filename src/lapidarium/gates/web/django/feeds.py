@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from django.conf import settings
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.feedgenerator import Rss201rev2Feed
@@ -17,7 +16,7 @@ from lapidarium.gates.web.django.rendering import RootRequest, cached
 def rss(request: RootRequest) -> HttpResponse:
     site = request.services.site.chrome()
     feed = Rss201rev2Feed(
-        title=site.profile.name if site.profile else settings.SITE_NAME,
+        title=site.owner_name,
         link=request.build_absolute_uri(reverse("home")),
         description=site.profile.tagline if site.profile else "",
         language=get_language(),
@@ -65,7 +64,7 @@ def ical_feed(request: RootRequest) -> HttpResponse:
         for card in request.services.catalogue.upcoming()
         if card.entry.start_at
     ]
-    name = site.profile.name if site.profile else settings.SITE_NAME
     return HttpResponse(
-        ical.calendar(name, events), content_type="text/calendar; charset=utf-8"
+        ical.calendar(site.owner_name, events),
+        content_type="text/calendar; charset=utf-8",
     )

@@ -7,7 +7,6 @@ its default (an empty value is required, or empty by default):
 ```dotenv
 ADMIN_URL=admin/
 ALLOWED_HOSTS=localhost
-AWS_STORAGE_BUCKET_NAME=
 CACHE_URL=locmemcache://
 DATABASE_URL=
 DEBUG=false
@@ -15,6 +14,8 @@ DEFAULT_FROM_EMAIL=webmaster@localhost
 EMAIL_URL=consolemail://
 ENV=production
 FEED_SOURCES=
+GS_BUCKET_NAME=
+GS_LOCATION=
 LANGUAGE_CODE=pl
 MAILCHIMP_API_KEY=
 MAILCHIMP_LIST_ID=
@@ -50,7 +51,8 @@ TIME_ZONE=Europe/Warsaw
 | Variable | What it sets |
 |---|---|
 | `MEDIA_ROOT`, `MEDIA_URL` | Uploaded files on local disk, and where they are served |
-| `AWS_STORAGE_BUCKET_NAME` | Turns on S3 (or any S3-compatible) storage for uploads; `django-storages` reads `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_ENDPOINT_URL` and the rest of its `AWS_*` settings from the environment |
+| `GS_BUCKET_NAME` | Turns on Google Cloud Storage for uploads; the bucket must allow public read. Credentials come from `GOOGLE_APPLICATION_CREDENTIALS`, or the attached service account on GCP |
+| `GS_LOCATION` | Path prefix for uploads inside the bucket |
 | `STATIC_ROOT` | Where `collectstatic` gathers CSS and JavaScript |
 
 ## Caching

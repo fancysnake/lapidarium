@@ -5,19 +5,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
-from lapidarium.pacts import DeliveryError, FeedSyncDTO, FeedSyncServiceProtocol
+from lapidarium.mills.video import youtube_id
+from lapidarium.pacts.content import EntryKeyDTO
+from lapidarium.pacts.feeds import FeedError, FeedSyncDTO
+from lapidarium.pacts.services import FeedSyncServiceProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lapidarium.pacts import (
-        EntryRepositoryProtocol,
+    from lapidarium.pacts.content import EntryRepositoryProtocol
+    from lapidarium.pacts.db import TransactionProtocol
+    from lapidarium.pacts.feeds import (
         ExternalItemRepositoryProtocol,
         FeedSourceProtocol,
-        TransactionProtocol,
     )
-
-_SHORT_HOSTS = {"youtu.be": "youtube.com/watch"}
 
 
 def same_page(url: str) -> str:
@@ -25,11 +26,12 @@ def same_page(url: str) -> str:
     parts = urlsplit(url)
     host = (parts.hostname or "").removeprefix("www.").removeprefix("m.")
     path = parts.path.rstrip("/")
-    query = sorted(parse_qsl(parts.query))
-    if host in _SHORT_HOSTS:
-        query = sorted([*query, ("v", path.strip("/"))])
-        host, path = _SHORT_HOSTS[host].split("/", 1)[0], "/watch"
-    return f"{host}{path}?{urlencode(query)}"
+    return f"{host}{path}?{urlencode(sorted(parse_qsl(parts.query)))}"
+
+
+def _copy_key(url: str) -> str:
+    """Name what `url` shows: a YouTube video by its id, else the page."""
+    return f"youtube:{video}" if (video := youtube_id(url)) else same_page(url)
 
 
 class FeedSyncService(FeedSyncServiceProtocol):
@@ -49,7 +51,7 @@ class FeedSyncService(FeedSyncServiceProtocol):
     @override
     def sync(self) -> FeedSyncDTO:
         copies = {
-            same_page(link.url): (entry.type_key, entry.slug)
+            _copy_key(link.url): EntryKeyDTO(type_key=entry.type_key, slug=entry.slug)
             for entry in self._entries.list_published()
             for link in entry.syndication
         }
@@ -58,12 +60,12 @@ class FeedSyncService(FeedSyncServiceProtocol):
         for source in self._sources:
             try:
                 items = source.fetch()
-            except DeliveryError:
+            except FeedError:
                 failed.append(source.name)
                 continue
             with self._transaction.atomic():
                 for item in items:
-                    entry = copies.get(same_page(item["url"]))
+                    entry = copies.get(_copy_key(item["url"]))
                     created += self._external.save(item, entry=entry)
                     linked += entry is not None
             fetched += len(items)

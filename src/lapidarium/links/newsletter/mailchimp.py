@@ -7,7 +7,7 @@ from typing import override
 
 import httpx
 
-from lapidarium.pacts import DeliveryError, NewsletterProtocol
+from lapidarium.pacts.outreach import DeliveryError, NewsletterProtocol
 
 _TIMEOUT = 10.0
 

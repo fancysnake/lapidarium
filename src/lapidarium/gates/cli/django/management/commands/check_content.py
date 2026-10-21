@@ -6,7 +6,9 @@ from django.core.management.base import BaseCommand, CommandError
 from pydantic import TypeAdapter
 
 from lapidarium.gates.cli.django.services import build_services
-from lapidarium.pacts import DeliveryError, HealthIssueDTO, NotFoundError
+from lapidarium.pacts.content import NotFoundError
+from lapidarium.pacts.health import HealthIssueDTO
+from lapidarium.pacts.outreach import DeliveryError
 
 _ISSUES = TypeAdapter(list[HealthIssueDTO])
 
@@ -35,12 +37,7 @@ class Command(BaseCommand):
             self.stdout.write(_ISSUES.dump_json(issues).decode())
         else:
             for issue in issues:
-                where = (
-                    f"{issue.entry.type_key}/{issue.entry.slug}: "
-                    if issue.entry
-                    else ""
-                )
-                self.stdout.write(f"{issue.code} {where}{issue.message}")
+                self.stdout.write(issue.line)
         if not issues:
             return
         if options["mail"]:

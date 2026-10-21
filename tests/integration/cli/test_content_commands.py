@@ -7,7 +7,7 @@ from django.core.management.base import CommandError
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
 from lapidarium.links.db.django.models import Entry, EntryType, Relation
-from lapidarium.pacts import BundleValidationError
+from lapidarium.pacts.content import BundleValidationError
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 

@@ -13,6 +13,13 @@ if TYPE_CHECKING:
     from lapidarium.gates.web.django.rendering import RootRequest
 
 
+def dashboard_callback(
+    request: RootRequest, context: dict[str, object]
+) -> dict[str, object]:
+    """Give the admin dashboard the issues `content_health` lists."""
+    return {**context, "issues": request.services.content_health.check(links=False)}
+
+
 @staff_member_required
 def content_health(request: RootRequest) -> HttpResponse:
     """Show the admin what `check_content` lists, without visiting links."""

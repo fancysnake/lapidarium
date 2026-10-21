@@ -5,18 +5,12 @@ from __future__ import annotations
 from django.apps import apps
 from django.core.cache import caches
 from django.db import transaction
-from django.db.models import Model, QuerySet
 from django.db.models.signals import m2m_changed, post_delete, post_save
 
-from lapidarium.pacts import PAGE_CACHE
-
-# Whatever post_save, post_delete and m2m_changed send along.
-type _Sent = type[Model] | Model | QuerySet[Model] | bool | str | frozenset[str] | set[
-    int
-] | None
+from lapidarium.pacts.site import PAGE_CACHE
 
 
-def clear_pages(**_kwargs: _Sent) -> None:
+def clear_pages(**_kwargs: object) -> None:
     # After commit: a page rendered before it would otherwise be cached stale.
     transaction.on_commit(caches[PAGE_CACHE].clear)
 

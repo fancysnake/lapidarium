@@ -6,25 +6,26 @@ import re
 from functools import partial
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import (
+from lapidarium.pacts.catalogue import ListFilter
+from lapidarium.pacts.content import (
     BundleValidationError,
     ContentBundle,
-    ContentExportServiceProtocol,
-    ContentImportServiceProtocol,
     ContentSummaryDTO,
     EntryData,
     EntryDTO,
     EntryStatus,
-    EntryTypeData,
-    EntryTypeDTO,
     ExportDTO,
     LocalSetupDTO,
-    LocalSetupServiceProtocol,
-    MetadataValidationError,
     ProfileData,
     ProfileDTO,
     RelationEndDTO,
     RelationRole,
+)
+from lapidarium.pacts.schema import EntryTypeData, EntryTypeDTO, MetadataValidationError
+from lapidarium.pacts.services import (
+    ContentExportServiceProtocol,
+    ContentImportServiceProtocol,
+    LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
 from lapidarium.specs import SLUG_PATTERN
@@ -33,17 +34,16 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         AccountRepositoryProtocol,
         ArchiveProtocol,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
-        EntryTypeRepositoryProtocol,
         MediaAssetRepositoryProtocol,
-        Metadata,
         ProfileRepositoryProtocol,
-        TransactionProtocol,
     )
+    from lapidarium.pacts.db import TransactionProtocol
+    from lapidarium.pacts.schema import EntryTypeRepositoryProtocol, Metadata
 
 type _EntryKey = tuple[str, str]
 
@@ -154,8 +154,11 @@ class ContentExportService(ContentExportServiceProtocol):
         self._archive = archive
 
     @override
-    def publish(self, root: Path, *, push: bool) -> ExportDTO:
-        content = self.export(root)
+    def export(self, root: Path, *, commit: bool, push: bool) -> ExportDTO:
+        if not (commit or push):
+            return ExportDTO(content=self._write(root), committed=False)
+        self._archive.check(root)
+        content = self._write(root)
         committed = self._archive.commit(
             root,
             message=(
@@ -167,8 +170,7 @@ class ContentExportService(ContentExportServiceProtocol):
             self._archive.push(root)
         return ExportDTO(content=content, committed=committed)
 
-    @override
-    def export(self, root: Path) -> ContentSummaryDTO:
+    def _write(self, root: Path) -> ContentSummaryDTO:
         profile = self._profile.get()
         published = self._entries.list_published()
         if drafts := {
@@ -205,6 +207,15 @@ def _slug_errors(name: str, value: str) -> list[str]:
     if re.fullmatch(SLUG_PATTERN, value):
         return []
     return [f"{name} {value!r} may hold only letters, digits, - and _."]
+
+
+def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:
+    fields = {f.key for f in entry_type.fields}
+    return [
+        f"List filter {key!r} is neither year, tag nor one of the fields."
+        for key in entry_type.list_filters
+        if key not in ListFilter and key not in fields
+    ]
 
 
 def _draft_links(entry: EntryDTO) -> list[str]:
@@ -309,6 +320,7 @@ class ContentImportService(ContentImportServiceProtocol):
                 messages := [
                     *_slug_errors("Key", type_key),
                     *self._schema.check_colours(schema.colour, schema.tint),
+                    *_filter_errors(schema),
                 ]
             )
         }

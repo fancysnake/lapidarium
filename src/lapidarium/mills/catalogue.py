@@ -1,29 +1,32 @@
-"""The public site: home, lists, detail pages, what's new, search, calendar."""
+"""The public site: home, lists, details, what's new, search, calendar, timeline."""
 
 from __future__ import annotations
 
 import math
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import (
+from lapidarium.mills.video import video_embed
+from lapidarium.pacts.catalogue import (
     CardDTO,
-    CatalogueServiceProtocol,
     DetailDTO,
     DoorDTO,
-    DoorPick,
-    EntryRefDTO,
     FactDTO,
     FeedChange,
     FeedItemDTO,
-    FieldKind,
     FilterDTO,
     HomeDTO,
     ListFilter,
     ListingDTO,
-    NotFoundError,
-    RelationRole,
+)
+from lapidarium.pacts.content import EntryRefDTO, NotFoundError, RelationRole
+from lapidarium.pacts.schema import (
+    CONTAINER_ROLES,
+    DoorPick,
+    FieldKind,
+    PartKind,
     TypeRole,
 )
+from lapidarium.pacts.services import CatalogueServiceProtocol
 from lapidarium.specs import (
     PAGE_SIZE,
     SEARCH_LIMIT,
@@ -36,15 +39,14 @@ from lapidarium.specs import (
 
 if TYPE_CHECKING:
     import datetime as dt
-    from collections.abc import Callable, Iterable, Mapping, Sequence
+    from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
     from random import Random
 
-    from lapidarium.pacts import (
-        EntryDTO,
-        EntryRepositoryProtocol,
+    from lapidarium.pacts.content import EntryDTO, EntryRepositoryProtocol
+    from lapidarium.pacts.feeds import ExternalItemRepositoryProtocol
+    from lapidarium.pacts.schema import (
         EntryTypeDTO,
         EntryTypeRepositoryProtocol,
-        ExternalItemRepositoryProtocol,
         FieldDefinitionDTO,
     )
 
@@ -59,6 +61,17 @@ def when(entry: EntryDTO) -> dt.date | None:
     if entry.start_at:
         return entry.start_at.date()
     return None
+
+
+def ends_at(entry: EntryDTO) -> dt.datetime | None:
+    return entry.end_at or entry.start_at
+
+
+def shows_door(entry_type: EntryTypeDTO, entries: Sequence[EntryDTO]) -> bool:
+    """Return whether the home page shows a door to `entries`, all of this type."""
+    return entry_type.door_enabled and len(entries) >= max(
+        entry_type.door_min_entries, 1
+    )
 
 
 def _key(entry: EntryDTO) -> _Key:
@@ -146,7 +159,7 @@ class Catalogue:
         facts: list[FactDTO] = []
         for field in fields:
             if field.kind == FieldKind.RELATION:
-                if refs := self.targets(entry, field.key):
+                if refs := self._targets(entry, field.key):
                     facts.append(
                         FactDTO(
                             label=field.label, kind=field.kind, value=None, refs=refs
@@ -159,21 +172,39 @@ class Catalogue:
                 )
         return tuple(facts)
 
-    def targets(self, entry: EntryDTO, role: str) -> tuple[EntryRefDTO, ...]:
-        """Return the published entries `entry` links to as `role`."""
-        return tuple(
-            entry_ref(target)
-            for relation in entry.relations
-            if relation.role == role
-            and (target := self.get(relation.target.type_key, relation.target.slug))
-        )
+    def _outgoing(self, entry: EntryDTO) -> Iterator[tuple[str, EntryDTO]]:
+        for relation in entry.relations:
+            if target := self.get(relation.target.type_key, relation.target.slug):
+                yield relation.role, target
 
-    def linking(self, entry: EntryDTO, *, part_of: bool) -> list[EntryDTO]:
-        """Entries linking to `entry`: its contents, or every other kind of link."""
+    def linked(self, entry: EntryDTO, role: str) -> list[EntryDTO]:
+        """Return the published entries `entry` links to as `role`."""
+        return [target for r, target in self._outgoing(entry) if r == role]
+
+    def neighbours(self, entry: EntryDTO) -> list[EntryDTO]:
+        """Return the published entries linked to or from `entry`, in any role."""
+        return [
+            *(source for _, source in self._backlinks.get(_key(entry), [])),
+            *(target for _, target in self._outgoing(entry)),
+        ]
+
+    def _targets(self, entry: EntryDTO, role: str) -> tuple[EntryRefDTO, ...]:
+        return tuple(entry_ref(target) for target in self.linked(entry, role))
+
+    def contents(self, entry: EntryDTO) -> list[EntryDTO]:
+        """Return the entries that are part of `entry`."""
         return [
             source
             for role, source in self._backlinks.get(_key(entry), [])
-            if (role == RelationRole.PART_OF) == part_of
+            if role == RelationRole.PART_OF
+        ]
+
+    def backlinks(self, entry: EntryDTO) -> list[EntryDTO]:
+        """Return the entries linking to `entry` as anything but part of it."""
+        return [
+            source
+            for role, source in self._backlinks.get(_key(entry), [])
+            if role != RelationRole.PART_OF
         ]
 
 
@@ -233,7 +264,7 @@ class CatalogueService(CatalogueServiceProtocol):
 
     def _upcoming(self, entries: Iterable[EntryDTO]) -> list[EntryDTO]:
         now = self._clock()
-        ahead = [e for e in entries if e.start_at and (e.end_at or e.start_at) >= now]
+        ahead = [e for e in entries if (end := ends_at(e)) is not None and end >= now]
         return sorted(ahead, key=_start)
 
     @override
@@ -242,9 +273,7 @@ class CatalogueService(CatalogueServiceProtocol):
         doors: list[DoorDTO] = []
         for entry_type in catalogue.types.values():
             entries = catalogue.of_type(entry_type.key)
-            if not entry_type.door_enabled or len(entries) < max(
-                entry_type.door_min_entries, 1
-            ):
+            if not shows_door(entry_type, entries):
                 continue
             doors.append(
                 DoorDTO(
@@ -291,7 +320,8 @@ class CatalogueService(CatalogueServiceProtocol):
         upcoming: list[EntryDTO] = []
         if entry_type.role == TypeRole.CALENDAR:
             upcoming = self._upcoming(entries)
-        rest = newest_first(e for e in entries if e not in upcoming)
+        shown_upcoming = {_key(e) for e in upcoming}
+        rest = newest_first(e for e in entries if _key(e) not in shown_upcoming)
         pages = max(math.ceil(len(rest) / PAGE_SIZE), 1)
         if not 1 <= page <= pages:
             msg = f"{route} page {page}"
@@ -315,34 +345,33 @@ class CatalogueService(CatalogueServiceProtocol):
         if entry is None or not entry_type.has_detail_page:
             msg = f"{route}/{slug}"
             raise NotFoundError(msg)
-        containers = catalogue.targets(entry, RelationRole.PART_OF)
+        containers = catalogue.linked(entry, RelationRole.PART_OF)
         related = [
-            *(
-                linked
-                for ref in catalogue.targets(entry, RelationRole.RELATED)
-                if (linked := catalogue.get(ref.type_key, ref.slug))
-            ),
-            *catalogue.linking(entry, part_of=False),
+            *catalogue.linked(entry, RelationRole.RELATED),
+            *catalogue.backlinks(entry),
         ]
         siblings = [
             sibling
-            for ref in containers
-            if (container := catalogue.get(ref.type_key, ref.slug))
-            for sibling in catalogue.linking(container, part_of=True)
+            for container in containers
+            for sibling in catalogue.contents(container)
         ]
+        embeds = {
+            part.url: embed
+            for part in entry.parts
+            if part.kind == PartKind.VIDEO and (embed := video_embed(part.url))
+        }
         return DetailDTO(
             card=catalogue.card(entry),
             panel=catalogue.facts(
                 entry, (f for f in entry_type.fields if f.show_in_metadata_panel)
             ),
-            containers=containers,
-            contents=catalogue.cards(
-                newest_first(catalogue.linking(entry, part_of=True))
-            ),
+            containers=tuple(entry_ref(container) for container in containers),
+            contents=catalogue.cards(newest_first(catalogue.contents(entry))),
             related=catalogue.cards(_unique(related, besides=entry)),
             siblings=catalogue.cards(
                 newest_first(_unique(siblings, besides=entry))[:SIBLINGS_LIMIT]
             ),
+            embeds=embeds,
         )
 
     @override
@@ -386,9 +415,21 @@ class CatalogueService(CatalogueServiceProtocol):
     def search(self, query: str) -> tuple[CardDTO, ...]:
         if len(query.strip()) < SEARCH_MIN_LENGTH:
             return ()
-        found = self._entries.search(query.split())
-        catalogue = Catalogue(self._types.list_all(), found[:SEARCH_LIMIT])
-        return catalogue.cards(catalogue.entries)
+        found = self._entries.search(query.split(), limit=SEARCH_LIMIT)
+        catalogue = self._catalogue()
+        return catalogue.cards(
+            entry for hit in found if (entry := catalogue.get(hit.type_key, hit.slug))
+        )
+
+    @override
+    def timeline(self) -> tuple[CardDTO, ...]:
+        catalogue = self._catalogue()
+        containers = [
+            e
+            for e in catalogue.entries
+            if catalogue.types[e.type_key].role in CONTAINER_ROLES
+        ]
+        return catalogue.cards(newest_first(containers))
 
     @override
     def upcoming(self) -> tuple[CardDTO, ...]:

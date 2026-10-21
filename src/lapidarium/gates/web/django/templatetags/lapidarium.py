@@ -9,7 +9,6 @@ import nh3
 from django import template
 from django.utils.safestring import SafeString
 
-from lapidarium.gates.web.django import embeds
 from lapidarium.gates.web.django.paths import entry_path
 
 if TYPE_CHECKING:
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 
     from django.template.context import Context
 
-    from lapidarium.pacts import EntryDTO, EntryRefDTO, HealthIssueDTO
+    from lapidarium.pacts.content import EntryDTO, EntryRefDTO
 
 register = template.Library()
 
@@ -39,11 +38,6 @@ def markdown(text: str) -> SafeString:
 
 
 @register.filter
-def video_embed(url: str) -> str:
-    return embeds.video_embed(url)
-
-
-@register.filter
 def file_name(path: str) -> str:
     return PurePosixPath(path).name
 
@@ -61,12 +55,3 @@ def host(url: str) -> str:
 @register.filter
 def option(options: Mapping[str, str], key: str) -> str:
     return options.get(key, "")
-
-
-@register.simple_tag(takes_context=True)
-def content_health(context: Context) -> list[HealthIssueDTO]:
-    """Return the issues the admin dashboard lists; it has no view of its own."""
-    issues: list[HealthIssueDTO] = context["request"].services.content_health.check(
-        links=False
-    )
-    return issues

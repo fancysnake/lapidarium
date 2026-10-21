@@ -1,13 +1,11 @@
-{% load i18n static %}<!DOCTYPE html>
+{% load i18n %}<!DOCTYPE html>
 {% get_current_language as language %}
 <html lang="{{ language }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% translate "Not found" %}</title>
-    <link rel="stylesheet"
-          href="{% static 'themes/base/tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
+    {% include "lapidarium/components/stylesheets.html" %}
   </head>
   <body>
     <main class="container page">

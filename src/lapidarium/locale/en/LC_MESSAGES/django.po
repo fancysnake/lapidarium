@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 22:43+0200\n"
+"POT-Creation-Date: 2026-10-17 08:40+0200\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -25,6 +25,12 @@ msgid "Your name"
 msgstr ""
 
 msgid "Message"
+msgstr ""
+
+msgid "That was a lot of tries in a short time. Please wait a while and try again."
+msgstr ""
+
+msgid "Something went wrong on the way. Please try again later."
 msgstr ""
 
 msgid "Content"
@@ -481,6 +487,9 @@ msgstr ""
 msgid "Want to hear about what comes next?"
 msgstr ""
 
+msgid "Leave this empty"
+msgstr ""
+
 msgid "Date"
 msgstr ""
 
@@ -526,9 +535,6 @@ msgstr ""
 msgid "Subscribe"
 msgstr ""
 
-msgid "Leave this empty"
-msgstr ""
-
 msgid "ongoing"
 msgstr ""
 
@@ -549,12 +555,6 @@ msgid "Page %(page)s of %(pages)s"
 msgstr ""
 
 msgid "Older"
-msgstr ""
-
-msgid "That was a lot of tries in a short time. Please wait a while and try again."
-msgstr ""
-
-msgid "Something went wrong on the way. Please try again later."
 msgstr ""
 
 msgid "Where to find me"
@@ -581,6 +581,12 @@ msgstr ""
 msgid "Subscribe to the newsletter"
 msgstr ""
 
+msgid "Next up"
+msgstr ""
+
+msgid "Add to your calendar (.ics)"
+msgstr ""
+
 msgid "What you will find here"
 msgstr ""
 
@@ -590,10 +596,7 @@ msgstr ""
 msgid "Nothing here yet."
 msgstr ""
 
-msgid "Next up"
-msgstr ""
-
-msgid "Add to your calendar (.ics)"
+msgid "Follow without an account"
 msgstr ""
 
 msgid "Filter"

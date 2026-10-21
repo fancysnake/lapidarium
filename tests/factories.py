@@ -2,16 +2,18 @@
 
 import datetime as dt
 
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EntryDTO,
     EntryRefDTO,
     EntryStatus,
+    RelationDTO,
+)
+from lapidarium.pacts.schema import (
     EntryTypeDTO,
     FieldDefinitionDTO,
     FieldKind,
     PartKind,
-    RelationDTO,
     TypeRole,
     UrlKind,
 )

@@ -9,7 +9,7 @@ from dulwich import porcelain
 
 from lapidarium.links.db.django.models import Entry, ExternalItem, Profile
 from lapidarium.links.feeds.atom import AtomFeed
-from lapidarium.pacts import DeliveryError
+from lapidarium.pacts.feeds import FeedError
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root", "demo")]
 ITEM = {
@@ -43,7 +43,7 @@ def test_fetch_feeds_names_sources_it_could_not_read(settings, monkeypatch):
     settings.FEED_SOURCES = ["github:o/r"]
 
     def fail(_self):
-        raise DeliveryError
+        raise FeedError
 
     monkeypatch.setattr(AtomFeed, "fetch", fail)
 
@@ -105,6 +105,12 @@ def test_export_commits_into_a_working_copy(tmp_path):
     assert again == "Exported 9 types, 13 entries, 3 assets.\n"
 
 
-def test_export_commit_needs_a_working_copy(tmp_path):
+@pytest.mark.parametrize("flag", ("--commit", "--push"))
+def test_export_commit_needs_a_working_copy_before_writing(tmp_path, flag):
+    root = tmp_path / "export"
+    root.mkdir()
+
     with pytest.raises(CommandError, match="is not a git repository"):
-        _run("export_content", str(tmp_path), "--push")
+        _run("export_content", str(root), flag)
+
+    assert not any(root.iterdir())

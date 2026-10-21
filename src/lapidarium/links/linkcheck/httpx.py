@@ -6,7 +6,7 @@ from typing import override
 
 import httpx
 
-from lapidarium.pacts import LinkCheckerProtocol
+from lapidarium.pacts.health import LinkCheckerProtocol
 
 _TIMEOUT = 10.0
 # Some hosts refuse HEAD but serve the page; those get a GET.

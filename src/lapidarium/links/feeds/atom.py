@@ -10,24 +10,36 @@ from urllib.parse import urlsplit
 import httpx
 from defusedxml.ElementTree import ParseError, fromstring
 
-from lapidarium.pacts import DeliveryError, ExternalItemData, FeedSourceProtocol
+from lapidarium.pacts.feeds import ExternalItemData, FeedError, FeedSourceProtocol
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
 _NS = {"atom": "http://www.w3.org/2005/Atom", "media": "http://search.yahoo.com/mrss/"}
 _TIMEOUT = 15.0
 
 
-def youtube(channel_id: str) -> tuple[str, str]:
+def _youtube(channel_id: str) -> tuple[str, str]:
     return (
         "YouTube",
         f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}",
     )
 
 
-def github(repository: str) -> tuple[str, str]:
+def _github(repository: str) -> tuple[str, str]:
     return "GitHub", f"https://github.com/{repository}/releases.atom"
+
+
+def _any_atom(url: str) -> tuple[str, str]:
+    return urlsplit(url).hostname or url, url
+
+
+_KINDS: dict[str, Callable[[str], tuple[str, str]]] = {
+    "youtube": _youtube,
+    "github": _github,
+    "atom": _any_atom,
+}
 
 
 def _text(entry: Element, path: str) -> str:
@@ -65,6 +77,18 @@ class AtomFeed(FeedSourceProtocol):
         self._url = url
         self._transport = transport
 
+    @classmethod
+    def from_setting(
+        cls, item: str, *, transport: httpx.BaseTransport | None = None
+    ) -> AtomFeed:
+        """Read a `<kind>:<channel, repo or url>` item; `ValueError` when it can't."""
+        kind, _, value = item.partition(":")
+        if kind not in _KINDS or not value:
+            msg = f"cannot read {item!r}"
+            raise ValueError(msg)
+        source, url = _KINDS[kind](value)
+        return cls(source=source, url=url, transport=transport)
+
     @cached_property
     def _client(self) -> httpx.Client:
         # Built on first use: making a client reads the proxy settings.
@@ -82,15 +106,11 @@ class AtomFeed(FeedSourceProtocol):
         try:
             response = self._client.get(self._url)
         except httpx.HTTPError as exc:
-            raise DeliveryError(self.name) from exc
+            raise FeedError(self.name) from exc
         if response.is_error:
-            raise DeliveryError(self.name)
+            raise FeedError(self.name)
         try:
             items = _items(self._source, response.content)
         except (ParseError, ValueError) as exc:
-            raise DeliveryError(self.name) from exc
+            raise FeedError(self.name) from exc
         return [item for item in items if item]
-
-
-def any_atom(url: str) -> tuple[str, str]:
-    return urlsplit(url).hostname or url, url

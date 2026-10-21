@@ -6,23 +6,26 @@ import pytest
 
 from lapidarium.mills.content import ContentExportService, ContentImportService
 from lapidarium.mills.schema import SchemaService
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
+    ArchiveError,
     BundleValidationError,
     ContentSummaryDTO,
     EntryDTO,
     EntryRefDTO,
     EntryStatus,
-    EntryTypeDTO,
     ExportDTO,
-    FieldDefinitionDTO,
-    FieldKind,
     LinkDTO,
     MediaAssetDTO,
     PartDTO,
-    PartKind,
     ProfileDTO,
     RelationDTO,
     SyndicationLinkDTO,
+)
+from lapidarium.pacts.schema import (
+    EntryTypeDTO,
+    FieldDefinitionDTO,
+    FieldKind,
+    PartKind,
     TypeRole,
 )
 from tests.factories import entry_data, field_data, type_data
@@ -147,7 +150,7 @@ def _import_service(repos):
 
 
 def test_export_writes_published_content_and_the_assets_it_uses(repos):
-    summary = _export_service(repos).export(ROOT)
+    summary = _export_service(repos).export(ROOT, commit=False, push=False).content
 
     assert summary == ContentSummaryDTO(types=1, entries=1, assets=2)
     repos.store.write.assert_called_once_with(
@@ -223,7 +226,7 @@ def test_export_without_a_profile(repos):
     repos.profile.get.return_value = None
     repos.entries.list_published.return_value = []
 
-    summary = _export_service(repos).export(ROOT)
+    summary = _export_service(repos).export(ROOT, commit=False, push=False).content
 
     assert summary == ContentSummaryDTO(types=1, entries=0, assets=0)
     bundle = repos.store.write.call_args.args[1]
@@ -246,7 +249,7 @@ def test_export_refuses_a_published_link_to_a_draft(repos):
     ]
 
     with pytest.raises(BundleValidationError) as caught:
-        _export_service(repos).export(ROOT)
+        _export_service(repos).export(ROOT, commit=False, push=False)
 
     assert caught.value.errors == {
         "content/session/moose.md": ["Links to the draft session/draft."]
@@ -479,6 +482,23 @@ def test_import_refuses_keys_and_slugs_that_are_not_file_names(repos):
     repos.transaction.atomic.assert_not_called()
 
 
+def test_import_refuses_list_filters_the_type_cannot_offer(repos):
+    repos.store.read.return_value = _bundle(
+        types=[type_data(list_filters=["year", "system", "gone"])], entries=[]
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "types/session.yaml": [
+            "List filter 'system' is neither year, tag nor one of the fields.",
+            "List filter 'gone' is neither year, tag nor one of the fields.",
+        ]
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
 def test_demos_come_from_the_store(repos):
     repos.store.demo_names.return_value = ("dev", "ttrpg")
     repos.store.read_demo.return_value = _bundle(types=[], entries=[])
@@ -491,21 +511,43 @@ def test_demos_come_from_the_store(repos):
 
 
 @pytest.mark.parametrize(
-    ("push", "committed", "pushed"),
-    ((False, True, False), (True, True, True), (True, False, False)),
+    ("commit", "push", "committed", "pushed"),
+    (
+        (True, False, True, False),
+        (True, True, True, True),
+        (False, True, True, True),
+        (True, True, False, False),
+    ),
 )
-def test_publish_exports_commits_and_pushes_when_asked(
-    *, repos, push, committed, pushed
+def test_export_commits_and_pushes_when_asked(
+    *, repos, commit, push, committed, pushed
 ):
     repos.archive.commit.return_value = committed
 
-    result = _export_service(repos).publish(ROOT, push=push)
+    result = _export_service(repos).export(ROOT, commit=commit, push=push)
 
     assert result == ExportDTO(
         content=ContentSummaryDTO(types=1, entries=1, assets=2), committed=committed
     )
+    repos.archive.check.assert_called_once_with(ROOT)
     repos.store.write.assert_called_once()
     repos.archive.commit.assert_called_once_with(
         ROOT, message="Export: 1 entries, 1 types, 2 assets"
     )
     assert repos.archive.push.called is pushed
+
+
+def test_export_alone_leaves_the_archive_be(repos):
+    result = _export_service(repos).export(ROOT, commit=False, push=False)
+
+    assert result.committed is False
+    assert not repos.archive.method_calls
+
+
+def test_export_checks_the_archive_before_writing(repos):
+    repos.archive.check.side_effect = ArchiveError
+
+    with pytest.raises(ArchiveError):
+        _export_service(repos).export(ROOT, commit=True, push=False)
+
+    repos.store.write.assert_not_called()

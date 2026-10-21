@@ -8,9 +8,10 @@ from dulwich.repo import Repo
 from lapidarium.links.archive.git import GitArchive
 from lapidarium.links.db.django.models import Entry, EntryType, ExternalItem
 from lapidarium.links.db.django.repositories import ExternalItemRepository
-from lapidarium.links.feeds.atom import AtomFeed, youtube
+from lapidarium.links.feeds.atom import AtomFeed
 from lapidarium.links.linkcheck.httpx import HttpLinkChecker
-from lapidarium.pacts import DeliveryError, NotFoundError
+from lapidarium.pacts.content import ArchiveError, EntryKeyDTO
+from lapidarium.pacts.feeds import FeedError
 
 YOUTUBE = b"""<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"
@@ -47,8 +48,7 @@ def _feed(content=b"", *, status=200, error=None):
             raise error(msg, request=request)
         return httpx.Response(status, content=content)
 
-    source, url = youtube("UC1")
-    return AtomFeed(source=source, url=url, transport=httpx.MockTransport(handler))
+    return AtomFeed.from_setting("youtube:UC1", transport=httpx.MockTransport(handler))
 
 
 def test_youtube_feed_items():
@@ -84,8 +84,8 @@ def test_a_link_without_rel_is_taken():
     "feed",
     (_feed(status=503), _feed(error=httpx.ConnectError), _feed(b"<feed"), _feed(BOMB)),
 )
-def test_unreadable_feeds_are_delivery_errors(feed):
-    with pytest.raises(DeliveryError):
+def test_unreadable_feeds_are_feed_errors(feed):
+    with pytest.raises(FeedError):
         feed.fetch()
 
 
@@ -139,7 +139,11 @@ def test_saving_external_items_creates_updates_and_links():
 
     assert repository.save(item, entry=None) is True
     assert (
-        repository.save({**item, "title": "Renamed"}, entry=("talk", "moose")) is False
+        repository.save(
+            {**item, "title": "Renamed"},
+            entry=EntryKeyDTO(type_key="talk", slug="moose"),
+        )
+        is False
     )
 
     saved = ExternalItem.objects.get()
@@ -198,10 +202,16 @@ def test_archive_push_without_a_remote_is_refused(working_copy):
     (working_copy / "a.md").write_text("one")
     GitArchive().commit(working_copy, message="First")
 
-    with pytest.raises(DeliveryError):
+    with pytest.raises(ArchiveError):
         GitArchive().push(working_copy)
 
 
 def test_archive_needs_a_git_repository(tmp_path):
-    with pytest.raises(NotFoundError):
+    with pytest.raises(ArchiveError):
+        GitArchive().check(tmp_path)
+    with pytest.raises(ArchiveError):
         GitArchive().commit(tmp_path, message="x")
+
+
+def test_archive_check_passes_a_working_copy(working_copy):
+    GitArchive().check(working_copy)

@@ -4,14 +4,14 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.health import ContentHealthService
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     MediaAssetDTO,
     NotFoundError,
     ProfileDTO,
     RelationRole,
     SyndicationLinkDTO,
-    TypeRole,
 )
+from lapidarium.pacts.schema import TypeRole
 from lapidarium.specs import STALE_AFTER
 from tests.factories import NOW, entry_dto, ref_dto, relation_dto, type_dto
 
@@ -153,8 +153,8 @@ def test_digest_mails_the_profile():
         {
             "subject": "Content health: 2 to look at",
             "body": (
-                "[H002] The Sessions door has too few entries to show.\n"
-                "[H001] project/empty: This container holds nothing."
+                "H002 The Sessions door has too few entries to show.\n"
+                "H001 project/empty: This container holds nothing."
             ),
             "to": "mira@example.com",
             "reply_to": "mira@example.com",

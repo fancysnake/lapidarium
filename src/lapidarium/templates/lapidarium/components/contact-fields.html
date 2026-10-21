@@ -1,0 +1,32 @@
+{% load i18n %}
+<div class="form__field">
+  <label class="label" for="contact-name">{{ form.name.label }}</label>
+  <input class="input"
+         id="contact-name"
+         name="name"
+         autocomplete="name"
+         maxlength="100"
+         value="{{ form.name.value|default_if_none:'' }}"
+         required>
+  {% include "lapidarium/components/form-errors.html" with errors=form.name.errors %}
+</div>
+<div class="form__field">
+  <label class="label" for="contact-email">{{ form.email.label }}</label>
+  <input class="input"
+         id="contact-email"
+         name="email"
+         type="email"
+         autocomplete="email"
+         value="{{ form.email.value|default_if_none:'' }}"
+         required>
+  {% include "lapidarium/components/form-errors.html" with errors=form.email.errors %}
+</div>
+<div class="form__field">
+  <label class="label" for="contact-message">{{ form.message.label }}</label>
+  <textarea class="input" id="contact-message" name="message" maxlength="5000" required>{{ form.message.value|default_if_none:'' }}</textarea>
+  {% include "lapidarium/components/form-errors.html" with errors=form.message.errors %}
+</div>
+<div class="form__trap" aria-hidden="true">
+  <label for="contact-website">{% translate "Leave this empty" %}</label>
+  <input id="contact-website" name="website" tabindex="-1" autocomplete="off">
+</div>

@@ -22,31 +22,32 @@ from lapidarium.links.db.django.models import (
     SyndicationLink,
     Tag,
 )
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     AccountRepositoryProtocol,
     AssetData,
-    DoorPick,
     EntryDTO,
     EntryRefDTO,
     EntryRepositoryProtocol,
     EntryStatus,
-    EntryTypeDTO,
-    EntryTypeRepositoryProtocol,
-    ExternalItemDTO,
-    ExternalItemRepositoryProtocol,
-    FieldDefinitionDTO,
-    FieldKind,
-    Layout,
     LinkDTO,
     MediaAssetDTO,
     MediaAssetRepositoryProtocol,
     NotFoundError,
     PartDTO,
-    PartKind,
     ProfileDTO,
     ProfileRepositoryProtocol,
     RelationDTO,
     SyndicationLinkDTO,
+)
+from lapidarium.pacts.feeds import ExternalItemDTO, ExternalItemRepositoryProtocol
+from lapidarium.pacts.schema import (
+    DoorPick,
+    EntryTypeDTO,
+    EntryTypeRepositoryProtocol,
+    FieldDefinitionDTO,
+    FieldKind,
+    Layout,
+    PartKind,
     TypeRole,
     UrlKind,
 )
@@ -54,14 +55,15 @@ from lapidarium.pacts import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         EntryData,
-        EntryTypeData,
-        ExternalItemData,
+        EntryKeyDTO,
         LinkData,
         ProfileData,
         RelationData,
     )
+    from lapidarium.pacts.feeds import ExternalItemData
+    from lapidarium.pacts.schema import EntryTypeData
 
 
 def field_dto(field: FieldDefinition) -> FieldDefinitionDTO:
@@ -228,11 +230,11 @@ class EntryRepository(EntryRepositoryProtocol):
         return [_entry_dto(entry) for entry in entries]
 
     @override
-    def search(self, terms: Sequence[str]) -> list[EntryDTO]:
-        entries = _published()
+    def search(self, terms: Sequence[str], *, limit: int) -> list[EntryDTO]:
+        entries = _published().order_by("type__order", "type__key", "slug")
         for term in terms:
             entries = entries.filter(search_text__icontains=term)
-        return [_entry_dto(entry) for entry in entries]
+        return [_entry_dto(entry) for entry in entries[:limit]]
 
     @override
     def save(self, data: EntryData) -> None:
@@ -381,9 +383,9 @@ class ExternalItemRepository(ExternalItemRepositoryProtocol):
         return [ExternalItemDTO.model_validate(item) for item in items]
 
     @override
-    def save(self, item: ExternalItemData, *, entry: tuple[str, str] | None) -> bool:
+    def save(self, item: ExternalItemData, *, entry: EntryKeyDTO | None) -> bool:
         linked = (
-            Entry.objects.filter(type__key=entry[0], slug=entry[1]).first()
+            Entry.objects.filter(type__key=entry.type_key, slug=entry.slug).first()
             if entry
             else None
         )

@@ -22,7 +22,7 @@ from lapidarium.links.db.django.repositories import (
     ProfileRepository,
 )
 from lapidarium.links.db.django.transaction import DjangoTransaction
-from lapidarium.links.feeds.atom import AtomFeed, any_atom, github, youtube
+from lapidarium.links.feeds.atom import AtomFeed
 from lapidarium.links.linkcheck.httpx import HttpLinkChecker
 from lapidarium.links.mail.django import DjangoMailer
 from lapidarium.links.newsletter.log import LogNewsletter
@@ -41,16 +41,41 @@ from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
 from lapidarium.mills.theme import ThemeService
-from lapidarium.pacts import ServicesProtocol
+from lapidarium.pacts.outreach import NewsletterBackend
+from lapidarium.pacts.services import ServicesProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from lapidarium.pacts import (
-        FeedSourceProtocol,
-        NewsletterProtocol,
-        RootRequestProtocol,
-    )
+    from lapidarium.pacts.feeds import FeedSourceProtocol
+    from lapidarium.pacts.outreach import NewsletterProtocol
+    from lapidarium.pacts.services import RootRequestProtocol
+
+
+def newsletter_backend() -> NewsletterBackend:
+    """Return `NEWSLETTER_BACKEND`; `ImproperlyConfigured` if it cannot work."""
+    try:
+        backend = NewsletterBackend(settings.NEWSLETTER_BACKEND)
+    except ValueError as exc:
+        msg = f"NEWSLETTER_BACKEND must be one of: {', '.join(NewsletterBackend)}."
+        raise ImproperlyConfigured(msg) from exc
+    if backend == NewsletterBackend.MAILCHIMP and not (
+        settings.MAILCHIMP_API_KEY and settings.MAILCHIMP_LIST_ID
+    ):
+        msg = "The Mailchimp newsletter needs MAILCHIMP_API_KEY and MAILCHIMP_LIST_ID."
+        raise ImproperlyConfigured(msg)
+    return backend
+
+
+def build_newsletter() -> NewsletterProtocol:
+    """Return the provider `NEWSLETTER_BACKEND` names."""
+    match newsletter_backend():
+        case NewsletterBackend.MAILCHIMP:
+            return MailchimpNewsletter(
+                api_key=settings.MAILCHIMP_API_KEY, list_id=settings.MAILCHIMP_LIST_ID
+            )
+        case NewsletterBackend.LOG:
+            return LogNewsletter()
 
 
 class Process:
@@ -59,41 +84,35 @@ class Process:
     @cached_property
     def themes(self) -> ThemeFiles:
         return ThemeFiles(
-            base=settings.BASE_THEME_DIR,
-            active=settings.THEME_DIR,
-            engine_templates=settings.ENGINE_TEMPLATES,
+            layers=settings.THEME_LAYERS, engine_templates=settings.ENGINE_TEMPLATES
         )
+
+    @cached_property
+    def theme(self) -> ThemeService:
+        return ThemeService(
+            store=self.themes,
+            engine_version=version("lapidarium"),
+            static_prefix=settings.THEME_STATIC_PREFIX,
+        )
+
+    @cached_property
+    def newsletter(self) -> NewsletterProtocol:
+        """One provider, so its HTTP client is kept across requests."""
+        return build_newsletter()
 
 
 PROCESS = Process()
-
-
-def newsletter() -> NewsletterProtocol:
-    """Return the provider `NEWSLETTER_BACKEND` names."""
-    if settings.NEWSLETTER_BACKEND == "mailchimp":
-        return MailchimpNewsletter(
-            api_key=settings.MAILCHIMP_API_KEY, list_id=settings.MAILCHIMP_LIST_ID
-        )
-    return LogNewsletter()
-
-
-_FEED_KINDS: dict[str, Callable[[str], tuple[str, str]]] = {
-    "youtube": youtube,
-    "github": github,
-    "atom": any_atom,
-}
 
 
 def feed_sources() -> list[FeedSourceProtocol]:
     """Return a source per `FEED_SOURCES` item, `<kind>:<channel, repo or url>`."""
     sources: list[FeedSourceProtocol] = []
     for item in settings.FEED_SOURCES:
-        kind, _, value = item.partition(":")
-        if kind not in _FEED_KINDS or not value:
-            msg = f"FEED_SOURCES: cannot read {item!r}."
-            raise ImproperlyConfigured(msg)
-        source, url = _FEED_KINDS[kind](value)
-        sources.append(AtomFeed(source=source, url=url))
+        try:
+            sources.append(AtomFeed.from_setting(item))
+        except ValueError as exc:
+            msg = f"FEED_SOURCES: {exc}."
+            raise ImproperlyConfigured(msg) from exc
     return sources
 
 
@@ -176,11 +195,7 @@ class Services(ServicesProtocol):
     def site(self) -> SiteService:
         repos = self._repositories
         return SiteService(
-            schema=self.schema,
-            types=repos.entry_types,
-            entries=repos.entries,
-            profile=repos.profile,
-            theme=self.theme,
+            types=repos.entry_types, profile=repos.profile, site_name=settings.SITE_NAME
         )
 
     @cached_property
@@ -196,7 +211,7 @@ class Services(ServicesProtocol):
 
     @cached_property
     def theme(self) -> ThemeService:
-        return ThemeService(store=PROCESS.themes, engine_version=version("lapidarium"))
+        return PROCESS.theme
 
     @cached_property
     def feed_sync(self) -> FeedSyncService:
@@ -223,7 +238,7 @@ class Services(ServicesProtocol):
     @cached_property
     def outreach(self) -> OutreachService:
         return OutreachService(
-            newsletter=newsletter(),
+            newsletter=PROCESS.newsletter,
             mailer=DjangoMailer(),
             throttle=CacheThrottle(),
             profile=self._repositories.profile,
@@ -234,6 +249,10 @@ class ServiceInjectionMiddleware[Response]:
     """Attach `request.services` so views reach mills through protocols only."""
 
     def __init__(self, get_response: Callable[[RootRequestProtocol], Response]) -> None:
+        # Middleware loads once, with the app: a theme or a newsletter that cannot
+        # work stops the start.
+        _ = PROCESS.theme
+        _ = PROCESS.newsletter
         self.get_response = get_response
 
     def __call__(self, request: RootRequestProtocol) -> Response:

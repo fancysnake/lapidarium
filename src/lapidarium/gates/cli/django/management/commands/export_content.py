@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, TypedDict, Unpack, override
 
 from django.core.management.base import BaseCommand, CommandError
 
 from lapidarium.gates.cli.django.services import build_services
-from lapidarium.pacts import (
-    BundleValidationError,
-    DeliveryError,
-    ExportDTO,
-    NotFoundError,
-)
+from lapidarium.pacts.content import ArchiveError, BundleValidationError
 
 if TYPE_CHECKING:
     from argparse import ArgumentParser
+
+
+class _Options(TypedDict):
+    destination: Path
+    commit: bool
+    push: bool
 
 
 class Command(BaseCommand):
@@ -22,7 +23,7 @@ class Command(BaseCommand):
 
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument("destination")
+        parser.add_argument("destination", type=Path)
         parser.add_argument(
             "--commit",
             action="store_true",
@@ -33,17 +34,12 @@ class Command(BaseCommand):
         )
 
     @override
-    def handle(self, *_args: str, **options: str | bool) -> None:
-        destination = Path(str(options["destination"]))
-        export = build_services().content_export
-        push = bool(options["push"])
+    def handle(self, *_args: str, **options: Unpack[_Options]) -> None:
         try:
-            result = (
-                export.publish(destination, push=push)
-                if options["commit"] or push
-                else ExportDTO(content=export.export(destination), committed=False)
+            result = build_services().content_export.export(
+                options["destination"], commit=options["commit"], push=options["push"]
             )
-        except (BundleValidationError, NotFoundError, DeliveryError) as exc:
+        except (BundleValidationError, ArchiveError) as exc:
             raise CommandError(str(exc)) from exc
         summary = result.content
         self.stdout.write(

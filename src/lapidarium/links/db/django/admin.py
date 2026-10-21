@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import TYPE_CHECKING, ClassVar, TypedDict, cast, override
+from typing import TYPE_CHECKING, ClassVar, NotRequired, TypedDict, cast, override
 
 from django import forms
 from django.conf import settings
@@ -43,15 +43,17 @@ from lapidarium.links.db.django.models import (
     Tag,
 )
 from lapidarium.links.db.django.repositories import entry_type_dto
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
-    ROLE_BUILTINS,
     EntryStatus,
+    RelationEndDTO,
+    RelationRole,
+)
+from lapidarium.pacts.schema import (
+    ROLE_BUILTINS,
     FieldKind,
     MetadataValidationError,
     PartKind,
-    RelationEndDTO,
-    RelationRole,
     TypeRole,
 )
 
@@ -65,12 +67,9 @@ if TYPE_CHECKING:
     from django.urls import URLPattern
     from django.utils.functional import _StrOrPromise
 
-    from lapidarium.pacts import (
-        MetadataInput,
-        PartData,
-        SchemaServiceProtocol,
-        ServicesProtocol,
-    )
+    from lapidarium.pacts.content import PartData
+    from lapidarium.pacts.schema import MetadataInput
+    from lapidarium.pacts.services import SchemaServiceProtocol, ServicesProtocol
 
     # Unfold's admin classes are Django's, restyled; type-check against Django's.
     EntryTypeAdminBase = admin.ModelAdmin[EntryType]
@@ -122,7 +121,7 @@ class NavItem(TypedDict):
     title: str
     icon: str
     link: str
-    permission: Callable[[HttpRequest], bool]
+    permission: NotRequired[Callable[[HttpRequest], bool]]
 
 
 class NavGroup(TypedDict):
@@ -133,10 +132,6 @@ class NavGroup(TypedDict):
 
 def _can(permission: str) -> Callable[[HttpRequest], bool]:
     return lambda request: request.user.has_perm(f"lapidarium_db.{permission}")
-
-
-def _is_staff(request: HttpRequest) -> bool:
-    return bool(request.user.is_staff)
 
 
 def _item(title: str, *, icon: str, model: str) -> NavItem:
@@ -189,13 +184,11 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                     "title": gettext("Content health"),
                     "icon": "health_and_safety",
                     "link": reverse("content_health"),
-                    "permission": _is_staff,
                 },
                 {
                     "title": gettext("Theme preview"),
                     "icon": "palette",
                     "link": reverse("theme_preview"),
-                    "permission": _is_staff,
                 },
             ],
         },

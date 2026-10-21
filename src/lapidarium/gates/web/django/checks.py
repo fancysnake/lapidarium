@@ -1,4 +1,7 @@
-"""System checks: the active theme against the theme contract, at every start."""
+"""System checks: the active theme against the theme contract.
+
+Django runs them on `check`, `migrate` and `runserver`; gunicorn alone does not.
+"""
 
 from __future__ import annotations
 
@@ -8,14 +11,14 @@ from django.conf import settings
 from django.core import checks
 from django.utils.module_loading import import_string
 
-from lapidarium.pacts import ProblemLevel
+from lapidarium.pacts.theme import ProblemLevel
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from django.apps import AppConfig
 
-    from lapidarium.pacts import ServicesProtocol
+    from lapidarium.pacts.services import ServicesProtocol
 
 
 def theme_check(
@@ -28,7 +31,7 @@ def theme_check(
     # Checks run outside any request, so nothing has attached the services.
     factory: Callable[[], ServicesProtocol] = import_string(settings.SERVICES_FACTORY)
     return [
-        (checks.Error if p.level == ProblemLevel.ERROR else checks.Warning)(
+        (checks.Error if p.code.level == ProblemLevel.ERROR else checks.Warning)(
             p.message, id=f"lapidarium.{p.code}"
         )
         for p in factory().theme.check()

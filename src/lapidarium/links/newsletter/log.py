@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import override
 
-from lapidarium.pacts import NewsletterProtocol
+from lapidarium.pacts.outreach import NewsletterProtocol
 
 logger = logging.getLogger(__name__)
 

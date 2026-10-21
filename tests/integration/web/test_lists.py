@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 
 from lapidarium.links.db.django.models import Entry, EntryType
-from lapidarium.pacts import FilterDTO
+from lapidarium.pacts.catalogue import FilterDTO
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -35,7 +35,7 @@ def test_a_type_lists_its_entries_with_filters(site):
     )
     assert (listing.page, listing.pages, listing.total) == (1, 1, 2)
     assert response.context["current_route"] == "sesje"
-    assert 'aria-current="page"><span class="site-nav__marker"' in response.text
+    assert f'aria-current="page">{listing.entry_type.label_plural}</a>' in response.text
 
 
 def test_filters_narrow_the_list(site):
