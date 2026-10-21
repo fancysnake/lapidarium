@@ -1,4 +1,4 @@
-FROM jdxcode/mise:2026.9 AS base
+FROM jdxcode/mise:2026.9-debian AS base
 
 # hadolint ignore=DL3008
 RUN apt-get update \
