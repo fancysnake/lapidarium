@@ -9,8 +9,7 @@ from django.core.management import get_commands, load_command_class
 from lapidarium.edges import settings
 
 DOCS = Path(__file__).resolve().parents[2] / "docs"
-# Read straight from the environment by Django or a library, not by env().
-_OUTSIDE_SCHEME = {"DATABASE_URL": ""}
+_ENV_READ = re.compile(r'\benv(?:\.\w+)?\(\s*"(\w+)"')
 
 
 def _first_block(page, language):
@@ -32,10 +31,12 @@ def test_configuration_page_lists_every_variable_with_its_default():
     documented = dict(
         line.split("=", 1) for line in _first_block("configuration.md", "dotenv")
     )
-    declared = {
+    # A read outside the scheme carries its default in the code, not the scheme.
+    read = _ENV_READ.findall(Path(settings.__file__).read_text(encoding="utf-8"))
+    declared = dict.fromkeys(read, "") | {
         name: _as_written(spec[1]) if isinstance(spec, tuple) else ""
         for name, spec in settings.env.scheme.items()
-    } | _OUTSIDE_SCHEME
+    }
 
     assert documented == declared
 

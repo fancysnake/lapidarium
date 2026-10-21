@@ -2,7 +2,8 @@
 
 An instance is configured through the environment; `lapidarium.edges.settings`
 is the settings module and reads everything from there. Every variable with
-its default (an empty value is required, or empty by default):
+its default (an empty value is required, empty by default, or follows `ENV` as
+its table row says):
 
 ```dotenv
 ADMIN_URL=admin/
@@ -30,6 +31,7 @@ SITE_THEME=base
 SITE_THEME_DIRS=
 STATIC_ROOT=staticfiles
 TIME_ZONE=Europe/Warsaw
+TRUSTED_PROXY_HOPS=
 ```
 
 ## Site
@@ -41,6 +43,7 @@ TIME_ZONE=Europe/Warsaw
 | `ALLOWED_HOSTS` | Comma-separated host names; a leading dot allows subdomains |
 | `ENV` | `production` turns on HTTPS redirects, HSTS, secure cookies and WhiteNoise |
 | `DEBUG` | Django's debug pages; never in production |
+| `TRUSTED_PROXY_HOPS` | Proxies in front that append to `X-Forwarded-For`: `1` in production, else `0`. Rate limits key on the address the outermost one saw; `0` ignores the header, and a count above the real one lets a client choose its own address |
 | `ADMIN_URL` | Path of the admin, with a trailing slash |
 | `SITE_NAME` | Title of the site until a profile exists, and of the admin |
 | `LANGUAGE_CODE`, `TIME_ZONE` | The site's one language (`pl` or `en`) and its time zone |

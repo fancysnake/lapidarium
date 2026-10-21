@@ -10,7 +10,7 @@ Plan and content model: `PLAN.md` (local, untracked). Spec: `docs/content-model.
 rituals repair until green.
 Narrow first: `mise run lint:ruff`, `mise run test:unit`, `mise run test:int`.
 Docs: `mise run site:dev` / `site:build` (MkDocs, `strict: true`: a broken link or
-anchor fails the build). `tests/unit/test_reference_pages.py` holds the
+anchor fails the build). `tests/integration/test_reference_pages.py` holds the
 configuration and command pages to the code.
 Dev server uses `db.sqlite3` (gitignored). For PostgreSQL: `mise run db`, then
 set `DATABASE_URL` in `mise.local.toml`.

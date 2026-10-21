@@ -50,5 +50,5 @@ kinds, relations against roles and container types, no loops of containers, a
 published entry never linking to a draft, every file an entry names present in
 `assets.yaml`. Any problem stops the import and lists every file at fault.
 
-Only published entries are exported. The format version changes only with a
-major release of the engine.
+Only published entries are exported. A new format version is a breaking
+change; see the [versioning policy](changelog.md).

@@ -42,5 +42,4 @@ point `DJANGO_SETTINGS_MODULE` at your module.
 ## Upgrading
 
 Pin the engine to a minor release (`~0.1` before 1.0, `^1` after) and read the
-[changelog](changelog.md) before moving: a renamed theme token or a new export
-format version is a major release.
+[changelog](changelog.md) before moving.
