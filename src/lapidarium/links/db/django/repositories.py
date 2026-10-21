@@ -183,7 +183,26 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
         saved = {
             data["key"]: EntryType.objects.update_or_create(
                 key=data["key"],
-                defaults={k: v for k, v in data.items() if k != "fields"},
+                defaults={
+                    "label": data["label"],
+                    "label_plural": data["label_plural"],
+                    "route": data["route"],
+                    "colour": data["colour"],
+                    "tint": data["tint"],
+                    "icon": data["icon"],
+                    "order": data["order"],
+                    "in_menu": data["in_menu"],
+                    "role": data["role"],
+                    "layout": data["layout"],
+                    "allowed_parts": data["allowed_parts"],
+                    "required_parts": data["required_parts"],
+                    "door_enabled": data["door_enabled"],
+                    "door_label": data["door_label"],
+                    "door_pick": data["door_pick"],
+                    "door_min_entries": data["door_min_entries"],
+                    "list_filters": data["list_filters"],
+                    "has_detail_page": data["has_detail_page"],
+                },
             )[0]
             for data in types
         }
@@ -194,7 +213,14 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
                 FieldDefinition(
                     entry_type=entry_type,
                     order=order,
-                    **{k: v for k, v in field.items() if k != "target_type"},
+                    key=field["key"],
+                    label=field["label"],
+                    kind=field["kind"],
+                    required=field["required"],
+                    choices=field["choices"],
+                    url_kind=field["url_kind"],
+                    show_on_card=field["show_on_card"],
+                    show_in_metadata_panel=field["show_in_metadata_panel"],
                     target_type=(
                         EntryType.objects.get(key=field["target_type"])
                         if field["target_type"]
@@ -235,23 +261,25 @@ class EntryRepository(EntryRepositoryProtocol):
 
     @override
     def save(self, data: EntryData) -> None:
-        excluded = {
-            "type",
-            "slug",
-            "cover",
-            "tags",
-            "parts",
-            "relations",
-            "syndication",
-            "created_at",
-            "updated_at",
-        }
         entry, _ = Entry.objects.update_or_create(
             type=EntryType.objects.get(key=data["type"]),
             slug=data["slug"],
             defaults={
-                **{k: v for k, v in data.items() if k not in excluded},
+                "title": data["title"],
+                "summary": data["summary"],
+                "external_url": data["external_url"],
+                "status": data["status"],
+                "featured": data["featured"],
+                "hide_from_whats_new": data["hide_from_whats_new"],
+                "license": data["license"],
                 "cover": _asset_by_path(data["cover"]),
+                "metadata": data["metadata"],
+                "date": data["date"],
+                "start_at": data["start_at"],
+                "end_at": data["end_at"],
+                "location": data["location"],
+                "is_online": data["is_online"],
+                "outcome": data["outcome"],
             },
         )
         entry.tags.set(Tag.objects.get_or_create(name=name)[0] for name in data["tags"])
@@ -271,7 +299,8 @@ class EntryRepository(EntryRepositoryProtocol):
         )
         entry.syndication.all().delete()
         SyndicationLink.objects.bulk_create(
-            SyndicationLink(entry=entry, **link) for link in data["syndication"]
+            SyndicationLink(entry=entry, platform=link["platform"], url=link["url"])
+            for link in data["syndication"]
         )
         entry.refresh_search_text()
         stamps = {key: data[key] for key in ("created_at", "updated_at") if data[key]}
@@ -347,7 +376,14 @@ class ProfileRepository(ProfileRepositoryProtocol):
 
     @override
     def save(self, data: ProfileData) -> None:
-        values = {**data, "photo": _asset_by_path(data["photo"])}
+        values = {
+            "name": data["name"],
+            "handle": data["handle"],
+            "tagline": data["tagline"],
+            "photo": _asset_by_path(data["photo"]),
+            "bio": data["bio"],
+            "email": data["email"],
+        }
         if profile := Profile.objects.first():
             Profile.objects.filter(pk=profile.pk).update(**values)
         else:
@@ -357,7 +393,13 @@ class ProfileRepository(ProfileRepositoryProtocol):
     def replace_links(self, links: Sequence[LinkData]) -> None:
         Link.objects.all().delete()
         Link.objects.bulk_create(
-            Link(order=order, **link) for order, link in enumerate(links)
+            Link(
+                order=order,
+                platform=link["platform"],
+                url=link["url"],
+                label=link["label"],
+            )
+            for order, link in enumerate(links)
         )
 
 
