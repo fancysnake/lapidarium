@@ -165,6 +165,15 @@ class PartDTO(BaseModel):
     options: dict[str, str]
 
 
+class EntryKeyDTO(BaseModel):
+    """What names an entry: its type and slug."""
+
+    model_config = ConfigDict(frozen=True)
+
+    type_key: str
+    slug: str
+
+
 class EntryRefDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -301,14 +310,21 @@ class ProfileRepositoryProtocol(Protocol):
     def replace_links(self, links: Sequence[LinkData]) -> None: ...
 
 
+class ArchiveError(Exception):
+    pass
+
+
 class ArchiveProtocol(Protocol):
-    """A version-controlled directory the export is written into."""
+    """A version-controlled directory the export is written into; `ArchiveError`."""
+
+    def check(self, root: Path) -> None:
+        """Raise unless `root` is an archive to commit into."""
 
     def commit(self, root: Path, *, message: str) -> bool:
         """Record every change under `root`; False when there was none."""
 
     def push(self, root: Path) -> None:
-        """Send commits to the default remote; `DeliveryError` when refused."""
+        """Send commits to the default remote."""
 
 
 class AccountRepositoryProtocol(Protocol):

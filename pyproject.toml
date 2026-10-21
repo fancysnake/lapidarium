@@ -379,7 +379,8 @@ ignore_names = [
     "prepopulated_fields",
     "readonly_fields",
     "search_fields",
-    # Unfold options and the sidebar it calls by dotted path from settings
+    # Unfold options and the callbacks it calls by dotted path from settings
+    "dashboard_callback",
     "hide_ordering_field",
     "ordering_field",
     "separator",
@@ -402,6 +403,7 @@ ignore_names = [
     "RELATED",
     "UPCOMING",
     # TypedDict keys read by subscript
+    "destination",
     "reply_to",
     "subject",
     "target_slug",

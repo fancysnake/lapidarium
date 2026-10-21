@@ -1,6 +1,6 @@
 import pytest
 
-from lapidarium.gates.web.django.embeds import video_embed
+from lapidarium.mills.video import video_embed, youtube_id
 
 YT = "https://www.youtube-nocookie.com/embed/abc_-1?autoplay=1"
 
@@ -34,3 +34,20 @@ YT = "https://www.youtube-nocookie.com/embed/abc_-1?autoplay=1"
 )
 def test_video_embed(url, expected):
     assert video_embed(url) == expected
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    (
+        ("https://www.youtube.com/watch?v=abc&t=10", "abc"),
+        ("http://m.youtube.com/watch?v=abc", "abc"),
+        ("https://youtu.be/abc?si=share", "abc"),
+        ("https://youtube.com/shorts/abc", "abc"),
+        ("https://www.youtube.com/embed/abc", "abc"),
+        ("https://www.youtube.com/live/abc", "abc"),
+        ("https://www.youtube.com/@channel", ""),
+        ("https://vimeo.com/123456", ""),
+    ),
+)
+def test_youtube_id(url, expected):
+    assert youtube_id(url) == expected

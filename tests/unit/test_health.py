@@ -153,8 +153,8 @@ def test_digest_mails_the_profile():
         {
             "subject": "Content health: 2 to look at",
             "body": (
-                "[H002] The Sessions door has too few entries to show.\n"
-                "[H001] project/empty: This container holds nothing."
+                "H002 The Sessions door has too few entries to show.\n"
+                "H001 project/empty: This container holds nothing."
             ),
             "to": "mira@example.com",
             "reply_to": "mira@example.com",

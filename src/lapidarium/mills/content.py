@@ -154,8 +154,11 @@ class ContentExportService(ContentExportServiceProtocol):
         self._archive = archive
 
     @override
-    def publish(self, root: Path, *, push: bool) -> ExportDTO:
-        content = self.export(root)
+    def export(self, root: Path, *, commit: bool, push: bool) -> ExportDTO:
+        if not (commit or push):
+            return ExportDTO(content=self._write(root), committed=False)
+        self._archive.check(root)
+        content = self._write(root)
         committed = self._archive.commit(
             root,
             message=(
@@ -167,8 +170,7 @@ class ContentExportService(ContentExportServiceProtocol):
             self._archive.push(root)
         return ExportDTO(content=content, committed=committed)
 
-    @override
-    def export(self, root: Path) -> ContentSummaryDTO:
+    def _write(self, root: Path) -> ContentSummaryDTO:
         profile = self._profile.get()
         published = self._entries.list_published()
         if drafts := {

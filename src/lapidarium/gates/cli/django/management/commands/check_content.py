@@ -37,12 +37,7 @@ class Command(BaseCommand):
             self.stdout.write(_ISSUES.dump_json(issues).decode())
         else:
             for issue in issues:
-                where = (
-                    f"{issue.entry.type_key}/{issue.entry.slug}: "
-                    if issue.entry
-                    else ""
-                )
-                self.stdout.write(f"{issue.code} {where}{issue.message}")
+                self.stdout.write(issue.line)
         if not issues:
             return
         if options["mail"]:

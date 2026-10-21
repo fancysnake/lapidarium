@@ -85,10 +85,8 @@ class SchemaServiceProtocol(Protocol):
 
 
 class ContentExportServiceProtocol(Protocol):
-    def export(self, root: Path) -> ContentSummaryDTO: ...
-
-    def publish(self, root: Path, *, push: bool) -> ExportDTO:
-        """Export into the archive at `root` and commit; push when asked."""
+    def export(self, root: Path, *, commit: bool, push: bool) -> ExportDTO:
+        """Write to `root`; commit, and push, when asked. Pushing implies commit."""
 
 
 class ContentImportServiceProtocol(Protocol):

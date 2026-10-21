@@ -3,9 +3,16 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Protocol, TypedDict
+from typing import TYPE_CHECKING, Protocol, TypedDict
 
 from pydantic import BaseModel, ConfigDict
+
+if TYPE_CHECKING:
+    from lapidarium.pacts.content import EntryKeyDTO
+
+
+class FeedError(Exception):
+    pass
 
 
 class ExternalItemData(TypedDict):
@@ -39,7 +46,7 @@ class ExternalItemRepositoryProtocol(Protocol):
     def list_recent(self, limit: int) -> list[ExternalItemDTO]:
         """Newest first, unless linked to an entry, which speaks for them."""
 
-    def save(self, item: ExternalItemData, *, entry: tuple[str, str] | None) -> bool:
+    def save(self, item: ExternalItemData, *, entry: EntryKeyDTO | None) -> bool:
         """Create or update by source and external id; True when created."""
 
 
@@ -48,4 +55,4 @@ class FeedSourceProtocol(Protocol):
     def name(self) -> str: ...
 
     def fetch(self) -> list[ExternalItemData]:
-        """Items the feed lists now; `DeliveryError` when it cannot be read."""
+        """Items the feed lists now; `FeedError` when it cannot be read."""

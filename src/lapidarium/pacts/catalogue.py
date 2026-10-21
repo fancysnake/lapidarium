@@ -107,3 +107,5 @@ class DetailDTO(BaseModel):
     contents: tuple[CardDTO, ...]
     related: tuple[CardDTO, ...]
     siblings: tuple[CardDTO, ...]
+    # Player address by video part URL; a URL with no known player is absent.
+    embeds: dict[str, str]

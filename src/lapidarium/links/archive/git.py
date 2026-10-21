@@ -8,8 +8,7 @@ from dulwich import porcelain
 from dulwich.errors import GitProtocolError, NotGitRepository
 from dulwich.repo import Repo
 
-from lapidarium.pacts.content import ArchiveProtocol, NotFoundError
-from lapidarium.pacts.outreach import DeliveryError
+from lapidarium.pacts.content import ArchiveError, ArchiveProtocol
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -23,10 +22,14 @@ def _open(root: Path) -> Repo:
         return Repo(str(root))
     except NotGitRepository as exc:
         msg = f"{root} is not a git repository."
-        raise NotFoundError(msg) from exc
+        raise ArchiveError(msg) from exc
 
 
 class GitArchive(ArchiveProtocol):
+    @override
+    def check(self, root: Path) -> None:
+        _open(root).close()
+
     @override
     def commit(self, root: Path, *, message: str) -> bool:
         with _open(root) as repo:
@@ -47,4 +50,4 @@ class GitArchive(ArchiveProtocol):
                 porcelain.push(repo)
             except (GitProtocolError, NotGitRepository, OSError, ValueError) as exc:
                 msg = f"Push from {root} refused."
-                raise DeliveryError(msg) from exc
+                raise ArchiveError(msg) from exc

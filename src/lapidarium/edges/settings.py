@@ -233,6 +233,9 @@ UNFOLD = {
     "SITE_TITLE": SITE_NAME,
     "SITE_HEADER": SITE_NAME,
     "SITE_SYMBOL": "museum",
+    "DASHBOARD_CALLBACK": (
+        "lapidarium.gates.web.django.content_health.dashboard_callback"
+    ),
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,

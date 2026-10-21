@@ -55,7 +55,13 @@ from lapidarium.pacts.schema import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lapidarium.pacts.content import EntryData, LinkData, ProfileData, RelationData
+    from lapidarium.pacts.content import (
+        EntryData,
+        EntryKeyDTO,
+        LinkData,
+        ProfileData,
+        RelationData,
+    )
     from lapidarium.pacts.feeds import ExternalItemData
     from lapidarium.pacts.schema import EntryTypeData
 
@@ -377,9 +383,9 @@ class ExternalItemRepository(ExternalItemRepositoryProtocol):
         return [ExternalItemDTO.model_validate(item) for item in items]
 
     @override
-    def save(self, item: ExternalItemData, *, entry: tuple[str, str] | None) -> bool:
+    def save(self, item: ExternalItemData, *, entry: EntryKeyDTO | None) -> bool:
         linked = (
-            Entry.objects.filter(type__key=entry[0], slug=entry[1]).first()
+            Entry.objects.filter(type__key=entry.type_key, slug=entry.slug).first()
             if entry
             else None
         )

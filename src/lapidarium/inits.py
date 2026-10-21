@@ -22,7 +22,7 @@ from lapidarium.links.db.django.repositories import (
     ProfileRepository,
 )
 from lapidarium.links.db.django.transaction import DjangoTransaction
-from lapidarium.links.feeds.atom import AtomFeed, any_atom, github, youtube
+from lapidarium.links.feeds.atom import AtomFeed
 from lapidarium.links.linkcheck.httpx import HttpLinkChecker
 from lapidarium.links.mail.django import DjangoMailer
 from lapidarium.links.newsletter.log import LogNewsletter
@@ -104,23 +104,15 @@ class Process:
 PROCESS = Process()
 
 
-_FEED_KINDS: dict[str, Callable[[str], tuple[str, str]]] = {
-    "youtube": youtube,
-    "github": github,
-    "atom": any_atom,
-}
-
-
 def feed_sources() -> list[FeedSourceProtocol]:
     """Return a source per `FEED_SOURCES` item, `<kind>:<channel, repo or url>`."""
     sources: list[FeedSourceProtocol] = []
     for item in settings.FEED_SOURCES:
-        kind, _, value = item.partition(":")
-        if kind not in _FEED_KINDS or not value:
-            msg = f"FEED_SOURCES: cannot read {item!r}."
-            raise ImproperlyConfigured(msg)
-        source, url = _FEED_KINDS[kind](value)
-        sources.append(AtomFeed(source=source, url=url))
+        try:
+            sources.append(AtomFeed.from_setting(item))
+        except ValueError as exc:
+            msg = f"FEED_SOURCES: {exc}."
+            raise ImproperlyConfigured(msg) from exc
     return sources
 
 
