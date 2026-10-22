@@ -17,17 +17,27 @@ from lapidarium.links.db.django.models import (
 from lapidarium.links.db.django.repositories import (
     AccountRepository,
     EntryRepository,
+    EntryTypeRepository,
     ExternalItemRepository,
     MediaAssetRepository,
     ProfileRepository,
 )
 from lapidarium.pacts import (
+    BUILTIN_DEFAULTS,
     FIELD_DEFAULTS,
     TYPE_DEFAULTS,
+    DoorPick,
+    EntryTypeDTO,
     ExternalItemDTO,
+    FieldKind,
+    Layout,
     NotFoundError,
+    Outcome,
+    PartKind,
+    TypeRole,
+    UrlKind,
 )
-from tests.factories import entry_data
+from tests.factories import NOW, entry_data, field_data, part_data, type_data
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -157,6 +167,127 @@ def test_new_types_and_fields_take_the_shared_defaults():
     settings = {k: v for k, v in FIELD_DEFAULTS.items() if k != "target_type"}
     assert {k: getattr(field, k) for k in settings} == _listed(settings)
     assert field.target_type is None
+
+
+def _off_default(data, defaults):
+    return all(data[k] != v for k, v in _listed(defaults).items())
+
+
+def test_entry_types_read_back_every_column_they_save():
+    field = field_data(
+        "system",
+        FieldKind.RELATION,
+        label="Game system",
+        required=True,
+        choices=["Mothership"],
+        url_kind=UrlKind.ITCH,
+        target_type="project",
+        show_on_card=True,
+        show_in_metadata_panel=False,
+    )
+    data = type_data(
+        label="Session",
+        label_plural="Sessions",
+        route="plays",
+        colour="#123456",
+        tint="#abcdef",
+        icon="dice",
+        order=3,
+        in_menu=False,
+        role=TypeRole.CALENDAR,
+        layout=Layout.GALLERY,
+        allowed_parts=[PartKind.VIDEO, PartKind.LINK],
+        required_parts=[PartKind.VIDEO],
+        door_enabled=True,
+        door_label="Play",
+        door_pick=DoorPick.UPCOMING,
+        door_min_entries=4,
+        list_filters=["system"],
+        has_detail_page=False,
+        fields=[field],
+    )
+    assert _off_default(data, TYPE_DEFAULTS)
+    assert _off_default(field, FIELD_DEFAULTS)
+
+    EntryTypeRepository().save_all([type_data("project"), data])
+
+    saved = {t.key: t for t in EntryTypeRepository().list_all()}["session"]
+    assert saved.model_dump() == EntryTypeDTO(**data).model_dump()
+
+
+def test_entries_read_back_every_column_they_save():
+    EntryTypeRepository().save_all([type_data()])
+    MediaAssetRepository().save({"path": "assets/los.png", "alt": "", "content": b""})
+    data = entry_data(
+        title="Moose",
+        summary="It escaped.",
+        external_url="https://example.com/moose",
+        featured=True,
+        hide_from_whats_new=True,
+        license="CC-BY-4.0",
+        cover="assets/los.png",
+        metadata={"system": "Mothership"},
+        date=dt.date(2026, 5, 1),
+        start_at=NOW,
+        end_at=NOW + dt.timedelta(hours=4),
+        location="Kraków",
+        is_online=True,
+        outcome=Outcome.FINISHED,
+        tags=["sci-fi"],
+        parts=[
+            part_data(
+                PartKind.IMAGE,
+                text="Body",
+                url="https://example.com/los",
+                asset="assets/los.png",
+                caption="The moose",
+                options={"fit": "cover"},
+            )
+        ],
+        syndication=[{"platform": "itch.io", "url": "https://mira.itch.io/moose"}],
+        created_at=NOW - dt.timedelta(days=2),
+        updated_at=NOW - dt.timedelta(days=1),
+    )
+    assert _off_default(data, BUILTIN_DEFAULTS)
+
+    EntryRepository().save(data)
+
+    (entry,) = EntryRepository().list_published()
+    saved = entry.model_dump()
+    nested = {"cover", "parts", "relations", "syndication", "tags"}
+    columns = (data.keys() & saved.keys()) - nested
+    assert {k: saved[k] for k in columns} == {k: data[k] for k in columns}
+    assert entry.cover.path == data["cover"]
+    assert list(entry.tags) == data["tags"]
+    parts = [part | {"asset": part["asset"]["path"]} for part in saved["parts"]]
+    assert parts == data["parts"]
+    assert list(saved["syndication"]) == data["syndication"]
+
+
+def test_the_profile_reads_back_every_column_it_saves():
+    MediaAssetRepository().save({"path": "assets/mira.png", "alt": "", "content": b""})
+    data = {
+        "name": "Mira",
+        "handle": "@mira",
+        "tagline": "Makes small games.",
+        "photo": "assets/mira.png",
+        "bio": "Hello.",
+        "email": "mira@example.com",
+    }
+    links = [
+        {"platform": "youtube", "url": "https://youtube.com/@mira", "label": "Videos"},
+        {"platform": "itch", "url": "https://mira.itch.io", "label": "Games"},
+    ]
+
+    ProfileRepository().save(data)
+    ProfileRepository().replace_links(links)
+
+    saved = ProfileRepository().get().model_dump()
+    assert saved | {"photo": saved["photo"]["path"]} == data
+    columns = ("order", *links[0])
+    assert list(Link.objects.order_by("order").values(*columns)) == [
+        {"order": order} | link for order, link in enumerate(links)
+    ]
 
 
 def test_ensure_superuser_creates_then_resets_the_login():
