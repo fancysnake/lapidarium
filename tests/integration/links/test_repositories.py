@@ -274,11 +274,20 @@ def test_the_profile_reads_back_every_column_it_saves():
         "bio": "Hello.",
         "email": "mira@example.com",
     }
+    links = [
+        {"platform": "youtube", "url": "https://youtube.com/@mira", "label": "Videos"},
+        {"platform": "itch", "url": "https://mira.itch.io", "label": "Games"},
+    ]
 
     ProfileRepository().save(data)
+    ProfileRepository().replace_links(links)
 
     saved = ProfileRepository().get().model_dump()
     assert saved | {"photo": saved["photo"]["path"]} == data
+    columns = ("order", *links[0])
+    assert list(Link.objects.order_by("order").values(*columns)) == [
+        {"order": order} | link for order, link in enumerate(links)
+    ]
 
 
 def test_ensure_superuser_creates_then_resets_the_login():
