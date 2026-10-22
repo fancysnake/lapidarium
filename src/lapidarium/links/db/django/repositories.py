@@ -57,6 +57,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts import (
         EntryData,
         EntryTypeData,
+        FieldDefinitionData,
         LinkData,
         ProfileData,
         RelationData,
@@ -74,6 +75,28 @@ def field_dto(field: FieldDefinition) -> FieldDefinitionDTO:
         target_type=field.target_type.key if field.target_type else "",
         show_on_card=field.show_on_card,
         show_in_metadata_panel=field.show_in_metadata_panel,
+    )
+
+
+def _field_definition(
+    field: FieldDefinitionData, *, entry_type: EntryType, order: int
+) -> FieldDefinition:
+    return FieldDefinition(
+        entry_type=entry_type,
+        order=order,
+        key=field["key"],
+        label=field["label"],
+        kind=field["kind"],
+        required=field["required"],
+        choices=field["choices"],
+        url_kind=field["url_kind"],
+        show_on_card=field["show_on_card"],
+        show_in_metadata_panel=field["show_in_metadata_panel"],
+        target_type=(
+            EntryType.objects.get(key=field["target_type"])
+            if field["target_type"]
+            else None
+        ),
     )
 
 
@@ -101,6 +124,29 @@ def entry_type_dto(entry_type: EntryType) -> EntryTypeDTO:
         has_detail_page=entry_type.has_detail_page,
         fields=tuple(field_dto(f) for f in entry_type.fields.all()),
     )
+
+
+def _entry_type_columns(data: EntryTypeData) -> dict[str, object]:
+    return {
+        "label": data["label"],
+        "label_plural": data["label_plural"],
+        "route": data["route"],
+        "colour": data["colour"],
+        "tint": data["tint"],
+        "icon": data["icon"],
+        "order": data["order"],
+        "in_menu": data["in_menu"],
+        "role": data["role"],
+        "layout": data["layout"],
+        "allowed_parts": data["allowed_parts"],
+        "required_parts": data["required_parts"],
+        "door_enabled": data["door_enabled"],
+        "door_label": data["door_label"],
+        "door_pick": data["door_pick"],
+        "door_min_entries": data["door_min_entries"],
+        "list_filters": data["list_filters"],
+        "has_detail_page": data["has_detail_page"],
+    }
 
 
 def asset_dto(asset: MediaAsset) -> MediaAssetDTO:
@@ -182,27 +228,7 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
         # Every type exists before any field points at one as its target.
         saved = {
             data["key"]: EntryType.objects.update_or_create(
-                key=data["key"],
-                defaults={
-                    "label": data["label"],
-                    "label_plural": data["label_plural"],
-                    "route": data["route"],
-                    "colour": data["colour"],
-                    "tint": data["tint"],
-                    "icon": data["icon"],
-                    "order": data["order"],
-                    "in_menu": data["in_menu"],
-                    "role": data["role"],
-                    "layout": data["layout"],
-                    "allowed_parts": data["allowed_parts"],
-                    "required_parts": data["required_parts"],
-                    "door_enabled": data["door_enabled"],
-                    "door_label": data["door_label"],
-                    "door_pick": data["door_pick"],
-                    "door_min_entries": data["door_min_entries"],
-                    "list_filters": data["list_filters"],
-                    "has_detail_page": data["has_detail_page"],
-                },
+                key=data["key"], defaults=_entry_type_columns(data)
             )[0]
             for data in types
         }
@@ -210,23 +236,7 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
             entry_type = saved[data["key"]]
             entry_type.fields.all().delete()
             FieldDefinition.objects.bulk_create(
-                FieldDefinition(
-                    entry_type=entry_type,
-                    order=order,
-                    key=field["key"],
-                    label=field["label"],
-                    kind=field["kind"],
-                    required=field["required"],
-                    choices=field["choices"],
-                    url_kind=field["url_kind"],
-                    show_on_card=field["show_on_card"],
-                    show_in_metadata_panel=field["show_in_metadata_panel"],
-                    target_type=(
-                        EntryType.objects.get(key=field["target_type"])
-                        if field["target_type"]
-                        else None
-                    ),
-                )
+                _field_definition(field, entry_type=entry_type, order=order)
                 for order, field in enumerate(data["fields"])
             )
 
