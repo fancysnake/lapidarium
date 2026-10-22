@@ -1,9 +1,11 @@
 """About, what's new, search and the feeds."""
 
+import datetime as dt
 from http import HTTPStatus
 
 import pytest
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from lapidarium.links.db.django.models import Entry, ExternalItem, Link, Profile
 from lapidarium.pacts import FeedChange
@@ -136,3 +138,23 @@ def test_server_errors_have_a_page_of_their_own():
     html = render_to_string("500.html")
 
     assert "<h1>Something broke</h1>" in html
+
+
+def test_footer_credits_the_owner_and_the_engine_apart(site):
+    Profile.objects.update(name="Ola Nowak")
+    year = dt.datetime.now(timezone.get_current_timezone()).year
+
+    response = site.get("/")
+
+    assert f"© {year} Ola Nowak." in response.text
+    assert (
+        'This site runs on <a href="https://github.com/fancysnake/lapidarium">'
+        "Lapidarium</a> © 2026 fancysnake, MIT licence." in response.text
+    )
+
+
+def test_footer_credits_in_polish(site):
+    response = site.get("/", HTTP_ACCEPT_LANGUAGE="pl")
+
+    assert "Strona działa na <a" in response.text
+    assert "© 2026 fancysnake, licencja MIT." in response.text

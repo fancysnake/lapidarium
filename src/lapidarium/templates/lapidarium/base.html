@@ -100,6 +100,13 @@
           {% endif %}
         </div>
       </div>
+      <div class="container site-footer__credit">
+        {% now "Y" as year %}
+        <p>{% blocktranslate with owner=site.owner_name %}© {{ year }} {{ owner }}.{% endblocktranslate %}</p>
+        <p>
+          {% blocktranslate with url="https://github.com/fancysnake/lapidarium" %}This site runs on <a href="{{ url }}">Lapidarium</a> © 2026 fancysnake, MIT licence.{% endblocktranslate %}
+        </p>
+      </div>
     </footer>
   </body>
 </html>
