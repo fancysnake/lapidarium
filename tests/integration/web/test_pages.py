@@ -153,6 +153,15 @@ def test_footer_credits_the_owner_and_the_engine_apart(site):
     )
 
 
+def test_footer_without_a_profile_name_claims_only_the_engine(site):
+    Profile.objects.update(name="")
+
+    response = site.get("/")
+
+    assert response.text.count("©") == 1
+    assert "© 2026 fancysnake, MIT licence." in response.text
+
+
 def test_footer_credits_in_polish(site):
     response = site.get("/", HTTP_ACCEPT_LANGUAGE="pl")
 
