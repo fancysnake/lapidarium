@@ -1,4 +1,4 @@
-FROM localhost/mise:2026.9.0 AS base
+FROM ghcr.io/jdx/mise:2026.10.11-debian AS base
 
 # hadolint ignore=DL3008
 RUN apt-get update \
@@ -34,6 +34,5 @@ RUN find src -name django.po -execdir msgfmt --check -o django.mo django.po \;
 
 EXPOSE 8000
 
-# docker/mise sets ENTRYPOINT ["mise"]; prod-start runs migrate + collectstatic,
-# then gunicorn (docker/mise.toml).
-CMD ["run", "prod-start"]
+# prod-start runs migrate + collectstatic, then gunicorn (docker/mise.toml).
+CMD ["mise", "run", "prod-start"]
