@@ -37,13 +37,16 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/bake-action@v6
         with:
-          context: .
-          file: docker/Dockerfile
-          target: prod
+          source: .
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: prod
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          set: |
+            mise.cache-from=type=gha,scope=mise
+            mise.cache-to=type=gha,scope=mise,mode=max
+            prod.cache-from=type=gha,scope=prod
+            prod.cache-to=type=gha,scope=prod,mode=max

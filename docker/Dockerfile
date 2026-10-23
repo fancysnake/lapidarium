@@ -1,16 +1,9 @@
-FROM debian:trixie-slim AS base
-
-COPY --from=jdxcode/mise:2026.9.0 /usr/local/bin/mise /usr/local/bin/mise
+FROM localhost/mise:2026.9.0 AS base
 
 # hadolint ignore=DL3008
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates gettext \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /mise
-
-ENV MISE_DATA_DIR=/mise
-ENV MISE_CACHE_DIR=/mise/cache
-ENV PATH=/mise/shims:$PATH
+    && apt-get install -y --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV DJANGO_SETTINGS_MODULE=lapidarium.edges.settings
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -41,6 +34,6 @@ RUN find src -name django.po -execdir msgfmt --check -o django.mo django.po \;
 
 EXPOSE 8000
 
-# prod-start runs migrate + collectstatic, then gunicorn (docker/mise.toml).
-ENTRYPOINT ["mise"]
+# docker/mise sets ENTRYPOINT ["mise"]; prod-start runs migrate + collectstatic,
+# then gunicorn (docker/mise.toml).
 CMD ["run", "prod-start"]
