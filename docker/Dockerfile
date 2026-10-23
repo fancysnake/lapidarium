@@ -12,7 +12,8 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock README.md docker/mise.toml /app/
+COPY pyproject.toml poetry.lock README.md docker/mise.toml docker/mise.lock /app/
+COPY docker/.mise /app/.mise
 
 RUN useradd --create-home --shell /bin/bash appuser \
     && mkdir -p staticfiles media \
@@ -21,7 +22,7 @@ RUN useradd --create-home --shell /bin/bash appuser \
 # hadolint ignore=DL3066
 USER appuser
 
-RUN mise trust && mise install
+RUN mise trust && mise install --locked
 
 FROM base AS prod
 

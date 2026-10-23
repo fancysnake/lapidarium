@@ -2,6 +2,8 @@
 *
 
 # Allow what the build needs
+!docker/.mise/
+!docker/mise.lock
 !docker/mise.toml
 !poetry.lock
 !pyproject.toml

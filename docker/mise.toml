@@ -8,6 +8,8 @@ jobs = 1
 [tools]
 python = "3.14.7"
 pipx = "1.17.6"
+# mise installs a locked pipx:poetry through uv.
+uv = "0.13.5"
 "pipx:poetry" = "2.5.1"
 
 [env]
