@@ -41,4 +41,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/toolchain
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gettext
+      - run: mise run i18n:compile
       - run: mise run test:py:cov

@@ -469,6 +469,14 @@ msgstr ""
 msgid "Contact form"
 msgstr ""
 
+#, python-format
+msgid "© %(year)s %(owner)s."
+msgstr ""
+
+#, python-format
+msgid "This site runs on <a href=\"%(url)s\">Lapidarium</a> © %(year)s %(holder)s, MIT licence."
+msgstr ""
+
 msgid "About the author"
 msgstr ""
 

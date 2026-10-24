@@ -84,7 +84,7 @@ Stable, BEM-style. Target these from `theme.css`.
 
 | Component | Classes |
 |---|---|
-| Page frame | `.site-header`, `.site-logo`, `.site-logo__mark`, `.site-logo__name`, `.site-logo__handle`, `.site-nav`, `.site-footer`, `.site-footer__inner`, `.footer-links` |
+| Page frame | `.site-header`, `.site-logo`, `.site-logo__mark`, `.site-logo__name`, `.site-logo__handle`, `.site-nav`, `.site-footer`, `.site-footer__inner`, `.site-footer__credit`, `.footer-links` |
 | Layout | `.container`, `.page`, `.page__title`, `.page__lead`, `.section-title`, `.label`, `.empty`, `.notice` |
 | Buttons and forms | `.btn`, `.btn--primary`, `.btn--type`, `.input`, `.form`, `.form__field`, `.form__errors`, `.newsletter`, `.newsletter__title`, `.newsletter__row` |
 | Home | `.hero`, `.hero__name`, `.hero__name--quiet`, `.hero__stats`, `.hero__lead`, `.hero__portrait`, `.hero__aside`, `.hero__actions`, `.home-doors`, `.doors`, `.door`, `.door__label`, `.door__title`, `.door__meta`, `.door__image`, `.door__more`, `.home-bottom`, `.home-bottom__aside`, `.next-up__label`, `.next-up__title`, `.follow`, `.follow__title` |
