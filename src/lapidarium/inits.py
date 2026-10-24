@@ -136,7 +136,10 @@ class Services(ServicesProtocol):
 
     @cached_property
     def schema(self) -> SchemaService:
-        return SchemaService(background=self.theme.background())
+        return SchemaService(
+            background=self.theme.background(),
+            dark_background=self.theme.dark_background(),
+        )
 
     @cached_property
     def content_export(self) -> ContentExportService:
@@ -174,7 +177,10 @@ class Services(ServicesProtocol):
     def site(self) -> SiteService:
         repos = self._repositories
         return SiteService(
-            types=repos.entry_types, profile=repos.profile, site_name=settings.SITE_NAME
+            types=repos.entry_types,
+            profile=repos.profile,
+            schema=self.schema,
+            site_name=settings.SITE_NAME,
         )
 
     @cached_property

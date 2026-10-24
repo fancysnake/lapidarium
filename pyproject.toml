@@ -455,6 +455,7 @@ ignore_names = [
     "to",
     # DTO fields only templates read
     "contents",
+    "dark_colours",
     "href",
     "menu",
     "next_up",

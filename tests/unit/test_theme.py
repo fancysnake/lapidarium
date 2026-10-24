@@ -57,6 +57,16 @@ def test_active_tokens_override_the_base():
     assert service.active().key == "green"
 
 
+def test_a_theme_without_dark_tokens_has_no_dark_background():
+    assert _service().dark_background() is None
+
+
+def test_the_dark_background_is_the_dark_scheme_one():
+    base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#121212"})
+
+    assert _service(base=base).dark_background() == "#121212"
+
+
 def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
     # Over the base's dark #000000, --color-text would fail the contrast check.
     base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#000000"})

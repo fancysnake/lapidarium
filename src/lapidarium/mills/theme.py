@@ -105,6 +105,10 @@ class ThemeService(ThemeServiceProtocol):
         return self._light[_BACKGROUND]
 
     @override
+    def dark_background(self) -> str | None:
+        return self._dark[_BACKGROUND] if self._has_dark else None
+
+    @override
     def check(self) -> list[ProblemDTO]:
         return [
             *self._missing_tokens(),

@@ -702,6 +702,8 @@ class SiteDTO(BaseModel):
     links: tuple[LinkDTO, ...]
     types: tuple[EntryTypeDTO, ...]
     menu: tuple[EntryTypeDTO, ...]
+    # (type key, colour) for each type the dark scheme recolours.
+    dark_colours: tuple[tuple[str, str], ...]
 
 
 # Repository and port protocols
@@ -852,6 +854,9 @@ class SchemaServiceProtocol(Protocol):
     def check_colours(self, colour: str, tint: str) -> list[str]:
         """Contrast errors for a type colour against the background and its tint."""
 
+    def derive_dark_colour(self, colour: str) -> str | None:
+        """Lighten `colour` to read in the dark scheme; `None` without one."""
+
 
 class ContentExportServiceProtocol(Protocol):
     def export(self, root: Path) -> ContentSummaryDTO: ...
@@ -914,6 +919,9 @@ class ThemeServiceProtocol(Protocol):
 
     def background(self) -> str:
         """Return the page background type colours must stand out against."""
+
+    def dark_background(self) -> str | None:
+        """Return the dark-scheme page background; `None` without dark tokens."""
 
 
 class ServicesProtocol(Protocol):

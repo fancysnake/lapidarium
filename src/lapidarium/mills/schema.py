@@ -43,6 +43,8 @@ if TYPE_CHECKING:
     )
 
 _BLANK = frozenset({None, ""})
+_WHITE = "#ffffff"
+_LIGHTEN_STEPS = 100
 
 
 def _host(url: str) -> str | None:
@@ -140,10 +142,14 @@ def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str
 
 
 class SchemaService(SchemaServiceProtocol):
-    """Type schemas: metadata, role built-ins, parts, colours."""
+    """Type schemas: metadata, role built-ins, parts, colours.
 
-    def __init__(self, background: str) -> None:
+    Type colours get a dark-scheme variant when `dark_background` is given.
+    """
+
+    def __init__(self, background: str, *, dark_background: str | None = None) -> None:
         self._background = background
+        self._dark_background = dark_background
 
     @override
     def validate_metadata(
@@ -290,3 +296,19 @@ class SchemaService(SchemaServiceProtocol):
                 f"Contrast with the tint is {ratio:.2f}:1, needs {CONTRAST_FLOOR}:1."
             )
         return errors
+
+    @override
+    def derive_dark_colour(self, colour: str) -> str | None:
+        if (dark := self._dark_background) is None:
+            return None
+        # The least white that lifts `colour` over the dark page and the tint the
+        # page mixes from it there.
+        for step in range(_LIGHTEN_STEPS):
+            candidate = mix(_WHITE, colour, share=step / _LIGHTEN_STEPS)
+            tint = mix(candidate, dark, share=TINT_MIX)
+            if (
+                min(contrast_ratio(candidate, dark), contrast_ratio(candidate, tint))
+                >= CONTRAST_FLOOR
+            ):
+                return candidate
+        return _WHITE
