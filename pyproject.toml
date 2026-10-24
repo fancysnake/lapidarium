@@ -176,6 +176,57 @@ module = [
 ]
 disallow_any_expr = false
 
+# PYLINT
+
+[tool.pylint.main]
+ignore = ["CVS", "migrations"]
+load-plugins = [
+    "pylint.extensions.bad_builtin",
+    "pylint.extensions.broad_try_clause",
+    "pylint.extensions.check_elif",
+    "pylint.extensions.code_style",
+    "pylint.extensions.comparison_placement",
+    "pylint.extensions.confusing_elif",
+    "pylint.extensions.consider_refactoring_into_while_condition",
+    "pylint.extensions.consider_ternary_expression",
+    "pylint.extensions.dict_init_mutate",
+    "pylint.extensions.dunder",
+    "pylint.extensions.empty_comment",
+    "pylint.extensions.eq_without_hash",
+    "pylint.extensions.for_any_all",
+    "pylint.extensions.magic_value",
+    "pylint.extensions.mccabe",
+    "pylint.extensions.no_self_use",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.private_import",
+    "pylint.extensions.redefined_loop_name",
+    "pylint.extensions.redefined_variable_type",
+    "pylint.extensions.set_membership",
+    "pylint.extensions.typing",
+]
+py-version = "3.14"
+
+[tool.pylint.design]
+max-args = 12
+max-positional-arguments = 2
+max-public-methods = 12
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.pylint."messages control"]
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+    "magic-value-comparison",
+    "consider-using-namedtuple-or-dataclass",
+    "no-member",
+    "line-too-long",
+]
+
+[tool.pylint.reports]
+output-format = "parseable"
+
 # RUFF
 
 [tool.ruff]
