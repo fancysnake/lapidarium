@@ -691,6 +691,15 @@ class ProblemDTO(BaseModel):
     message: str
 
 
+class TypeColourDTO(BaseModel):
+    """A colour a scheme sets for one type."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    colour: str
+
+
 class SiteDTO(BaseModel):
     """What every public page shows around its content."""
 
@@ -702,8 +711,7 @@ class SiteDTO(BaseModel):
     links: tuple[LinkDTO, ...]
     types: tuple[EntryTypeDTO, ...]
     menu: tuple[EntryTypeDTO, ...]
-    # (type key, colour) for each type the dark scheme recolours.
-    dark_colours: tuple[tuple[str, str], ...]
+    dark_colours: tuple[TypeColourDTO, ...]
 
 
 # Repository and port protocols

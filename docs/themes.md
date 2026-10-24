@@ -107,7 +107,7 @@ Every command that runs Django's system checks (`check`, `migrate`,
 | Id | Level | When |
 |---|---|---|
 | `lapidarium.E001` | error | a required token is defined by neither the base nor the theme |
-| `lapidarium.E002` | error | text, brand or type fallback colour has contrast below 4.5:1 against its background, in either scheme |
+| `lapidarium.E002` | error | text, brand or type fallback colour has contrast below 4.5:1 against its background, in either scheme; or the dark `--color-bg` is darker than the light one, yet too light for white type colours to reach 4.5:1 on it or its tint |
 | `lapidarium.W001` | warning | `theme.toml` declares no engine version |
 | `lapidarium.W002` | warning | the theme is built for another engine release |
 | `lapidarium.W003` | warning | the theme overrides a template the engine no longer has |

@@ -54,7 +54,7 @@ def test_a_dark_theme_lightens_type_colours_for_the_dark_scheme(site):
     response = site.get("/")
 
     text = response.text
-    dark_colours = dict(response.context["site"].dark_colours)
+    dark_colours = {c.key: c.colour for c in response.context["site"].dark_colours}
     assert dark_colours.keys() == {t.key for t in response.context["site"].types}
     dark_rule = f'[data-type="session"] {{ --type-color: {dark_colours["session"]}; }}'
     assert text.index("@media (prefers-color-scheme: dark)") < text.index(dark_rule)

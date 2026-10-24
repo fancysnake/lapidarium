@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.site import SiteService
-from lapidarium.pacts import LinkDTO, ProfileDTO
+from lapidarium.pacts import LinkDTO, ProfileDTO, TypeColourDTO
 from tests.factories import type_dto
 
 PROFILE = ProfileDTO(
@@ -45,7 +45,7 @@ def test_chrome_gives_the_dark_colours_that_differ():
 
     site = _service(types=[session, wiki], dark_colours=darks).chrome()
 
-    assert site.dark_colours == (("session", "#9779bc"),)
+    assert site.dark_colours == (TypeColourDTO(key="session", colour="#9779bc"),)
 
 
 @pytest.mark.parametrize("profile", (None, PROFILE.model_copy(update={"name": ""})))

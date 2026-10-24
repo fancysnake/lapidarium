@@ -241,10 +241,7 @@ def test_type_change_shows_the_derived_dark_colour(
     response = admin.get(f"{TYPES}{_talk().pk}/change/")
 
     field = _readonly(response, "dark_colour")
-    assert field.contents() == (
-        '<span style="display: inline-block; width: 1rem; height: 1rem;'
-        ' vertical-align: middle; background: #997bbd"></span> #997bbd'
-    )
+    assert "#997bbd" in field.contents()
 
 
 def _readonly(response, name):

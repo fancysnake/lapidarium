@@ -1,9 +1,12 @@
-"""Colour maths on `#rrggbb` strings: WCAG contrast and mixing."""
+"""Colour maths on `#rrggbb` strings: WCAG contrast, mixing, tints."""
 
 from __future__ import annotations
 
 import math
 
+from lapidarium.specs import TINT_MIX
+
+WHITE = "#ffffff"
 _LINEAR_THRESHOLD = 0.04045
 
 
@@ -34,3 +37,13 @@ def mix(colour: str, background: str, *, share: float) -> str:
     channels = zip(_rgb(colour), _rgb(background), strict=True)
     mixed = (round(c * share + b * (1 - share)) for c, b in channels)
     return "#" + "".join(f"{c:02x}" for c in mixed)
+
+
+def tint_over(colour: str, background: str) -> str:
+    """Return the tint a page mixes from `colour` over `background`."""
+    return mix(colour, background, share=TINT_MIX)
+
+
+def lowest_contrast(colour: str, *, background: str, tint: str) -> float:
+    """Return the weaker of `colour`'s contrasts with `background` and `tint`."""
+    return min(contrast_ratio(colour, background), contrast_ratio(colour, tint))

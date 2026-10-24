@@ -34,7 +34,7 @@
         {% endif %}{% endfor %}
       }
       @media (prefers-color-scheme: dark) {
-        {% for key, colour in site.dark_colours %}[data-type="{{ key }}"] { --type-color: {{ colour }}; }
+        {% for type_colour in site.dark_colours %}[data-type="{{ type_colour.key }}"] { --type-color: {{ type_colour.colour }}; }
         {% endfor %}
       }
     </style>

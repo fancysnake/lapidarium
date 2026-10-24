@@ -52,7 +52,7 @@ def _type(*fields, allowed=(PartKind.TEXT,), required=()):
 
 @pytest.fixture(name="schema")
 def schema_fixture():
-    return SchemaService(background=WHITE)
+    return SchemaService(background=WHITE, dark_background=None)
 
 
 @pytest.mark.parametrize(
