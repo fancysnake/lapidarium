@@ -5,6 +5,7 @@ from http import HTTPStatus
 import pytest
 from django.contrib.auth import get_user_model
 
+from lapidarium import inits
 from lapidarium.links.db.django.models import (
     Entry,
     EntryType,
@@ -216,6 +217,44 @@ def test_type_change_offers_its_own_fields_as_list_filters(admin):
         ("players", "Gracze"),
     ]
     assert form.initial["list_filters"] == ["year", "tag", "system", "format"]
+
+
+def _talk():
+    return EntryType.objects.create(
+        key="talk", label="Talk", label_plural="Talks", route="t", colour="#6b3fa0"
+    )
+
+
+def test_type_change_has_no_dark_colour_without_a_dark_scheme(admin):
+    response = admin.get(f"{TYPES}{_talk().pk}/change/")
+
+    field = _readonly(response, "dark_colour")
+    assert field.contents() == "—"
+
+
+def test_type_change_shows_the_derived_dark_colour(
+    *, admin, settings, monkeypatch, layered_theme
+):
+    settings.THEME_LAYERS = (settings.ENGINE_THEMES / "base", layered_theme)
+    monkeypatch.setattr(inits, "PROCESS", inits.Process())
+
+    response = admin.get(f"{TYPES}{_talk().pk}/change/")
+
+    field = _readonly(response, "dark_colour")
+    assert field.contents() == (
+        '<span style="display: inline-block; width: 1rem; height: 1rem;'
+        ' vertical-align: middle; background: #997bbd"></span> #997bbd'
+    )
+
+
+def _readonly(response, name):
+    return next(
+        field
+        for fieldset in response.context["adminform"]
+        for line in fieldset
+        for field in line
+        if field.is_readonly and field.field["name"] == name
+    )
 
 
 # Adding entries

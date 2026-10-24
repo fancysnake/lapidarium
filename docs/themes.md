@@ -74,7 +74,7 @@ scheme; a tint set in the admin replaces it in the light scheme only.
 The admin checks each colour against the light background. When the theme sets
 dark tokens, the engine lightens each colour that would not read on the dark
 `--color-bg` or its dark tint, and sets that as `--type-color` in the dark
-scheme.
+scheme. The type's admin page shows the derived colour.
 Components read only `--type-color` and `--type-tint`, so a door, a card, a
 menu item and a what's-new line all take the colour of their type.
 
