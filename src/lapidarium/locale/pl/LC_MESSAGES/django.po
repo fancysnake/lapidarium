@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 08:40+0200\n"
+"POT-Creation-Date: 2026-10-23 23:29+0200\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -469,6 +469,14 @@ msgstr "Napisz"
 
 msgid "Contact form"
 msgstr "Formularz kontaktowy"
+
+#, python-format
+msgid "© %(year)s %(owner)s."
+msgstr "© %(year)s %(owner)s."
+
+#, python-format
+msgid "This site runs on <a href=\"%(url)s\">Lapidarium</a> © %(year)s %(holder)s, MIT licence."
+msgstr "Strona działa na <a href=\"%(url)s\">Lapidarium</a> © %(year)s %(holder)s, licencja MIT."
 
 msgid "About the author"
 msgstr "O autorze"

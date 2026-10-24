@@ -538,6 +538,19 @@ textarea.input { min-height: 10rem; padding-block: var(--space-3); }
 .footer-links { flex: 1 1 17rem; display: flex; flex-direction: column; gap: var(--space-2); }
 .footer-links__label { color: var(--color-text-muted); }
 .footer-links ul { margin-bottom: var(--space-3); }
+.site-footer__credit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  justify-content: space-between;
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+
+  & p { margin: 0; }
+  & a { color: inherit; }
+}
 
 /* --- Pages --- */
 .page { display: flex; flex-direction: column; gap: var(--space-7); padding-block: var(--space-6) var(--space-9); }
