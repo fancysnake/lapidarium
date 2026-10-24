@@ -76,11 +76,9 @@ description = "`# pylint:` comments that silence a check inline."
 
 [[metrics]]
 name = "pylint-disables"
-type = "ini_list_length"
+type = "toml_list_length"
 group = "linting"
-file = ".pylintrc"
-section = "MESSAGES CONTROL"
-option = "disable"
+key = "tool.pylint.messages control.disable"
 description = "Pylint checks disabled project-wide."
 
 # testing
