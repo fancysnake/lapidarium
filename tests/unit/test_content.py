@@ -134,7 +134,7 @@ def _export_service(repos):
 
 def _import_service(repos):
     return ContentImportService(
-        schema=SchemaService(background="#ffffff"),
+        schema=SchemaService(background="#ffffff", dark_background=None),
         transaction=repos.transaction,
         types=repos.types,
         entries=repos.entries,

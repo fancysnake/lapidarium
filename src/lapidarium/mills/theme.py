@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from lapidarium.mills.colour import contrast_ratio
+from lapidarium.mills.colour import WHITE, contrast_ratio, lowest_contrast, tint_over
 from lapidarium.pacts import (
     CONTRAST_PAIRS,
     REQUIRED_TOKENS,
@@ -45,6 +45,26 @@ def _contrast_problems(
                     f" {ratio:.2f}:1, needs {CONTRAST_FLOOR}:1."
                 ),
             )
+
+
+def _type_colour_problems(*, light: str, dark: str) -> Iterator[ProblemDTO]:
+    """Report a darker dark page that even white type colours cannot read on.
+
+    White is as light as type colours get; a page no darker than `light` lightens
+    none of them.
+    """
+    if contrast_ratio(WHITE, dark) <= contrast_ratio(WHITE, light):
+        return
+    ratio = lowest_contrast(WHITE, background=dark, tint=tint_over(WHITE, dark))
+    if ratio < CONTRAST_FLOOR:
+        yield ProblemDTO(
+            code=ThemeProblem.LOW_CONTRAST,
+            message=(
+                f"No type colour reads on {_BACKGROUND} (dark): white has"
+                f" contrast {ratio:.2f}:1 with it or its tint,"
+                f" needs {CONTRAST_FLOOR}:1."
+            ),
+        )
 
 
 def _site_theme(layers: tuple[ThemeDTO, ...], *, static_prefix: str) -> SiteThemeDTO:
@@ -105,6 +125,10 @@ class ThemeService(ThemeServiceProtocol):
         return self._light[_BACKGROUND]
 
     @override
+    def dark_background(self) -> str | None:
+        return self._dark[_BACKGROUND] if self._has_dark else None
+
+    @override
     def check(self) -> list[ProblemDTO]:
         return [
             *self._missing_tokens(),
@@ -124,6 +148,9 @@ class ThemeService(ThemeServiceProtocol):
         yield from _contrast_problems(self._light, scheme="light")
         if self._has_dark:
             yield from _contrast_problems(self._dark, scheme="dark")
+            yield from _type_colour_problems(
+                light=self._light[_BACKGROUND], dark=self._dark[_BACKGROUND]
+            )
 
     def _engine(self) -> Iterator[ProblemDTO]:
         active = self._layers[-1]

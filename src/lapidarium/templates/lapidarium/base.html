@@ -33,6 +33,10 @@
         {% for entry_type in site.types %}{% if entry_type.tint %}[data-type="{{ entry_type.key }}"] { --type-tint: {{ entry_type.tint }}; }
         {% endif %}{% endfor %}
       }
+      @media (prefers-color-scheme: dark) {
+        {% for type_colour in site.dark_colours %}[data-type="{{ type_colour.key }}"] { --type-color: {{ type_colour.colour }}; }
+        {% endfor %}
+      }
     </style>
     <script type="module" src="{% static 'lapidarium/js/enhance.js' %}"></script>
   </head>

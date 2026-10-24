@@ -12,7 +12,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
-from django.utils.html import format_html_join
+from django.utils.html import format_html, format_html_join
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
@@ -327,13 +327,26 @@ class EntryTypeAdmin(EntryTypeAdminBase):
     fieldsets = (
         (None, {"fields": ("label", "label_plural", "key", "route", "order")}),
         (_("Behaviour"), {"fields": ("role", "layout", "has_detail_page")}),
-        (_("Look"), {"fields": ("colour", "tint", "icon", "in_menu")}),
+        (_("Look"), {"fields": ("colour", "tint", "dark_colour", "icon", "in_menu")}),
         (_("Parts"), {"fields": ("allowed_parts", "required_parts", "list_filters")}),
         (
             _("Home page door"),
             {"fields": ("door_enabled", "door_label", "door_pick", "door_min_entries")},
         ),
     )
+    readonly_fields = ("dark_colour",)
+
+    @staticmethod
+    @admin.display(description=_("Dark-scheme colour"))
+    def dark_colour(obj: EntryType) -> str:
+        if (dark := build_services().schema.derive_dark_colour(obj.colour)) is None:
+            return "—"
+        return format_html(
+            '<span style="display: inline-block; width: 1rem; height: 1rem;'
+            ' vertical-align: middle; background: {}"></span> {}',
+            dark,
+            dark,
+        )
 
 
 # Entries

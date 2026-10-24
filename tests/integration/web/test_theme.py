@@ -46,6 +46,18 @@ def test_type_tints_mix_over_the_background_unless_set_for_the_light_scheme(site
         f'[data-type="session"] {{ --type-color: {session.colour}; {mixed} }}' in text
     )
     assert text.index("@media (prefers-color-scheme: light)") < text.index(set_tint)
+    assert response.context["site"].dark_colours == ()
+
+
+@pytest.mark.usefixtures("dusk")
+def test_a_dark_theme_lightens_type_colours_for_the_dark_scheme(site):
+    response = site.get("/")
+
+    text = response.text
+    dark_colours = {c.key: c.colour for c in response.context["site"].dark_colours}
+    assert dark_colours.keys() == {t.key for t in response.context["site"].types}
+    dark_rule = f'[data-type="session"] {{ --type-color: {dark_colours["session"]}; }}'
+    assert text.index("@media (prefers-color-scheme: dark)") < text.index(dark_rule)
 
 
 @pytest.mark.usefixtures("dusk")

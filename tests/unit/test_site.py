@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.site import SiteService
-from lapidarium.pacts import LinkDTO, ProfileDTO
+from lapidarium.pacts import LinkDTO, ProfileDTO, TypeColourDTO
 from tests.factories import type_dto
 
 PROFILE = ProfileDTO(
@@ -12,12 +12,16 @@ PROFILE = ProfileDTO(
 LINK = LinkDTO(platform="itch", url="https://example.itch.io", label="itch.io")
 
 
-def _service(*, types=(), profile=PROFILE):
+def _service(*, types=(), profile=PROFILE, dark_colours=None):
     repos = MagicMock()
     repos.types.list_all.return_value = list(types)
     repos.profile.get.return_value = profile
     repos.profile.list_links.return_value = [LINK]
-    return SiteService(types=repos.types, profile=repos.profile, site_name="Lapidarium")
+    schema = MagicMock()
+    schema.derive_dark_colour.side_effect = (dark_colours or {}).get
+    return SiteService(
+        types=repos.types, profile=repos.profile, schema=schema, site_name="Lapidarium"
+    )
 
 
 def test_chrome_gives_profile_menu_and_types():
@@ -31,6 +35,17 @@ def test_chrome_gives_profile_menu_and_types():
     assert site.links == (LINK,)
     assert site.types == (session, wiki)
     assert site.menu == (session,)
+    assert site.dark_colours == ()
+
+
+def test_chrome_gives_the_dark_colours_that_differ():
+    session = type_dto("session", colour="#6b3fa0", tint="")
+    wiki = type_dto("wiki", colour="#c9a0ff", tint="")
+    darks = {"#6b3fa0": "#9779bc", "#c9a0ff": "#c9a0ff"}
+
+    site = _service(types=[session, wiki], dark_colours=darks).chrome()
+
+    assert site.dark_colours == (TypeColourDTO(key="session", colour="#9779bc"),)
 
 
 @pytest.mark.parametrize("profile", (None, PROFILE.model_copy(update={"name": ""})))

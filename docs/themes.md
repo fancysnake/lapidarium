@@ -71,6 +71,10 @@ Content type colours are not tokens: each type's colour and tint are set in the
 admin and emitted as `[data-type="<key>"] { --type-color; --type-tint }`.
 The tint mixes 12% of the colour into `--color-bg`, so it follows the dark
 scheme; a tint set in the admin replaces it in the light scheme only.
+The admin checks each colour against the light background. When the theme sets
+dark tokens, the engine lightens each colour that would not read on the dark
+`--color-bg` or its dark tint, and sets that as `--type-color` in the dark
+scheme. The type's admin page shows the derived colour.
 Components read only `--type-color` and `--type-tint`, so a door, a card, a
 menu item and a what's-new line all take the colour of their type.
 
@@ -103,7 +107,7 @@ Every command that runs Django's system checks (`check`, `migrate`,
 | Id | Level | When |
 |---|---|---|
 | `lapidarium.E001` | error | a required token is defined by neither the base nor the theme |
-| `lapidarium.E002` | error | text, brand or type fallback colour has contrast below 4.5:1 against its background, in either scheme |
+| `lapidarium.E002` | error | text, brand or type fallback colour has contrast below 4.5:1 against its background, in either scheme; or the dark `--color-bg` is darker than the light one, yet too light for white type colours to reach 4.5:1 on it or its tint |
 | `lapidarium.W001` | warning | `theme.toml` declares no engine version |
 | `lapidarium.W002` | warning | the theme is built for another engine release |
 | `lapidarium.W003` | warning | the theme overrides a template the engine no longer has |

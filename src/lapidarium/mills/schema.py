@@ -6,7 +6,13 @@ import datetime as dt
 from typing import TYPE_CHECKING, override
 from urllib.parse import urlsplit
 
-from lapidarium.mills.colour import contrast_ratio, mix
+from lapidarium.mills.colour import (
+    WHITE,
+    contrast_ratio,
+    lowest_contrast,
+    mix,
+    tint_over,
+)
 from lapidarium.pacts import (
     BUILTIN_DEFAULTS,
     CONTAINER_ROLES,
@@ -24,13 +30,7 @@ from lapidarium.pacts import (
     TypeRole,
     UrlKind,
 )
-from lapidarium.specs import (
-    CONTRAST_FLOOR,
-    GITHUB_HOSTS,
-    ITCH_HOST,
-    TINT_MIX,
-    YOUTUBE_HOSTS,
-)
+from lapidarium.specs import CONTRAST_FLOOR, GITHUB_HOSTS, ITCH_HOST, YOUTUBE_HOSTS
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
@@ -43,6 +43,29 @@ if TYPE_CHECKING:
     )
 
 _BLANK = frozenset({None, ""})
+_LIGHTEN_STEPS = 100
+# Pages ask per request; the colours and the background change per process.
+_LIGHTENED: dict[tuple[str, str], str] = {}
+
+
+def _lift(colour: str, background: str) -> str:
+    """Return the least white that lifts `colour` over `background` and its tint.
+
+    White itself when nothing reads; the theme check reports that background.
+    """
+    for step in range(_LIGHTEN_STEPS + 1):
+        candidate = mix(WHITE, colour, share=step / _LIGHTEN_STEPS)
+        tint = tint_over(candidate, background)
+        ratio = lowest_contrast(candidate, background=background, tint=tint)
+        if ratio >= CONTRAST_FLOOR:
+            return candidate
+    return WHITE
+
+
+def _lighten(colour: str, background: str) -> str:
+    if (key := (colour, background)) not in _LIGHTENED:
+        _LIGHTENED[key] = _lift(colour, background)
+    return _LIGHTENED[key]
 
 
 def _host(url: str) -> str | None:
@@ -140,10 +163,14 @@ def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str
 
 
 class SchemaService(SchemaServiceProtocol):
-    """Type schemas: metadata, role built-ins, parts, colours."""
+    """Type schemas: metadata, role built-ins, parts, colours.
 
-    def __init__(self, background: str) -> None:
+    Type colours get a dark-scheme variant when `dark_background` is given.
+    """
+
+    def __init__(self, background: str, *, dark_background: str | None) -> None:
         self._background = background
+        self._dark_background = dark_background
 
     @override
     def validate_metadata(
@@ -275,7 +302,7 @@ class SchemaService(SchemaServiceProtocol):
 
     @override
     def derive_tint(self, colour: str) -> str:
-        return mix(colour, self._background, share=TINT_MIX)
+        return tint_over(colour, self._background)
 
     @override
     def check_colours(self, colour: str, tint: str) -> list[str]:
@@ -290,3 +317,9 @@ class SchemaService(SchemaServiceProtocol):
                 f"Contrast with the tint is {ratio:.2f}:1, needs {CONTRAST_FLOOR}:1."
             )
         return errors
+
+    @override
+    def derive_dark_colour(self, colour: str) -> str | None:
+        if (dark := self._dark_background) is None:
+            return None
+        return _lighten(colour, dark)

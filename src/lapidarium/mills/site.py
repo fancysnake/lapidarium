@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import SiteDTO, SiteServiceProtocol
+from lapidarium.pacts import SiteDTO, SiteServiceProtocol, TypeColourDTO
 
 if TYPE_CHECKING:
-    from lapidarium.pacts import EntryTypeRepositoryProtocol, ProfileRepositoryProtocol
+    from lapidarium.pacts import (
+        EntryTypeRepositoryProtocol,
+        ProfileRepositoryProtocol,
+        SchemaServiceProtocol,
+    )
 
 
 class SiteService(SiteServiceProtocol):
@@ -16,10 +20,12 @@ class SiteService(SiteServiceProtocol):
         *,
         types: EntryTypeRepositoryProtocol,
         profile: ProfileRepositoryProtocol,
+        schema: SchemaServiceProtocol,
         site_name: str,
     ) -> None:
         self._types = types
         self._profile = profile
+        self._schema = schema
         self._site_name = site_name
 
     @override
@@ -32,4 +38,10 @@ class SiteService(SiteServiceProtocol):
             links=tuple(self._profile.list_links()),
             types=types,
             menu=tuple(t for t in types if t.in_menu),
+            dark_colours=tuple(
+                TypeColourDTO(key=t.key, colour=dark)
+                for t in types
+                if (dark := self._schema.derive_dark_colour(t.colour))
+                not in {None, t.colour}
+            ),
         )
