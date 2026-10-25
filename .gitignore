@@ -31,6 +31,9 @@ media/
 *.pot
 *.log
 
+# Documentation site build
+/site
+
 # Editors
 .idea/
 .vscode/

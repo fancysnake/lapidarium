@@ -39,5 +39,8 @@ All notable changes to this project are documented here. The format follows
   contrast, engine version and stale template overrides; staff-only theme
   preview; type colours checked against the active theme's background.
 - Polish and English UI catalogs; `mise run i18n:make` and `i18n:compile`.
+- Documentation site at <https://lapidarium.fancysnake.dev>: deployment of a
+  new instance, every environment variable, content setup from scratch, the
+  export format, commands, themes; `mise run site:dev` and `site:build`.
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.

@@ -1,0 +1,65 @@
+site_name: lapidarium
+site_url: https://lapidarium.fancysnake.dev
+site_description: Engine for a creator's portfolio site — admin-defined content types, pages built from parts, zero Node.
+repo_url: https://github.com/fancysnake/lapidarium
+repo_name: fancysnake/lapidarium
+copyright: MIT
+
+# A link to a page that is not there is what rots first when a page is
+# renamed, and from here it fails `site:dev` as well as `site:build`.
+strict: true
+
+# Under strict a warning is a failure; anchors are how cross-references
+# between pages actually break, and MkDocs only logs them at info.
+validation:
+  anchors: warn
+
+theme:
+  name: material
+  icon:
+    logo: material/bank
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: lapidarium
+      toggle: {icon: material/lightbulb-off-outline, name: Dim the gallery}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: lapidarium-night
+      toggle: {icon: material/lightbulb-on-outline, name: Light the gallery}
+  features:
+    - content.code.copy
+    - navigation.top
+    - navigation.sections
+    - navigation.footer
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/fancysnake/lapidarium
+
+extra_css:
+  - stylesheets/lapidarium.css
+
+markdown_extensions:
+  - toc: {permalink: true}
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  # Shared prose lives in README.md and is included from there, so the two
+  # cannot drift. base_path is the repo root, which is where mkdocs runs.
+  - pymdownx.snippets: {base_path: ["."], check_paths: true}
+
+nav:
+  - index.md
+  - getting-started.md
+  - Run an instance:
+      - deployment.md
+      - configuration.md
+      - cli.md
+  - Build the site:
+      - concepts.md
+      - content.md
+      - export-format.md
+      - themes.md
+  - Project:
+      - architecture.md
+      - changelog.md

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Django engine for creator portfolio sites. Python 3.14, Poetry, mise, PostgreSQL.
-Plan and content model: `PLAN.md` (local, untracked). Spec: `docs/content-model.md`.
+Plan and content model: `PLAN.md` (local, untracked). Content model and principles: `docs/concepts.md`.
 
 ## Commands
 
@@ -11,6 +11,10 @@ rituals repair until green.
 Narrow first: `mise run lint:ruff`, `mise run test:unit`, `mise run test:int`.
 Dev server uses `db.sqlite3` (gitignored). For PostgreSQL: `mise run db`, then
 set `DATABASE_URL` in `mise.local.toml`.
+Docs site (MkDocs Material, `docs/`): `mise run site:dev` on :8001,
+`mise run site:build`; `strict: true`, so a broken link or anchor fails both.
+`docs/configuration.md` and `docs/cli.md` are guarded by integration tests:
+a new env var or command needs its row or section.
 Pull request rituals: `vekna cast refresh|cover|review|labels` (cabinet, `.vekna.toml`).
 
 ## Architecture

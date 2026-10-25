@@ -1,9 +1,8 @@
 """Zero Node is a project rule: no manifest, no modules, no bundler config."""
 
-from pathlib import Path
+from tests.paths import REPO
 
-REPO = Path(__file__).resolve().parents[2]
-CHECKED_DIRS = ("src", "tests", "docs", "docker", ".github")
+CHECKED_DIRS = ("src", "tests", "docs", "design", "docker", ".github")
 FORBIDDEN = ("package.json", "package-lock.json", "node_modules", "vite.config.*")
 
 
