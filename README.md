@@ -1,5 +1,8 @@
 # lapidarium
 
+Documentation is at [https://lapidarium.fancysnake.dev](https://lapidarium.fancysnake.dev).
+
+<!-- --8<-- [start:intro] -->
 Engine for a creator's portfolio site. You define the content types in the admin
 (sessions, songs, repos, talks, whatever you make); every entry is a page built
 from ordered parts: text, video, audio, image, file, link. The engine gives you
@@ -7,12 +10,14 @@ lists, feeds, search, calendar, themes and a nightly export of everything to
 plain markdown files.
 
 Django, PostgreSQL, plain CSS, a little vanilla JS. No Node.
+<!-- --8<-- [end:intro] -->
 
-Status: pre-alpha, under construction. The original spec (Polish) is in
-[docs/content-model.md](docs/content-model.md).
+Status: pre-alpha, under construction. The content model and the principles
+behind it are in [How it works](https://lapidarium.fancysnake.dev/concepts/).
 
 ## Development
 
+<!-- --8<-- [start:development] -->
 Requires [mise](https://mise.jdx.dev). The dev server uses SQLite (`db.sqlite3`).
 
 ```bash
@@ -28,36 +33,28 @@ Day to day:
 mise run check        # format + lint
 mise run test:py      # all tests
 mise run fullcheck    # the commit gate
+mise run site:dev     # this manual, live at http://localhost:8001
 mise tasks            # everything else
 ```
 
 Personal overrides go in `mise.local.toml`, which is gitignored.
+<!-- --8<-- [end:development] -->
 
 ## Configuration
 
-An instance is configured through the environment. Beyond the Django basics
-(`SECRET_KEY`, `ALLOWED_HOSTS`, `DATABASE_URL`, `LANGUAGE_CODE`, `TIME_ZONE`):
+An instance is configured through the environment. Every variable, with its
+default, is in [Configuration](https://lapidarium.fancysnake.dev/configuration/);
+running one in production is in
+[Deployment](https://lapidarium.fancysnake.dev/deployment/), and setting up its
+content from nothing in [Content](https://lapidarium.fancysnake.dev/content/).
 
-| Variable | Default | What it sets |
-|---|---|---|
-| `SITE_NAME` | `lapidarium` | Site title when no profile exists |
-| `CACHE_URL` | `locmemcache://` | Default cache; rate limits count here |
-| `PAGE_CACHE_URL` | `filecache:///tmp/lapidarium-pages` | Rendered public pages, shared by all workers |
-| `PAGE_CACHE_SECONDS` | `600` | How long a rendered page lives; any content change clears them all |
-| `EMAIL_URL` | `consolemail://` | Mail backend for the contact form, e.g. `smtp+tls://user:pass@host:587` |
-| `DEFAULT_FROM_EMAIL` | `webmaster@localhost` | Sender of contact form mail |
-| `NEWSLETTER_BACKEND` | `log` | `log` or `mailchimp` |
-| `MAILCHIMP_API_KEY`, `MAILCHIMP_LIST_ID` | empty | Mailchimp audience, required with `mailchimp`; new subscribers confirm by mail |
-| `TRUSTED_PROXY_HOPS` | `1` in production, else `0` | Proxies in front that append to `X-Forwarded-For`; rate limits key on the address the outermost one saw |
-| `GS_BUCKET_NAME` | empty | Turns on GCS media storage; the bucket must allow public read |
-| `GS_LOCATION` | empty | Path prefix for media inside the bucket |
-| `GOOGLE_APPLICATION_CREDENTIALS` | empty | Service-account key file for GCS; unneeded on GCP with an attached account |
-| `SITE_THEME` | `base` | Active theme, see [docs/themes.md](docs/themes.md) |
-| `SITE_THEME_DIRS` | empty | Extra theme directories, searched first |
+## Documentation
 
-The contact form appears once the profile has an e-mail address.
+`docs/` is the manual's source. `mise run site:dev` serves it with live reload;
+`mise run site:build` builds it into `site/` and fails on any broken link or
+anchor.
 
-### Rituals
+## Rituals
 
 `vekna cast` runs [cabinet](https://cabinet.fancysnake.dev)'s pull request
 rituals (`.vekna.toml`): `refresh`, `cover`, `review`, `labels`. They push over
