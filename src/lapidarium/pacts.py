@@ -658,7 +658,8 @@ class ThemeDTO(BaseModel):
     version: str | None
     engine: str | None
     fonts: tuple[str, ...]
-    has_stylesheet: bool
+    tokens_href: str
+    stylesheet_href: str | None
     tokens: dict[str, str]
     dark_tokens: dict[str, str]
     templates: tuple[str, ...]

@@ -67,16 +67,12 @@ def _type_colour_problems(*, light: str, dark: str) -> Iterator[ProblemDTO]:
         )
 
 
-def _site_theme(layers: tuple[ThemeDTO, ...], *, static_prefix: str) -> SiteThemeDTO:
+def _site_theme(layers: tuple[ThemeDTO, ...]) -> SiteThemeDTO:
     fonts = [url for layer in layers for url in layer.fonts]
     paths = [
-        *(f"{static_prefix}/{layer.key}/tokens.css" for layer in layers),
+        *(layer.tokens_href for layer in layers),
         _ENGINE_STYLESHEET,
-        *(
-            f"{static_prefix}/{layer.key}/theme.css"
-            for layer in layers
-            if layer.has_stylesheet
-        ),
+        *(layer.stylesheet_href for layer in layers if layer.stylesheet_href),
     ]
     active = layers[-1]
     return SiteThemeDTO(
@@ -93,13 +89,10 @@ def _site_theme(layers: tuple[ThemeDTO, ...], *, static_prefix: str) -> SiteThem
 class ThemeService(ThemeServiceProtocol):
     """Read through `store`; checked against `engine_version`.
 
-    Each layer's static files are served under `static_prefix`/<key>.
     `ValueError` when no layer sets `--color-bg`: the colour checks need it.
     """
 
-    def __init__(
-        self, *, store: ThemeStoreProtocol, engine_version: str, static_prefix: str
-    ) -> None:
+    def __init__(self, *, store: ThemeStoreProtocol, engine_version: str) -> None:
         self._store = store
         self._engine_version = engine_version
         self._layers = store.layers()
@@ -114,7 +107,7 @@ class ThemeService(ThemeServiceProtocol):
             msg = f"No theme defines the required token {_BACKGROUND}."
             raise ValueError(msg)
         self._has_dark = any(layer.dark_tokens for layer in self._layers)
-        self._active = _site_theme(self._layers, static_prefix=static_prefix)
+        self._active = _site_theme(self._layers)
 
     @override
     def active(self) -> SiteThemeDTO:

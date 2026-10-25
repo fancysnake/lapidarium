@@ -23,12 +23,13 @@ def test_reads_manifest_tokens_dark_tokens_and_templates(tmp_path):
         "@media (prefers-color-scheme: dark) { :root { --color-bg: #111111; } }\n"
     )
 
-    dto = read_theme(theme)
+    dto = read_theme(theme, static_prefix="themes")
 
     assert dto.key == "night"
     assert (dto.name, dto.version, dto.engine) == ("Night", "2.0", "0.1")
     assert dto.fonts == ("https://f",)
-    assert dto.has_stylesheet is True
+    assert dto.tokens_href == "themes/night/tokens.css"
+    assert dto.stylesheet_href == "themes/night/theme.css"
     assert dto.tokens == {"--color-bg": "#ffffff", "--gutter": "32px"}
     assert dto.dark_tokens == {"--color-bg": "#111111"}
     assert dto.templates == ("lapidarium/base.html",)
@@ -38,10 +39,10 @@ def test_a_bare_theme_needs_only_tokens(tmp_path):
     (tmp_path / "bare").mkdir()
     (tmp_path / "bare" / "tokens.css").write_text(":root { --color-bg: #ffffff; }")
 
-    dto = read_theme(tmp_path / "bare")
+    dto = read_theme(tmp_path / "bare", static_prefix="themes")
 
     assert (dto.name, dto.version, dto.engine, dto.fonts) == ("bare", None, None, ())
-    assert dto.has_stylesheet is False
+    assert dto.stylesheet_href is None
     assert dto.templates == ()
 
 
@@ -51,7 +52,7 @@ def test_tokens_that_do_not_parse_name_the_file(*, tmp_path, css):
     (tmp_path / "broken" / "tokens.css").write_text(css)
 
     with pytest.raises(ImproperlyConfigured, match=r"broken/tokens\.css, line 1"):
-        read_theme(tmp_path / "broken")
+        read_theme(tmp_path / "broken", static_prefix="themes")
 
 
 def test_errors_inside_a_block_count_lines_from_the_top_of_the_file(tmp_path):
@@ -66,7 +67,7 @@ def test_errors_inside_a_block_count_lines_from_the_top_of_the_file(tmp_path):
     )
 
     with pytest.raises(ImproperlyConfigured, match=r"broken/tokens\.css, line 4"):
-        read_theme(tmp_path / "broken")
+        read_theme(tmp_path / "broken", static_prefix="themes")
 
 
 @pytest.mark.parametrize(
@@ -86,11 +87,13 @@ def test_colours_the_contrast_check_reads_must_be_rrggbb(*, tmp_path, css):
     with pytest.raises(
         ImproperlyConfigured, match=r"soft/tokens\.css, line 2: --color-.* #rrggbb"
     ):
-        read_theme(tmp_path / "soft")
+        read_theme(tmp_path / "soft", static_prefix="themes")
 
 
 def test_the_base_theme_defines_every_required_token():
-    base = read_theme(settings.ENGINE_THEMES / "base")
+    base = read_theme(
+        settings.ENGINE_THEMES / "base", static_prefix=settings.THEME_STATIC_PREFIX
+    )
 
     assert base.tokens.keys() >= REQUIRED_TOKENS
 
@@ -99,9 +102,11 @@ def test_store_reads_layers_in_order_and_engine_templates(layered_theme):
     store = ThemeFiles(
         layers=(settings.ENGINE_THEMES / "base", layered_theme),
         engine_templates=settings.ENGINE_TEMPLATES,
+        static_prefix="assets",
     )
 
     base, active = store.layers()
     assert (base.key, active.key) == ("base", "dusk")
+    assert active.tokens_href == "assets/dusk/tokens.css"
     assert active.dark_tokens["--color-bg"] == "#121412"
     assert "lapidarium/base.html" in store.engine_templates()

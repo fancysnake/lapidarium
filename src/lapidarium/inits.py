@@ -76,16 +76,14 @@ class Process:
     @cached_property
     def themes(self) -> ThemeFiles:
         return ThemeFiles(
-            layers=settings.THEME_LAYERS, engine_templates=settings.ENGINE_TEMPLATES
+            layers=settings.THEME_LAYERS,
+            engine_templates=settings.ENGINE_TEMPLATES,
+            static_prefix=settings.THEME_STATIC_PREFIX,
         )
 
     @cached_property
     def theme(self) -> ThemeService:
-        return ThemeService(
-            store=self.themes,
-            engine_version=version("lapidarium"),
-            static_prefix=settings.THEME_STATIC_PREFIX,
-        )
+        return ThemeService(store=self.themes, engine_version=version("lapidarium"))
 
     @cached_property
     def newsletter(self) -> NewsletterProtocol:
