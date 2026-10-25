@@ -8,7 +8,7 @@ enter = "poetry install"
 
 [tools]
 "github:dmno-dev/varlock" = "1.23.0"
-pipx = "1.17.14"
+pipx = "1.18.4"
 "pipx:poetry" = "2.5.1"
 python = "3.14.7"
 
