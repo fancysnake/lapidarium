@@ -14,8 +14,7 @@ on:
         type: string
       environment_url:
         description: Deployed site, shown on the job.
-        required: false
-        default: ''
+        required: true
         type: string
       sha:
         description: Commit to build, deploy and pin the image tag to.
@@ -49,7 +48,9 @@ jobs:
 
       - name: Build Coolify env payload and validate with varlock
         env:
-          # Not configured in the GitHub Environment: hardcoded here.
+          # Same for every instance, so hardcoded rather than configured in
+          # the GitHub Environment. Not left to the settings.py defaults: the
+          # payload drops empty keys, so Coolify would keep any stale value.
           ENV: production
           DEBUG: 'false'
           # Non-sensitive config: GitHub Environment variables.
@@ -84,9 +85,11 @@ jobs:
           # [env], which would fill every key unset above with its dev value.
           varlock="$(mise which varlock)"
           # varlock resolves env/schema.env against the process env above and
-          # exits non-zero if a @required var is missing or malformed. The
-          # resolved set *is* the payload, so a key added to the schema reaches
-          # Coolify without a second list to keep in step.
+          # exits non-zero if a @required var is missing or malformed; the
+          # resolved set is the payload. The env block names each key rather
+          # than exporting every secret into this step;
+          # tests/integration/docs/test_configuration_page.py pins it to the
+          # schema.
           #
           # Dropping empty values keeps the bulk-env upsert from clearing a
           # value Coolify already stores. Piped, never printed: resolved
@@ -121,22 +124,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Sync environment to Coolify
-        env:
-          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
-          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
-          APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
-        run: |
-          set -euo pipefail
-          # Output is discarded so values never reach the run log.
-          jq '{data: .}' "$RUNNER_TEMP/envs.json" | curl -fsS -X PATCH \
-            --connect-timeout 10 --max-time 30 \
-            -H "Authorization: Bearer $COOLIFY_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data @- \
-            "$COOLIFY_URL/api/v1/applications/$APP_UUID/envs/bulk" > /dev/null
-
-      - name: Pin image tag
+      - name: Sync env, pin image tag, deploy on Coolify and wait
         env:
           COOLIFY_URL: ${{ vars.COOLIFY_URL }}
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
@@ -144,45 +132,28 @@ jobs:
           TARGET_SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
+          # Every call retries: one dropped response after the image push
+          # would leave Coolify holding the new env or pinned tag with no
+          # deploy running, for the next unrelated redeploy to ship silently.
+          # The PATCHes are idempotent; a duplicate trigger redeploys the
+          # same pinned image.
+          coolify() {
+            curl -fsS --connect-timeout 10 --max-time 30 \
+              --retry 3 --retry-all-errors \
+              -H "Authorization: Bearer $COOLIFY_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$@"
+          }
+          api="$COOLIFY_URL/api/v1"
+          # Output is discarded so values never reach the run log.
+          jq '{data: .}' "$RUNNER_TEMP/envs.json" \
+            | coolify -X PATCH --data @- "$api/applications/$APP_UUID/envs/bulk" > /dev/null
           # Pinning the exact sha tag (not `latest`) makes rollback a
           # re-dispatch of the calling workflow on an older commit.
           jq -n --arg tag "sha-$TARGET_SHA" '{docker_registry_image_tag: $tag}' \
-            | curl -fsS -X PATCH \
-                --connect-timeout 10 --max-time 30 \
-                -H "Authorization: Bearer $COOLIFY_TOKEN" \
-                -H "Content-Type: application/json" \
-                --data @- \
-                "$COOLIFY_URL/api/v1/applications/$APP_UUID" > /dev/null
-
-      - name: Deploy on Coolify and wait
-        env:
-          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
-          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
-          APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
-        run: |
-          set -eu
-          # Retried because one dropped response here would kill the job after
-          # the image push, env sync and tag pin, leaving Coolify holding the
-          # new env and pinned tag with no deploy running, for the next
-          # unrelated redeploy to ship silently. A duplicate trigger just
-          # redeploys the same pinned image.
-          deployment_uuid=''
-          for attempt in 1 2 3; do
-            deployment_uuid="$(curl -fsS -X POST \
-              --connect-timeout 10 --max-time 30 \
-              -H "Authorization: Bearer $COOLIFY_TOKEN" \
-              "$COOLIFY_URL/api/v1/deploy?uuid=$APP_UUID" \
-              | jq -re '.deployments[0].deployment_uuid' || true)"
-            if [ -n "$deployment_uuid" ]; then
-              break
-            fi
-            echo "Deploy trigger attempt $attempt failed" >&2
-            sleep 5
-          done
-          if [ -z "$deployment_uuid" ]; then
-            echo "Could not trigger Coolify deployment" >&2
-            exit 1
-          fi
+            | coolify -X PATCH --data @- "$api/applications/$APP_UUID" > /dev/null
+          deployment_uuid="$(coolify -X POST "$api/deploy?uuid=$APP_UUID" \
+            | jq -re '.deployments[0].deployment_uuid')"
           echo "Coolify deployment: $deployment_uuid"
           # Poll so the run reflects the real outcome: 60 polls, 10s apart.
           # The image CMD is prod-start, which runs migrate + collectstatic
@@ -191,10 +162,7 @@ jobs:
             sleep 10
             # One bad poll must not crash the watch: a garbled body or a dead
             # curl falls back to transient_error and the loop retries.
-            status="$(curl -fsS \
-              --connect-timeout 10 --max-time 30 \
-              -H "Authorization: Bearer $COOLIFY_TOKEN" \
-              "$COOLIFY_URL/api/v1/deployments/$deployment_uuid" \
+            status="$(coolify "$api/deployments/$deployment_uuid" \
               | jq -r '.status' || echo 'transient_error')"
             echo "[$i] status: $status"
             case "$status" in
