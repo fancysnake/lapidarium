@@ -93,11 +93,13 @@ jobs:
           #
           # Dropping empty values keeps the bulk-env upsert from clearing a
           # value Coolify already stores. Piped, never printed: resolved
-          # secrets stay out of the run log.
+          # secrets stay out of the run log. is_literal stops Coolify expanding
+          # a `$` inside a value, which a secret key or password may hold.
           "$varlock" load --path env/schema.env --format json \
             | jq '[to_entries[]
                    | select(.value != null and .value != "")
-                   | {key: .key, value: (.value | tostring), is_preview: false}]' \
+                   | {key: .key, value: (.value | tostring),
+                      is_preview: false, is_literal: true}]' \
             > "$RUNNER_TEMP/envs.json"
 
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
