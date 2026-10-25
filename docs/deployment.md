@@ -152,7 +152,7 @@ first and give it to that user's UID, which
 `docker compose -f prod.yaml exec web id -u` prints. Then run it:
 
 ```bash
-docker compose -f prod.yaml exec web mise run dj export_content /app/export
+docker compose -f prod.yaml exec -T web mise run dj export_content /app/export
 ```
 
 The export holds published content only: drafts, users and sign-ups live in
