@@ -61,6 +61,10 @@ description = "Compile the catalogs; .mo files are build output, never committed
 dir = "src/lapidarium"
 run = "django-admin compilemessages"
 
+["env:show"]
+description = "Validate the env against env/schema.env and print it, secrets redacted (agent-safe JSON)"
+run = "varlock load --path env/schema.env --agent"
+
 # `--only docs --no-root` because mkdocs.yml declares no plugins: nothing here
 # imports the package, so neither the package nor the dev group is worth
 # installing. `--only` alone still installs the root project.
