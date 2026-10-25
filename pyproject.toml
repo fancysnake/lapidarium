@@ -84,7 +84,7 @@ target-version = ['py314']
 # CODESPELL
 
 [tool.codespell]
-skip = '*.lock,*.po,docs/prototype'
+skip = '*.lock,*.po,design/prototype'
 
 # COVERAGE
 

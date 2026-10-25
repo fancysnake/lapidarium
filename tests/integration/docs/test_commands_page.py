@@ -1,11 +1,12 @@
 """docs/cli.md has a section for every management command the engine adds."""
 
 import re
-from pathlib import Path
 
 from django.core.management import get_commands
 
-PAGE = Path(__file__).resolve().parents[3] / "docs" / "cli.md"
+from tests.paths import REPO
+
+PAGE = REPO / "docs" / "cli.md"
 SECTION = re.compile(r"^## `([a-z_]+)`$", re.MULTILINE)
 APP = "lapidarium.gates.cli.django"
 

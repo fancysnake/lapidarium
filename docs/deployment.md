@@ -138,7 +138,18 @@ Two things hold an instance: the database and the uploads. Back up both:
 
 `export_content` also writes every published entry, type, the profile and
 the assets they use as plain files (see [Export format](export-format.md)).
-It does not run by itself; schedule it from the host, into a mounted volume:
+It does not run by itself; schedule it from the host. `prod.yaml` mounts
+nothing at `/app/export`, so without a volume there the export is lost when
+the container is recreated. Add one under `web`:
+
+```yaml
+    volumes:
+      - ./export:/app/export
+```
+
+The container runs as an unprivileged user, so create `export/` on the host
+first and give it to that user's UID, which
+`docker compose -f prod.yaml exec web id -u` prints. Then run it:
 
 ```bash
 docker compose -f prod.yaml exec web mise run dj export_content /app/export

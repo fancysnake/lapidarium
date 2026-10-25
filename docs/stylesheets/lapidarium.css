@@ -22,16 +22,21 @@
   --lapidarium-cyan-light: #4dd0e1;
 }
 
-/* ---- Light ---- */
+/* ---- Both ---- */
 
-[data-md-color-scheme="lapidarium"] {
-  color-scheme: light;
-
+/* The case keeps its light: the same cyan header in both schemes. */
+[data-md-color-scheme^="lapidarium"] {
   --md-primary-fg-color: var(--lapidarium-cyan);
   --md-primary-fg-color--light: #62ebff;
   --md-primary-fg-color--dark: #0088a3;
   --md-primary-bg-color: var(--lapidarium-ink);
   --md-primary-bg-color--light: rgb(11 30 34 / 70%);
+}
+
+/* ---- Light ---- */
+
+[data-md-color-scheme="lapidarium"] {
+  color-scheme: light;
 
   /* 7.0:1 on white. */
   --md-accent-fg-color: var(--lapidarium-teal-deep);
@@ -59,13 +64,6 @@
   --md-default-bg-color--light: hsl(var(--md-hue) 15% 14% / 54%);
   --md-default-bg-color--lighter: hsl(var(--md-hue) 15% 14% / 26%);
   --md-default-bg-color--lightest: hsl(var(--md-hue) 15% 14% / 7%);
-
-  /* The case keeps its light: the same cyan header in both schemes. */
-  --md-primary-fg-color: var(--lapidarium-cyan);
-  --md-primary-fg-color--light: #62ebff;
-  --md-primary-fg-color--dark: #0088a3;
-  --md-primary-bg-color: var(--lapidarium-ink);
-  --md-primary-bg-color--light: rgb(11 30 34 / 70%);
 
   /* 8.8:1 on the page. */
   --md-accent-fg-color: var(--lapidarium-cyan-light);
@@ -123,6 +121,12 @@
   --md-code-hl-special-color: #f06090;
   --md-code-hl-generic-color: var(--md-default-fg-color--light);
   --md-code-hl-variable-color: var(--md-default-fg-color--light);
+}
+
+/* An inlined diagram shrinks to the column, never past its own size. */
+.diagram svg {
+  max-width: 100%;
+  height: auto;
 }
 
 /* A variable name in a table's first column stays whole, not ALLOWED_HOST / S. */

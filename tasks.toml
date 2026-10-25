@@ -64,10 +64,17 @@ run = "django-admin compilemessages"
 # `--only docs --no-root` because mkdocs.yml declares no plugins: nothing here
 # imports the package, so neither the package nor the dev group is worth
 # installing. `--only` alone still installs the root project.
+["site:deps"]
+description = "Install the documentation site's dependencies"
+hide = true
+run = "poetry install --only docs --no-root --quiet"
+
 ["site:dev"]
 description = "Serve the documentation site on :8001, beside the dev server, with live reload"
-run = "poetry install --only docs --no-root --quiet && mkdocs serve --dev-addr localhost:8001"
+depends = ["site:deps"]
+run = "mkdocs serve --dev-addr localhost:8001"
 
 ["site:build"]
 description = "Build the documentation site into site/"
-run = "poetry install --only docs --no-root --quiet && mkdocs build"
+depends = ["site:deps"]
+run = "mkdocs build"

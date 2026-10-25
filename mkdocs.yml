@@ -14,11 +14,6 @@ strict: true
 validation:
   anchors: warn
 
-# The HTML prototype is the author's working material, kept beside the manual
-# but not part of it.
-exclude_docs: |
-  prototype/
-
 theme:
   name: material
   icon:

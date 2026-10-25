@@ -83,10 +83,12 @@ disappear. So:
 ### Content outlives the application
 
 Content lives in PostgreSQL because that makes editing easy, but
-[`export_content`](cli.md#export_content) writes all of it as markdown with
-YAML frontmatter, plus the media. Run on a schedule into a git repository, the
-export is a backup, a history of changes and a way out: if the engine ever
-dies, the content stays readable. [`import_content`](cli.md#import_content)
+[`export_content`](cli.md#export_content) writes the published content as
+markdown with YAML frontmatter, plus the media. Run on a schedule into a git
+repository, the export is a copy of the published site, a history of changes
+and a way out: if the engine ever dies, the content stays readable. It is not
+a full backup; drafts and users live only in the database, see
+[Backups](deployment.md#backups). [`import_content`](cli.md#import_content)
 reads it back, to restore an instance, move it, or start a new one from files.
 The [format](export-format.md) is versioned because it is part of that
 promise.

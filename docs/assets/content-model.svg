@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 700" width="720" height="700" role="img" aria-label="A content type shapes every entry of that type; an entry is built from ordered parts, uses media assets, belongs to containers through part of and links to related entries; published entries, the profile and external items render as the public site's pages and feeds; the same model exports to plain files." font-size="12" fill="currentColor" style="max-width: 100%; height: auto">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 700" width="720" height="700" role="img" aria-label="A content type shapes every entry of that type; an entry is built from ordered parts, uses media assets, belongs to containers through part of and links to related entries; published entries, the profile and external items render as the public site's pages and feeds; the same model exports to plain files." font-size="12" fill="currentColor">
   <defs>
     <marker id="cm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
