@@ -649,7 +649,11 @@ class DetailDTO(BaseModel):
 
 
 class ThemeDTO(BaseModel):
-    """A theme directory as read: `theme.toml` and the tokens its CSS sets."""
+    """A theme directory as read: `theme.toml` and the tokens its CSS sets.
+
+    `tokens_href` and `stylesheet_href` are static file paths for `{% static %}`,
+    not URLs.
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -658,7 +662,8 @@ class ThemeDTO(BaseModel):
     version: str | None
     engine: str | None
     fonts: tuple[str, ...]
-    has_stylesheet: bool
+    tokens_href: str
+    stylesheet_href: str | None
     tokens: dict[str, str]
     dark_tokens: dict[str, str]
     templates: tuple[str, ...]

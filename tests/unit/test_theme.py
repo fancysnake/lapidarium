@@ -23,7 +23,8 @@ def _theme(key="base", **overrides):
             "version": "1.0.0",
             "engine": "0.1",
             "fonts": (),
-            "has_stylesheet": False,
+            "tokens_href": f"themes/{key}/tokens.css",
+            "stylesheet_href": None,
             "tokens": {},
             "dark_tokens": {},
             "templates": (),
@@ -37,7 +38,7 @@ def _service(*, base=None, active=None, engine="0.1.0", templates=frozenset()):
     base = base or _theme(tokens=COMPLETE)
     store.layers.return_value = (base, active) if active else (base,)
     store.engine_templates.return_value = templates
-    return ThemeService(store=store, engine_version=engine, static_prefix="themes")
+    return ThemeService(store=store, engine_version=engine)
 
 
 def _codes(problems):
@@ -100,7 +101,11 @@ def test_a_problem_takes_its_level_from_its_code():
 def test_the_page_loads_fonts_then_tokens_then_engine_css_then_theme_css():
     base = _theme(tokens=COMPLETE, fonts=("https://base",))
     active = _theme(
-        "x", name="X", version="2.0", fonts=("https://x",), has_stylesheet=True
+        "x",
+        name="X",
+        version="2.0",
+        fonts=("https://x",),
+        stylesheet_href="themes/x/theme.css",
     )
 
     theme = _service(base=base, active=active).active()

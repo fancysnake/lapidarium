@@ -235,7 +235,10 @@ def test_type_change_has_no_dark_colour_without_a_dark_scheme(admin):
 def test_type_change_shows_the_derived_dark_colour(
     *, admin, settings, monkeypatch, layered_theme
 ):
-    settings.THEME_LAYERS = (settings.ENGINE_THEMES / "base", layered_theme)
+    settings.THEME_STATIC_DIRS = (
+        ("themes/base", settings.ENGINE_THEMES / "base"),
+        ("themes/dusk", layered_theme),
+    )
     monkeypatch.setattr(inits, "PROCESS", inits.Process())
 
     response = admin.get(f"{TYPES}{_talk().pk}/change/")
