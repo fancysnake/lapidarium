@@ -76,9 +76,8 @@ class Process:
     @cached_property
     def themes(self) -> ThemeFiles:
         return ThemeFiles(
-            layers=settings.THEME_LAYERS,
+            layers=settings.THEME_STATIC_DIRS,
             engine_templates=settings.ENGINE_TEMPLATES,
-            static_prefix=settings.THEME_STATIC_PREFIX,
         )
 
     @cached_property

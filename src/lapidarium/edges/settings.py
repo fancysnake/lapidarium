@@ -68,8 +68,10 @@ THEME_LAYERS: tuple[Path, ...] = (
     if _SITE_THEME_DIR.name == "base"
     else (ENGINE_THEMES / "base", _SITE_THEME_DIR)
 )
-# Where each layer's directory is served from: <prefix>/<name>/.
-THEME_STATIC_PREFIX = "themes"
+# Each layer, as the static path its directory is served under and the directory.
+THEME_STATIC_DIRS: tuple[tuple[str, Path], ...] = tuple(
+    (f"themes/{d.name}", d) for d in THEME_LAYERS
+)
 ADMIN_URL = env("ADMIN_URL")
 
 INSTALLED_APPS = [
@@ -154,10 +156,7 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT")
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    *((f"{THEME_STATIC_PREFIX}/{d.name}", d) for d in THEME_LAYERS),
-]
+STATICFILES_DIRS = [BASE_DIR / "static", *THEME_STATIC_DIRS]
 MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")
 

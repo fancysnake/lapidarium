@@ -101,13 +101,12 @@ def _relative_files(root: Path) -> tuple[str, ...]:
     )
 
 
-def read_theme(directory: Path, *, static_prefix: str) -> ThemeDTO:
+def read_theme(directory: Path, *, href: str) -> ThemeDTO:
     """`ImproperlyConfigured` when `tokens.css` does not parse or breaks the contract.
 
     The contract: each colour the contrast check reads is `#rrggbb`.
-    The directory is served as static files under `static_prefix`/<name>.
+    `href` is the static path the directory is served under.
     """
-    href = f"{static_prefix}/{directory.name}"
     manifest = directory / "theme.toml"
     meta = tomllib.loads(manifest.read_text()) if manifest.is_file() else {}
     path = directory / "tokens.css"
@@ -136,10 +135,11 @@ class ThemeFiles(ThemeStoreProtocol):
     """Read once per process: themes ship with the code and change with a deploy."""
 
     def __init__(
-        self, *, layers: Sequence[Path], engine_templates: Path, static_prefix: str
+        self, *, layers: Sequence[tuple[str, Path]], engine_templates: Path
     ) -> None:
+        """`layers` holds (static path, directory) pairs in load order."""
         self._layers = tuple(
-            read_theme(directory, static_prefix=static_prefix) for directory in layers
+            read_theme(directory, href=href) for href, directory in layers
         )
         self._engine_templates = frozenset(_relative_files(engine_templates))
 

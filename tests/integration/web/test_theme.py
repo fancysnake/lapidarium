@@ -15,7 +15,10 @@ pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
 @pytest.fixture(name="dusk")
 def dusk_fixture(*, settings, monkeypatch, layered_theme):
-    settings.THEME_LAYERS = (settings.ENGINE_THEMES / "base", layered_theme)
+    settings.THEME_STATIC_DIRS = (
+        ("themes/base", settings.ENGINE_THEMES / "base"),
+        ("themes/dusk", layered_theme),
+    )
     monkeypatch.setattr(inits, "PROCESS", inits.Process())
 
 
@@ -24,7 +27,10 @@ def bare_theme_fixture(*, settings, monkeypatch, tmp_path):
     """Use a theme that sets only a brand too pale to read, and no engine."""
     (tmp_path / "bare").mkdir()
     (tmp_path / "bare" / "tokens.css").write_text(":root { --color-brand: #eeeeee; }")
-    settings.THEME_LAYERS = (settings.ENGINE_THEMES / "base", tmp_path / "bare")
+    settings.THEME_STATIC_DIRS = (
+        ("themes/base", settings.ENGINE_THEMES / "base"),
+        ("themes/bare", tmp_path / "bare"),
+    )
     monkeypatch.setattr(inits, "PROCESS", inits.Process())
 
 
