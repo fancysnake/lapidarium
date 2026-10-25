@@ -1,0 +1,206 @@
+---
+name: Deploy to Coolify
+
+# Shared body of every deploy-<instance>.yml. `vars` and `secrets` resolve
+# against the GitHub Environment named by `inputs.environment`, declared on
+# this job, so one config block serves every instance.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub Environment supplying the vars and secrets.
+        required: true
+        type: string
+      environment_url:
+        description: Deployed site, shown on the job.
+        required: false
+        default: ''
+        type: string
+      sha:
+        description: Commit to build, deploy and pin the image tag to.
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Build image and deploy to Coolify
+    runs-on: ubuntu-latest
+    # Backstop for a hung Coolify API: callers serialize on a concurrency
+    # group, and GitHub's default ceiling is 6 hours, long enough to block a
+    # rollback behind a stuck run.
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.environment_url }}
+    steps:
+      - name: Checkout (provides env/schema.env for varlock validation)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+
+      - uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
+        with:
+          install_args: github:dmno-dev/varlock
+
+      - name: Build Coolify env payload and validate with varlock
+        env:
+          # Not configured in the GitHub Environment: hardcoded here.
+          ENV: production
+          DEBUG: 'false'
+          # Non-sensitive config: GitHub Environment variables.
+          ALLOWED_HOSTS: ${{ vars.ALLOWED_HOSTS }}
+          SITE_NAME: ${{ vars.SITE_NAME }}
+          SITE_THEME: ${{ vars.SITE_THEME }}
+          SITE_THEME_DIRS: ${{ vars.SITE_THEME_DIRS }}
+          ADMIN_URL: ${{ vars.ADMIN_URL }}
+          LANGUAGE_CODE: ${{ vars.LANGUAGE_CODE }}
+          TIME_ZONE: ${{ vars.TIME_ZONE }}
+          STATIC_ROOT: ${{ vars.STATIC_ROOT }}
+          MEDIA_ROOT: ${{ vars.MEDIA_ROOT }}
+          MEDIA_URL: ${{ vars.MEDIA_URL }}
+          GS_BUCKET_NAME: ${{ vars.GS_BUCKET_NAME }}
+          GS_LOCATION: ${{ vars.GS_LOCATION }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ vars.GOOGLE_APPLICATION_CREDENTIALS }}
+          PAGE_CACHE_SECONDS: ${{ vars.PAGE_CACHE_SECONDS }}
+          DEFAULT_FROM_EMAIL: ${{ vars.DEFAULT_FROM_EMAIL }}
+          NEWSLETTER_BACKEND: ${{ vars.NEWSLETTER_BACKEND }}
+          MAILCHIMP_LIST_ID: ${{ vars.MAILCHIMP_LIST_ID }}
+          TRUSTED_PROXY_HOPS: ${{ vars.TRUSTED_PROXY_HOPS }}
+          # Sensitive config: GitHub Environment secrets.
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CACHE_URL: ${{ secrets.CACHE_URL }}
+          PAGE_CACHE_URL: ${{ secrets.PAGE_CACHE_URL }}
+          EMAIL_URL: ${{ secrets.EMAIL_URL }}
+          MAILCHIMP_API_KEY: ${{ secrets.MAILCHIMP_API_KEY }}
+        run: |
+          set -euo pipefail
+          # The real binary, not the mise shim: a shim runs with mise.toml's
+          # [env], which would fill every key unset above with its dev value.
+          varlock="$(mise which varlock)"
+          # varlock resolves env/schema.env against the process env above and
+          # exits non-zero if a @required var is missing or malformed. The
+          # resolved set *is* the payload, so a key added to the schema reaches
+          # Coolify without a second list to keep in step.
+          #
+          # Dropping empty values keeps the bulk-env upsert from clearing a
+          # value Coolify already stores. Piped, never printed: resolved
+          # secrets stay out of the run log.
+          "$varlock" load --path env/schema.env --format json \
+            | jq '[to_entries[]
+                   | select(.value != null and .value != "")
+                   | {key: .key, value: (.value | tostring), is_preview: false}]' \
+            > "$RUNNER_TEMP/envs.json"
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # build-image.yml already pushes this tag for main commits. Building here
+      # anyway removes the race against that workflow and allows deploying a
+      # non-main commit; the shared GHA cache makes it near-free either way.
+      - name: Build and push image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: prod
+          push: true
+          # sha- prefix matches build-image.yml's metadata-action tags.
+          tags: ghcr.io/${{ github.repository }}:sha-${{ inputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Sync environment to Coolify
+        env:
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
+        run: |
+          set -euo pipefail
+          # Output is discarded so values never reach the run log.
+          jq '{data: .}' "$RUNNER_TEMP/envs.json" | curl -fsS -X PATCH \
+            --connect-timeout 10 --max-time 30 \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data @- \
+            "$COOLIFY_URL/api/v1/applications/$APP_UUID/envs/bulk" > /dev/null
+
+      - name: Pin image tag
+        env:
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
+          TARGET_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          # Pinning the exact sha tag (not `latest`) makes rollback a
+          # re-dispatch of the calling workflow on an older commit.
+          jq -n --arg tag "sha-$TARGET_SHA" '{docker_registry_image_tag: $tag}' \
+            | curl -fsS -X PATCH \
+                --connect-timeout 10 --max-time 30 \
+                -H "Authorization: Bearer $COOLIFY_TOKEN" \
+                -H "Content-Type: application/json" \
+                --data @- \
+                "$COOLIFY_URL/api/v1/applications/$APP_UUID" > /dev/null
+
+      - name: Deploy on Coolify and wait
+        env:
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
+        run: |
+          set -eu
+          # Retried because one dropped response here would kill the job after
+          # the image push, env sync and tag pin, leaving Coolify holding the
+          # new env and pinned tag with no deploy running, for the next
+          # unrelated redeploy to ship silently. A duplicate trigger just
+          # redeploys the same pinned image.
+          deployment_uuid=''
+          for attempt in 1 2 3; do
+            deployment_uuid="$(curl -fsS -X POST \
+              --connect-timeout 10 --max-time 30 \
+              -H "Authorization: Bearer $COOLIFY_TOKEN" \
+              "$COOLIFY_URL/api/v1/deploy?uuid=$APP_UUID" \
+              | jq -re '.deployments[0].deployment_uuid' || true)"
+            if [ -n "$deployment_uuid" ]; then
+              break
+            fi
+            echo "Deploy trigger attempt $attempt failed" >&2
+            sleep 5
+          done
+          if [ -z "$deployment_uuid" ]; then
+            echo "Could not trigger Coolify deployment" >&2
+            exit 1
+          fi
+          echo "Coolify deployment: $deployment_uuid"
+          # Poll so the run reflects the real outcome: 60 polls, 10s apart.
+          # The image CMD is prod-start, which runs migrate + collectstatic
+          # before gunicorn.
+          for i in $(seq 1 60); do
+            sleep 10
+            # One bad poll must not crash the watch: a garbled body or a dead
+            # curl falls back to transient_error and the loop retries.
+            status="$(curl -fsS \
+              --connect-timeout 10 --max-time 30 \
+              -H "Authorization: Bearer $COOLIFY_TOKEN" \
+              "$COOLIFY_URL/api/v1/deployments/$deployment_uuid" \
+              | jq -r '.status' || echo 'transient_error')"
+            echo "[$i] status: $status"
+            case "$status" in
+              finished) exit 0 ;;
+              failed | cancelled*) echo "Deployment $status" >&2; exit 1 ;;
+            esac
+          done
+          echo "Gave up waiting for Coolify deployment after 60 polls" >&2
+          exit 1
