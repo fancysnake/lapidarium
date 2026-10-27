@@ -353,6 +353,23 @@ def test_import_refuses_buttons_missing_from_the_assets(repos):
     repos.transaction.atomic.assert_not_called()
 
 
+def test_import_refuses_link_and_friend_urls_that_are_not_http(repos):
+    links = [{"platform": "x", "url": "javascript:alert(1)", "label": "X"}]
+    friends = [{"name": "Ada", "url": "ada.example.org", "button": ""}]
+    repos.store.read.return_value = _bundle(links=links, friends=friends)
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "profile.yaml": [
+            "Link 'X': Enter a full http(s) address.",
+            "Friend 'Ada': Enter a full http(s) address.",
+        ]
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
 def test_import_rejects_entries_of_unknown_types(repos):
     repos.store.read.return_value = _bundle(entries=[entry_data(entry_type="song")])
 

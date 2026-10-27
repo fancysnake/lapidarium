@@ -9,6 +9,7 @@ from lapidarium.pacts import SiteDTO, SiteServiceProtocol, TypeColourDTO
 if TYPE_CHECKING:
     from lapidarium.pacts import (
         EntryTypeRepositoryProtocol,
+        FriendDTO,
         ProfileRepositoryProtocol,
         SchemaServiceProtocol,
     )
@@ -36,7 +37,6 @@ class SiteService(SiteServiceProtocol):
             profile=profile,
             owner_name=(profile.name if profile else "") or self._site_name,
             links=tuple(self._profile.list_links()),
-            friends=tuple(self._profile.list_friends()),
             types=types,
             menu=tuple(t for t in types if t.in_menu),
             dark_colours=tuple(
@@ -46,3 +46,7 @@ class SiteService(SiteServiceProtocol):
                 not in {None, t.colour}
             ),
         )
+
+    @override
+    def friends(self) -> tuple[FriendDTO, ...]:
+        return tuple(self._profile.list_friends())

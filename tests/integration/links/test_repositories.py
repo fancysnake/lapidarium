@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.db import IntegrityError
+from django.utils import translation
 from PIL import Image
 
 from lapidarium.links.db.django.models import (
@@ -344,10 +345,11 @@ def test_a_button_must_be_an_88_by_31_image(content, *, missing):
         asset.file.storage.delete(asset.file.name)
     friend = Friend(name="Ada", url="https://ada.example.org", button=asset)
 
-    with pytest.raises(ValidationError) as caught:
-        friend.full_clean()
+    with translation.override("en"):
+        with pytest.raises(ValidationError) as caught:
+            friend.full_clean()
 
-    assert caught.value.message_dict == {"button": ["A button is an 88x31 image."]}
+        assert caught.value.message_dict == {"button": ["A button is an 88x31 image."]}
 
 
 def test_ensure_superuser_creates_then_resets_the_login():

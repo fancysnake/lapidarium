@@ -62,7 +62,7 @@ def test_about_without_photo_or_contact(site):
 def test_about_lists_friends_as_text_buttons_with_a_link_back(site):
     response = site.get("/about/")
 
-    friends = response.context["site"].friends
+    friends = response.context["friends"]
     assert [(f.name, f.url, f.button) for f in friends] == [
         ("Kostka i Pióro", "https://kostka.example.org", None),
         ("Gotycki Kufer", "https://kufer.example.net", None),
@@ -74,6 +74,7 @@ def test_about_lists_friends_as_text_buttons_with_a_link_back(site):
         ' rel="external noopener">'
     ) in response.text
     assert '<span class="web-button__text">Gotycki Kufer</span>' in response.text
+    assert '<a href="http://testserver/">Mira Kowalska</a>' in response.text
     assert (
         "<code>&lt;a href=&quot;http://testserver/&quot;&gt;"
         "Mira Kowalska&lt;/a&gt;</code>"
@@ -94,7 +95,11 @@ def test_about_shows_friend_and_own_buttons_as_images(site):
     text = " ".join(response.text.split())
     assert "> Friends </h2>" in text
     assert f'src="{friend_button.file.url}" width="88" height="31" alt="Ada"' in text
-    assert f'src="{own_button.file.url}" width="88" height="31"' in text
+    assert (
+        '<a href="http://testserver/">'
+        f'<img src="http://testserver{own_button.file.url}"'
+        ' width="88" height="31" alt="Mira Kowalska"></a>'
+    ) in text
     assert (
         "&lt;a href=&quot;http://testserver/&quot;&gt;&lt;img"
         f" src=&quot;http://testserver{own_button.file.url}&quot;"

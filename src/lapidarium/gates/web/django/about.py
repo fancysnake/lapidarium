@@ -14,5 +14,6 @@ def about(request: RootRequest) -> HttpResponse:
         request,
         "lapidarium/pages/about.html",
         timeline=request.services.catalogue.timeline(),
+        friends=request.services.site.friends(),
         can_contact=request.services.outreach.can_contact(),
     )

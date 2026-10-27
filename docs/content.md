@@ -48,9 +48,9 @@ the about page, with `rel="external noopener"`.
 
 Three profile fields shape the section: *friends title* (else "Friends"),
 *friends intro* in Markdown, and *button*, the site's own 88×31 image. Under
-the list, *Link back here* shows that button, or a text one, and the HTML a
-friend can paste to link back. The admin refuses a button image of any other
-size.
+the list, *Link back here* shows the HTML a friend can paste to link back,
+and how it looks: that button, or the site's name as a plain link. The admin
+refuses a button image of any other size.
 
 ## Content types
 

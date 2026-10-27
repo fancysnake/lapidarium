@@ -737,7 +737,6 @@ class SiteDTO(BaseModel):
     # The profile's name, or the site name when the profile has none.
     owner_name: str
     links: tuple[LinkDTO, ...]
-    friends: tuple[FriendDTO, ...]
     types: tuple[EntryTypeDTO, ...]
     menu: tuple[EntryTypeDTO, ...]
     dark_colours: tuple[TypeColourDTO, ...]
@@ -917,6 +916,8 @@ class LocalSetupServiceProtocol(Protocol):
 
 class SiteServiceProtocol(Protocol):
     def chrome(self) -> SiteDTO: ...
+
+    def friends(self) -> tuple[FriendDTO, ...]: ...
 
 
 class CatalogueServiceProtocol(Protocol):

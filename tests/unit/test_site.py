@@ -33,7 +33,6 @@ def test_chrome_gives_profile_menu_and_types():
     assert site.profile == PROFILE
     assert site.owner_name == "Mira"
     assert site.links == (LINK,)
-    assert site.friends == (FRIEND,)
     assert site.types == (session, wiki)
     assert site.menu == (session,)
     assert site.dark_colours == ()
@@ -52,3 +51,7 @@ def test_chrome_gives_the_dark_colours_that_differ():
 @pytest.mark.parametrize("profile", (None, PROFILE.model_copy(update={"name": ""})))
 def test_chrome_names_the_site_when_the_profile_names_no_one(profile):
     assert _service(profile=profile).chrome().owner_name == "Lapidarium"
+
+
+def test_friends_are_those_the_profile_keeps():
+    assert _service().friends() == (FRIEND,)

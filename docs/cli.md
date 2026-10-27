@@ -48,8 +48,9 @@ mise run dj import_content <source>
 ```
 
 Reads an export and merges it in. It checks the whole bundle first: format
-version, slugs, colour contrast, field values, role fields, parts, assets and
-relations. One error refuses the import, changes nothing and lists every
+version, slugs, colour contrast, field values, role fields, parts, assets,
+relations, and that profile links and friends point to http(s) addresses. One
+error refuses the import, changes nothing and lists every
 problem by file.
 
 A valid bundle is applied in one transaction, matched by key:
