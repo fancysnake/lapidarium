@@ -14,6 +14,7 @@ from lapidarium.links.db.django.models import (
     EntryType,
     ExternalItem,
     FieldDefinition,
+    Friend,
     Link,
     MediaAsset,
     Part,
@@ -36,6 +37,7 @@ from lapidarium.pacts import (
     ExternalItemRepositoryProtocol,
     FieldDefinitionDTO,
     FieldKind,
+    FriendDTO,
     Layout,
     LinkDTO,
     MediaAssetDTO,
@@ -58,6 +60,7 @@ if TYPE_CHECKING:
         EntryData,
         EntryTypeData,
         FieldDefinitionData,
+        FriendData,
         LinkData,
         ProfileData,
         RelationData,
@@ -369,7 +372,8 @@ class MediaAssetRepository(MediaAssetRepositoryProtocol):
 class ProfileRepository(ProfileRepositoryProtocol):
     @override
     def get(self) -> ProfileDTO | None:
-        if (profile := Profile.objects.select_related("photo").first()) is None:
+        profiles = Profile.objects.select_related("photo", "button")
+        if (profile := profiles.first()) is None:
             return None
         return ProfileDTO(
             name=profile.name,
@@ -378,11 +382,25 @@ class ProfileRepository(ProfileRepositoryProtocol):
             photo=asset_dto(profile.photo) if profile.photo else None,
             bio=profile.bio,
             email=profile.email,
+            button=asset_dto(profile.button) if profile.button else None,
+            friends_title=profile.friends_title,
+            friends_intro=profile.friends_intro,
         )
 
     @override
     def list_links(self) -> list[LinkDTO]:
         return [LinkDTO.model_validate(link) for link in Link.objects.all()]
+
+    @override
+    def list_friends(self) -> list[FriendDTO]:
+        return [
+            FriendDTO(
+                name=friend.name,
+                url=friend.url,
+                button=asset_dto(friend.button) if friend.button else None,
+            )
+            for friend in Friend.objects.select_related("button")
+        ]
 
     @override
     def save(self, data: ProfileData) -> None:
@@ -393,6 +411,9 @@ class ProfileRepository(ProfileRepositoryProtocol):
             "photo": _asset_by_path(data["photo"]),
             "bio": data["bio"],
             "email": data["email"],
+            "button": _asset_by_path(data["button"]),
+            "friends_title": data["friends_title"],
+            "friends_intro": data["friends_intro"],
         }
         if profile := Profile.objects.first():
             Profile.objects.filter(pk=profile.pk).update(**values)
@@ -410,6 +431,19 @@ class ProfileRepository(ProfileRepositoryProtocol):
                 label=link["label"],
             )
             for order, link in enumerate(links)
+        )
+
+    @override
+    def replace_friends(self, friends: Sequence[FriendData]) -> None:
+        Friend.objects.all().delete()
+        Friend.objects.bulk_create(
+            Friend(
+                order=order,
+                name=friend["name"],
+                url=friend["url"],
+                button=_asset_by_path(friend["button"]),
+            )
+            for order, friend in enumerate(friends)
         )
 
 

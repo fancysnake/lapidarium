@@ -4,10 +4,18 @@ import datetime as dt
 from http import HTTPStatus
 
 import pytest
+from django.core.files.base import ContentFile
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from lapidarium.links.db.django.models import Entry, ExternalItem, Link, Profile
+from lapidarium.links.db.django.models import (
+    Entry,
+    ExternalItem,
+    Friend,
+    Link,
+    MediaAsset,
+    Profile,
+)
 from lapidarium.pacts import FeedChange
 from tests.integration.web.conftest import NOW
 
@@ -49,6 +57,58 @@ def test_about_without_photo_or_contact(site):
 
     assert response.context["can_contact"] is False
     assert "Where to find me" not in response.text
+
+
+def test_about_lists_friends_as_text_buttons_with_a_link_back(site):
+    response = site.get("/about/")
+
+    friends = response.context["site"].friends
+    assert [(f.name, f.url, f.button) for f in friends] == [
+        ("Kostka i Pióro", "https://kostka.example.org", None),
+        ("Gotycki Kufer", "https://kufer.example.net", None),
+    ]
+    assert "> Przyjaciele stołu </h2>" in " ".join(response.text.split())
+    assert "Strony ludzi, z którymi gram, piszę i śpiewam." in response.text
+    assert (
+        '<a class="web-button" href="https://kostka.example.org"'
+        ' rel="external noopener">'
+    ) in response.text
+    assert '<span class="web-button__text">Gotycki Kufer</span>' in response.text
+    assert (
+        "<code>&lt;a href=&quot;http://testserver/&quot;&gt;"
+        "Mira Kowalska&lt;/a&gt;</code>"
+    ) in response.text
+
+
+def test_about_shows_friend_and_own_buttons_as_images(site):
+    friend_button = MediaAsset.objects.create(file=ContentFile(b"", name="ada.png"))
+    own_button = MediaAsset.objects.create(file=ContentFile(b"", name="mira.png"))
+    Friend.objects.all().delete()
+    Friend.objects.create(
+        name="Ada", url="https://ada.example.org", button=friend_button
+    )
+    Profile.objects.update(button=own_button, friends_title="", friends_intro="")
+
+    response = site.get("/about/")
+
+    text = " ".join(response.text.split())
+    assert "> Friends </h2>" in text
+    assert f'src="{friend_button.file.url}" width="88" height="31" alt="Ada"' in text
+    assert f'src="{own_button.file.url}" width="88" height="31"' in text
+    assert (
+        "&lt;a href=&quot;http://testserver/&quot;&gt;&lt;img"
+        f" src=&quot;http://testserver{own_button.file.url}&quot;"
+        " width=&quot;88&quot; height=&quot;31&quot;"
+        " alt=&quot;Mira Kowalska&quot;&gt;&lt;/a&gt;"
+    ) in text
+
+
+def test_about_without_friends_or_a_button_has_no_friends_section(site):
+    Friend.objects.all().delete()
+
+    response = site.get("/about/")
+
+    assert 'class="friends"' not in response.text
 
 
 def test_whats_new_lists_entries_and_feed_items(site):

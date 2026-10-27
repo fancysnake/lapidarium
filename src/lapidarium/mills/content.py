@@ -160,17 +160,28 @@ class ContentExportService(ContentExportServiceProtocol):
             if (messages := _draft_links(entry))
         }:
             raise BundleValidationError(drafts)
+        friends = self._profile.list_friends()
         alts: dict[str, str] = {}
-        if profile and profile.photo:
-            alts[profile.photo.path] = profile.photo.alt
+        if profile:
+            assets = [profile.photo, profile.button]
+            alts.update((asset.path, asset.alt) for asset in assets if asset)
         for entry in published:
             assets = [entry.cover, *(part.asset for part in entry.parts)]
             alts.update((asset.path, asset.alt) for asset in assets if asset)
+        alts.update((f.button.path, f.button.alt) for f in friends if f.button)
         bundle: ContentBundle = {
             "profile": _profile_to_data(profile) if profile else None,
             "links": [
                 {"platform": link.platform, "url": link.url, "label": link.label}
                 for link in self._profile.list_links()
+            ],
+            "friends": [
+                {
+                    "name": friend.name,
+                    "url": friend.url,
+                    "button": friend.button.path if friend.button else "",
+                }
+                for friend in friends
             ],
             "types": [type_to_data(t) for t in self._types.list_all()],
             "entries": [entry_to_data(entry) for entry in published],
@@ -208,6 +219,20 @@ def _draft_links(entry: EntryDTO) -> list[str]:
     ]
 
 
+def _profile_errors(bundle: ContentBundle, *, alts: Mapping[str, str]) -> list[str]:
+    messages = []
+    if (profile := bundle["profile"]) and profile["photo"] not in {"", *alts}:
+        messages.append("Photo is not among the assets.")
+    if profile and profile["button"] not in {"", *alts}:
+        messages.append("Button is not among the assets.")
+    messages.extend(
+        f"Button of {friend['name']!r} is not among the assets."
+        for friend in bundle["friends"]
+        if friend["button"] not in {"", *alts}
+    )
+    return messages
+
+
 def _profile_to_data(profile: ProfileDTO) -> ProfileData:
     return {
         "name": profile.name,
@@ -216,6 +241,9 @@ def _profile_to_data(profile: ProfileDTO) -> ProfileData:
         "photo": profile.photo.path if profile.photo else "",
         "bio": profile.bio,
         "email": profile.email,
+        "button": profile.button.path if profile.button else "",
+        "friends_title": profile.friends_title,
+        "friends_intro": profile.friends_intro,
     }
 
 
@@ -283,6 +311,7 @@ class ContentImportService(ContentImportServiceProtocol):
             if bundle["profile"]:
                 self._profile.save(bundle["profile"])
             self._profile.replace_links(bundle["links"])
+            self._profile.replace_friends(bundle["friends"])
         return _summary(bundle)
 
     def _with_tint(self, entry_type: EntryTypeData) -> EntryTypeData:
@@ -329,9 +358,8 @@ class ContentImportService(ContentImportServiceProtocol):
             )
             if messages:
                 errors[where] = messages
-        profile = bundle["profile"]
-        if profile and profile["photo"] and profile["photo"] not in alts:
-            errors["profile.yaml"] = ["Photo is not among the assets."]
+        if messages := _profile_errors(bundle, alts=alts):
+            errors["profile.yaml"] = messages
         if errors:
             raise BundleValidationError(errors)
         return metadata

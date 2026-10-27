@@ -8,9 +8,10 @@ them. To start from files instead, write a bundle in the
 
 1. [Profile](#profile): who the site is about.
 2. [Links](#links): where else to find them.
-3. [Content types](#content-types): what kinds of work the site shows.
-4. [Fields](#fields): what each kind records beyond a title.
-5. [Entries](#entries): the work itself.
+3. [Friends](#friends): sites they like.
+4. [Content types](#content-types): what kinds of work the site shows.
+5. [Fields](#fields): what each kind records beyond a title.
+6. [Entries](#entries): the work itself.
 
 [What appears where](#what-appears-where) says which of these settings drive
 the menu, the home page and the feeds.
@@ -27,6 +28,7 @@ the menu, the home page and the feeds.
 | Photo | the logo image (else the name's first letter), the home and about pictures, the link preview image |
 | Bio | the about page, in Markdown |
 | E-mail | turns on the contact form; messages go here |
+| Button, friends title, friends intro | the [friends](#friends) section |
 
 Without an e-mail, `/contact/` is a 404 and every link to it disappears. The
 form sends through `EMAIL_URL` (see [Configuration](configuration.md#mail-and-newsletter)).
@@ -36,6 +38,19 @@ form sends through `EMAIL_URL` (see [Configuration](configuration.md#mail-and-ne
 **Admin → Links.** Platform, URL, label and order of each profile elsewhere:
 YouTube, itch.io, GitHub, Mastodon. They are listed in the footer and on the
 about page.
+
+## Friends
+
+**Admin → Friends.** Sites the owner likes, in the spirit of an old-web
+webring: name, URL, an optional 88×31 button and order. A friend without a
+button shows as a text button of the same size. They are listed at the end of
+the about page, with `rel="external noopener"`.
+
+Three profile fields shape the section: *friends title* (else "Friends"),
+*friends intro* in Markdown, and *button*, the site's own 88×31 image. Under
+the list, *Link back here* shows that button, or a text one, and the HTML a
+friend can paste to link back. The admin refuses a button image of any other
+size.
 
 ## Content types
 
@@ -199,7 +214,7 @@ while published entries link to it. Publish the containers first.
 | Home | the profile's tagline and photo, a door per type, the next calendar entry, the five newest lines of what's new |
 | What's new (`/new/`) | published entries, newest change first, marked added or updated |
 | Type list (`/<route>/`) | its published entries, twelve a page, with its filters; calendar types split upcoming from archive |
-| About (`/about/`) | bio, links, and the timeline of container entries |
+| About (`/about/`) | bio, links, the timeline of container entries, and friends |
 | Footer | links, the newsletter form, RSS and iCal, the contact link |
 | `/rss.xml` | what's new |
 | `/calendar.ics` | upcoming calendar entries |

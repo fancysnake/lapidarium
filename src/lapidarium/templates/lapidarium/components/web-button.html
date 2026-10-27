@@ -1,0 +1,7 @@
+<a class="web-button" href="{{ url }}"{% if rel %} rel="{{ rel }}"{% endif %}>
+  {% if button %}
+    <img class="web-button__image" src="{{ button.url }}" width="88" height="31" alt="{{ name }}" loading="lazy">
+  {% else %}
+    <span class="web-button__text">{{ name }}</span>
+  {% endif %}
+</a>

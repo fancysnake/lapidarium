@@ -1,15 +1,20 @@
 import datetime as dt
+import io
 
 import pytest
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.db import IntegrityError
+from PIL import Image
 
 from lapidarium.links.db.django.models import (
     Entry,
     EntryType,
     ExternalItem,
     FieldDefinition,
+    Friend,
     Link,
     MediaAsset,
     Profile,
@@ -24,6 +29,7 @@ from lapidarium.links.db.django.repositories import (
 )
 from lapidarium.pacts import (
     BUILTIN_DEFAULTS,
+    BUTTON_SIZE,
     FIELD_DEFAULTS,
     TYPE_DEFAULTS,
     DoorPick,
@@ -37,7 +43,14 @@ from lapidarium.pacts import (
     TypeRole,
     UrlKind,
 )
-from tests.factories import NOW, entry_data, field_data, part_data, type_data
+from tests.factories import (
+    NOW,
+    entry_data,
+    field_data,
+    part_data,
+    profile_data,
+    type_data,
+)
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -125,11 +138,7 @@ def test_writing_refuses_a_name_the_storage_changed(media_root, monkeypatch):
 
 @pytest.mark.usefixtures("demo")
 def test_saving_the_profile_again_updates_the_one_row():
-    ProfileRepository().save(
-        dict.fromkeys(("bio", "email", "handle", "photo", "tagline"), "") | {
-            "name": "Mira K."
-        }
-    )
+    ProfileRepository().save(profile_data(name="Mira K."))
 
     assert Profile.objects.get().name == "Mira K."
     assert ProfileRepository().get().photo is None
@@ -143,6 +152,7 @@ def test_models_read_as_their_names():
 
     assert str(Profile(name="Mira")) == "Mira"
     assert str(Link(label="itch.io")) == "itch.io"
+    assert str(Friend(name="Ada")) == "Ada"
     assert str(ExternalItem(title="New video")) == "New video"
 
 
@@ -265,7 +275,8 @@ def test_entries_read_back_every_column_they_save():
 
 
 def test_the_profile_reads_back_every_column_it_saves():
-    MediaAssetRepository().save({"path": "assets/mira.png", "alt": "", "content": b""})
+    for path in ("assets/mira.png", "assets/mira-88.png"):
+        MediaAssetRepository().save({"path": path, "alt": "", "content": b""})
     data = {
         "name": "Mira",
         "handle": "@mira",
@@ -273,6 +284,9 @@ def test_the_profile_reads_back_every_column_it_saves():
         "photo": "assets/mira.png",
         "bio": "Hello.",
         "email": "mira@example.com",
+        "button": "assets/mira-88.png",
+        "friends_title": "Table friends",
+        "friends_intro": "People I play with.",
     }
     links = [
         {"platform": "youtube", "url": "https://youtube.com/@mira", "label": "Videos"},
@@ -283,11 +297,57 @@ def test_the_profile_reads_back_every_column_it_saves():
     ProfileRepository().replace_links(links)
 
     saved = ProfileRepository().get().model_dump()
-    assert saved | {"photo": saved["photo"]["path"]} == data
+    assets = {"photo": saved["photo"]["path"], "button": saved["button"]["path"]}
+    assert saved | assets == data
     columns = ("order", *links[0])
     assert list(Link.objects.order_by("order").values(*columns)) == [
         {"order": order} | link for order, link in enumerate(links)
     ]
+
+
+def test_friends_read_back_in_the_order_saved():
+    MediaAssetRepository().save({"path": "assets/ada.png", "alt": "", "content": b""})
+    friends = [
+        {"name": "Ada", "url": "https://ada.example.org", "button": "assets/ada.png"},
+        {"name": "Bo", "url": "https://bo.example.org", "button": ""},
+    ]
+    ProfileRepository().replace_friends([{**friends[1], "name": "Gone"}])
+
+    ProfileRepository().replace_friends(friends)
+
+    saved = [f.model_dump() for f in ProfileRepository().list_friends()]
+    assert [
+        f | {"button": f["button"]["path"] if f["button"] else ""} for f in saved
+    ] == (friends)
+    assert list(Friend.objects.values_list("order", flat=True)) == [0, 1]
+
+
+def _png(size):
+    image = io.BytesIO()
+    Image.new("RGB", size).save(image, format="PNG")
+    return image.getvalue()
+
+
+def test_a_button_of_88_by_31_is_valid():
+    asset = MediaAsset.objects.create(file=ContentFile(_png(BUTTON_SIZE), name="b.png"))
+
+    Friend(name="Ada", url="https://ada.example.org", button=asset).full_clean()
+
+
+@pytest.mark.parametrize(
+    ("content", "missing"),
+    ((_png((88, 32)), False), (b"<svg/>", False), (_png(BUTTON_SIZE), True)),
+)
+def test_a_button_must_be_an_88_by_31_image(content, *, missing):
+    asset = MediaAsset.objects.create(file=ContentFile(content, name="b.png"))
+    if missing:
+        asset.file.storage.delete(asset.file.name)
+    friend = Friend(name="Ada", url="https://ada.example.org", button=asset)
+
+    with pytest.raises(ValidationError) as caught:
+        friend.full_clean()
+
+    assert caught.value.message_dict == {"button": ["A button is an 88x31 image."]}
 
 
 def test_ensure_superuser_creates_then_resets_the_login():

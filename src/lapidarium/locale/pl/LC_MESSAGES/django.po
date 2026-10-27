@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 15:28+0200\n"
+"POT-Creation-Date: 2026-10-27 21:48+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -59,6 +59,9 @@ msgstr "Profil"
 
 msgid "Links"
 msgstr "Linki"
+
+msgid "Friends"
+msgstr "Przyjaciele"
 
 msgid "Theme preview"
 msgstr "Podgląd motywu"
@@ -195,6 +198,10 @@ msgstr "plik"
 
 msgid "media assets"
 msgstr "pliki"
+
+#, python-format
+msgid "A button is an %(width)dx%(height)d image."
+msgstr "Przycisk to obrazek %(width)dx%(height)d."
 
 msgid "key"
 msgstr "klucz"
@@ -403,6 +410,21 @@ msgstr "o mnie"
 msgid "e-mail"
 msgstr "e-mail"
 
+msgid "button"
+msgstr "przycisk"
+
+msgid "The site's own 88x31 button, for friends to link back with."
+msgstr "Przycisk 88x31 tej strony, którym przyjaciele mogą do niej linkować."
+
+msgid "friends title"
+msgstr "tytuł sekcji przyjaciół"
+
+msgid "Heading of the friends section; “Friends” when blank."
+msgstr "Nagłówek sekcji przyjaciół; gdy pusty, „Przyjaciele”."
+
+msgid "friends intro"
+msgstr "wstęp sekcji przyjaciół"
+
 msgid "profile"
 msgstr "profil"
 
@@ -411,6 +433,15 @@ msgstr "link"
 
 msgid "links"
 msgstr "linki"
+
+msgid "An 88x31 image; without one, the name shows as a text button."
+msgstr "Obrazek 88x31; bez niego nazwa wyświetla się jako przycisk tekstowy."
+
+msgid "friend"
+msgstr "przyjaciel"
+
+msgid "friends"
+msgstr "przyjaciele"
 
 msgid "source"
 msgstr "źródło"
@@ -531,6 +562,12 @@ msgstr "Wszystkie"
 
 msgid "updated"
 msgstr "zaktualizowano"
+
+msgid "Link back here"
+msgstr "Podlinkuj tę stronę"
+
+msgid "Paste this into your site:"
+msgstr "Wklej to na swoją stronę:"
 
 msgid "New entries and where to meet, now and then. No algorithm in between."
 msgstr "Nowe wpisy i gdzie się spotkać, od czasu do czasu. Bez algorytmu pomiędzy."

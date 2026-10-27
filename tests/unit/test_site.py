@@ -3,13 +3,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.site import SiteService
-from lapidarium.pacts import LinkDTO, ProfileDTO, TypeColourDTO
-from tests.factories import type_dto
+from lapidarium.pacts import FriendDTO, LinkDTO, TypeColourDTO
+from tests.factories import profile_dto, type_dto
 
-PROFILE = ProfileDTO(
-    name="Mira", handle="", tagline="", photo=None, bio="", email="mira@example.com"
-)
+PROFILE = profile_dto()
 LINK = LinkDTO(platform="itch", url="https://example.itch.io", label="itch.io")
+FRIEND = FriendDTO(name="Ada", url="https://ada.example.org", button=None)
 
 
 def _service(*, types=(), profile=PROFILE, dark_colours=None):
@@ -17,6 +16,7 @@ def _service(*, types=(), profile=PROFILE, dark_colours=None):
     repos.types.list_all.return_value = list(types)
     repos.profile.get.return_value = profile
     repos.profile.list_links.return_value = [LINK]
+    repos.profile.list_friends.return_value = [FRIEND]
     schema = MagicMock()
     schema.derive_dark_colour.side_effect = (dark_colours or {}).get
     return SiteService(
@@ -33,6 +33,7 @@ def test_chrome_gives_profile_menu_and_types():
     assert site.profile == PROFILE
     assert site.owner_name == "Mira"
     assert site.links == (LINK,)
+    assert site.friends == (FRIEND,)
     assert site.types == (session, wiki)
     assert site.menu == (session,)
     assert site.dark_colours == ()

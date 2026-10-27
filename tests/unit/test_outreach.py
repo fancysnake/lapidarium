@@ -3,14 +3,13 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.outreach import OutreachService
-from lapidarium.pacts import NotFoundError, ProfileDTO, RateLimitedError
+from lapidarium.pacts import NotFoundError, RateLimitedError
 from lapidarium.specs import OUTREACH_LIMIT, OUTREACH_WINDOW
+from tests.factories import profile_dto
 
 
 def _profile(email="mira@example.com"):
-    return ProfileDTO(
-        name="Mira", handle="", tagline="", photo=None, bio="", email=email
-    )
+    return profile_dto(email=email)
 
 
 def _service(profile=None, *, allowed=True):

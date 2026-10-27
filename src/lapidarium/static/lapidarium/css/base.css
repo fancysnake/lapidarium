@@ -735,6 +735,43 @@ textarea.input { min-height: 10rem; padding-block: var(--space-3); }
 /* --- About: timeline of containers --- */
 .timeline { display: flex; flex-direction: column; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
 
+/* --- About: friends, as old-web 88×31 buttons --- */
+.friends { margin-top: var(--space-8); }
+.friends__list { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0 0 var(--space-5); padding: 0; list-style: none; }
+.friends__back summary { cursor: pointer; font-weight: 700; }
+.friends__back[open] { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.friends__back p { margin: 0; }
+.friends__snippet {
+  max-width: 100%;
+  margin: 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  font-family: var(--font-label);
+  font-size: var(--text-label);
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+}
+.web-button { display: block; width: 88px; height: 31px; text-decoration: none; }
+.web-button__image { display: block; }
+.web-button__text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 100%;
+  padding-inline: var(--space-1);
+  overflow: hidden;
+  font-family: var(--font-label);
+  font-size: 0.625rem;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--color-brand-contrast);
+  background: var(--color-brand);
+  border: 1px solid var(--color-text);
+}
+.web-button:hover .web-button__text,
+.web-button:focus-visible .web-button__text { color: var(--color-brand); background: var(--color-brand-contrast); }
+
 @media (max-width: 48rem) {
   .hero,
   .home-bottom { grid-template-columns: minmax(0, 1fr); }

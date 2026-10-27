@@ -11,6 +11,7 @@ from lapidarium.pacts import (
     FieldDefinitionDTO,
     FieldKind,
     PartKind,
+    ProfileDTO,
     RelationDTO,
     TypeRole,
     UrlKind,
@@ -142,3 +143,29 @@ def entry_dto(slug="moose", type_key="session", **overrides):
             **overrides,
         }
     )
+
+
+def profile_dto(**overrides):
+    return ProfileDTO(
+        **{
+            "name": "Mira",
+            "handle": "",
+            "tagline": "",
+            "photo": None,
+            "bio": "",
+            "email": "mira@example.com",
+            "button": None,
+            "friends_title": "",
+            "friends_intro": "",
+            **overrides,
+        }
+    )
+
+
+def profile_data(**overrides):
+    blank = ("handle", "tagline", "photo", "bio", "email", "button")
+    return {
+        "name": "Mira",
+        **dict.fromkeys((*blank, "friends_title", "friends_intro"), ""),
+        **overrides,
+    }

@@ -169,6 +169,8 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 }
 SUMMARY_MAX_LENGTH = 200
 EXPORT_FORMAT_VERSION = 1
+# Width and height of a web button, the old-web badge one site links another with.
+BUTTON_SIZE = (88, 31)
 # The theme contract: every token a page may rely on. Renaming one breaks themes.
 REQUIRED_TOKENS = frozenset(
     {
@@ -368,6 +370,9 @@ class ProfileData(TypedDict):
     photo: str
     bio: str
     email: str
+    button: str
+    friends_title: str
+    friends_intro: str
 
 
 class LinkData(TypedDict):
@@ -376,11 +381,18 @@ class LinkData(TypedDict):
     label: str
 
 
+class FriendData(TypedDict):
+    name: str
+    url: str
+    button: str
+
+
 class ContentBundle(TypedDict):
     """Everything export format v1 holds, as one value."""
 
     profile: ProfileData | None
     links: list[LinkData]
+    friends: list[FriendData]
     types: list[EntryTypeData]
     entries: list[EntryData]
     assets: list[AssetData]
@@ -520,6 +532,9 @@ class ProfileDTO(BaseModel):
     photo: MediaAssetDTO | None
     bio: str
     email: str
+    button: MediaAssetDTO | None
+    friends_title: str
+    friends_intro: str
 
 
 class LinkDTO(BaseModel):
@@ -528,6 +543,14 @@ class LinkDTO(BaseModel):
     platform: str
     url: str
     label: str
+
+
+class FriendDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    url: str
+    button: MediaAssetDTO | None
 
 
 class RelationEndDTO(BaseModel):
@@ -714,6 +737,7 @@ class SiteDTO(BaseModel):
     # The profile's name, or the site name when the profile has none.
     owner_name: str
     links: tuple[LinkDTO, ...]
+    friends: tuple[FriendDTO, ...]
     types: tuple[EntryTypeDTO, ...]
     menu: tuple[EntryTypeDTO, ...]
     dark_colours: tuple[TypeColourDTO, ...]
@@ -769,6 +793,10 @@ class ProfileRepositoryProtocol(Protocol):
     def save(self, data: ProfileData) -> None: ...
 
     def replace_links(self, links: Sequence[LinkData]) -> None: ...
+
+    def list_friends(self) -> list[FriendDTO]: ...
+
+    def replace_friends(self, friends: Sequence[FriendData]) -> None: ...
 
 
 class ExternalItemRepositoryProtocol(Protocol):

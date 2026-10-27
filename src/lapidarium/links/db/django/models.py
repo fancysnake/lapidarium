@@ -5,12 +5,15 @@ from __future__ import annotations
 from functools import partial
 from typing import TYPE_CHECKING, ClassVar
 
+from django.core.exceptions import ValidationError
+from django.core.files.images import get_image_dimensions
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
 from lapidarium.pacts import (
+    BUTTON_SIZE,
     DEFAULT_PARTS,
     FIELD_DEFAULTS,
     SUMMARY_MAX_LENGTH,
@@ -55,6 +58,22 @@ class MediaAsset(models.Model):
 
     def __str__(self) -> str:
         return self.file.name or ""
+
+
+def web_button(pk: int) -> None:
+    """Validate that the asset is an image of exactly `BUTTON_SIZE`."""
+    asset = MediaAsset.objects.get(pk=pk)
+    try:
+        file = asset.file.open("rb")
+    except OSError:
+        size = None
+    else:
+        with file:
+            size = get_image_dimensions(file)
+    if size != BUTTON_SIZE:
+        width, height = BUTTON_SIZE
+        msg = _("A button is an %(width)dx%(height)d image.")
+        raise ValidationError(msg, params={"width": width, "height": height})
 
 
 class EntryType(models.Model):
@@ -381,6 +400,25 @@ class Profile(models.Model):
     )
     bio = models.TextField(_("bio"), blank=True, help_text=_("Markdown."))
     email = models.EmailField(_("e-mail"), blank=True)
+    button = models.ForeignKey(
+        MediaAsset,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        validators=[web_button],
+        verbose_name=_("button"),
+        help_text=_("The site's own 88x31 button, for friends to link back with."),
+    )
+    friends_title = models.CharField(
+        _("friends title"),
+        max_length=_SHORT,
+        blank=True,
+        help_text=_("Heading of the friends section; “Friends” when blank."),
+    )
+    friends_intro = models.TextField(
+        _("friends intro"), blank=True, help_text=_("Markdown.")
+    )
 
     class Meta:
         verbose_name = _("profile")
@@ -403,6 +441,32 @@ class Link(models.Model):
 
     def __str__(self) -> str:
         return str(self.label)
+
+
+class Friend(models.Model):
+    """A site the owner recommends, unlike a `Link`, which is the owner's own."""
+
+    name = models.CharField(_("name"), max_length=_SHORT)
+    url = models.URLField(_("URL"))
+    button = models.ForeignKey(
+        MediaAsset,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        validators=[web_button],
+        verbose_name=_("button"),
+        help_text=_("An 88x31 image; without one, the name shows as a text button."),
+    )
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
+
+    class Meta:
+        ordering: ClassVar = ["order", "pk"]
+        verbose_name = _("friend")
+        verbose_name_plural = _("friends")
+
+    def __str__(self) -> str:
+        return str(self.name)
 
 
 class ExternalItem(models.Model):
