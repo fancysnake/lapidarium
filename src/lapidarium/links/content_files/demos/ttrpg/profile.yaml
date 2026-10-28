@@ -6,6 +6,8 @@ bio: |-
   Mistrzyni gry od piętnastu lat. Najchętniej prowadzi one-shoty science fiction
   i grozę gotycką, a po sesjach pisze o nich piosenki.
 email: mira@example.com
+friends_title: Przyjaciele stołu
+friends_intro: Strony ludzi, z którymi gram, piszę i śpiewam.
 links:
   - platform: youtube
     url: https://www.youtube.com/@example
@@ -13,3 +15,8 @@ links:
   - platform: itch
     url: https://example.itch.io
     label: itch.io
+friends:
+  - name: Kostka i Pióro
+    url: https://kostka.example.org
+  - name: Gotycki Kufer
+    url: https://kufer.example.net

@@ -3,13 +3,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.site import SiteService
-from lapidarium.pacts import LinkDTO, ProfileDTO, TypeColourDTO
-from tests.factories import type_dto
+from lapidarium.pacts import FriendDTO, LinkDTO, TypeColourDTO
+from tests.factories import profile_dto, type_dto
 
-PROFILE = ProfileDTO(
-    name="Mira", handle="", tagline="", photo=None, bio="", email="mira@example.com"
-)
+PROFILE = profile_dto()
 LINK = LinkDTO(platform="itch", url="https://example.itch.io", label="itch.io")
+FRIEND = FriendDTO(name="Ada", url="https://ada.example.org", button=None)
 
 
 def _service(*, types=(), profile=PROFILE, dark_colours=None):
@@ -17,6 +16,7 @@ def _service(*, types=(), profile=PROFILE, dark_colours=None):
     repos.types.list_all.return_value = list(types)
     repos.profile.get.return_value = profile
     repos.profile.list_links.return_value = [LINK]
+    repos.profile.list_friends.return_value = [FRIEND]
     schema = MagicMock()
     schema.derive_dark_colour.side_effect = (dark_colours or {}).get
     return SiteService(
@@ -51,3 +51,7 @@ def test_chrome_gives_the_dark_colours_that_differ():
 @pytest.mark.parametrize("profile", (None, PROFILE.model_copy(update={"name": ""})))
 def test_chrome_names_the_site_when_the_profile_names_no_one(profile):
     assert _service(profile=profile).chrome().owner_name == "Lapidarium"
+
+
+def test_friends_are_those_the_profile_keeps():
+    assert _service().friends() == (FRIEND,)

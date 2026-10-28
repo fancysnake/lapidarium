@@ -4,6 +4,7 @@ import pytest
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
 from lapidarium.pacts import BundleValidationError, NotFoundError
+from tests.factories import profile_data
 
 ENTRY = """---
 title: Moose
@@ -143,6 +144,39 @@ def test_write_produces_what_read_parses(bundle_dir, tmp_path_factory):
     )
 
 
+def test_friends_round_trip_and_leave_a_blank_button_out(bundle_dir):
+    (bundle_dir / "profile.yaml").write_text(
+        "name: Mira\n"
+        "friends:\n"
+        "- name: Ada\n"
+        "  url: https://ada.example.org\n"
+        "  button: assets/moose.svg\n"
+        "- name: Bo\n"
+        "  url: https://bo.example.org\n",
+        encoding="utf-8",
+    )
+    store = ContentFilesStore()
+
+    bundle = store.read(bundle_dir)
+    store.write(bundle_dir, bundle)
+
+    assert bundle["friends"] == [
+        {"name": "Ada", "url": "https://ada.example.org", "button": "assets/moose.svg"},
+        {"name": "Bo", "url": "https://bo.example.org", "button": ""},
+    ]
+    assert bundle["profile"] == profile_data()
+    assert store.read(bundle_dir) == bundle
+    written = (bundle_dir / "profile.yaml").read_text(encoding="utf-8")
+    assert written.endswith(
+        "friends:\n"
+        "- name: Ada\n"
+        "  url: https://ada.example.org\n"
+        "  button: assets/moose.svg\n"
+        "- name: Bo\n"
+        "  url: https://bo.example.org\n"
+    )
+
+
 def test_read_requires_format_one(tmp_path):
     (tmp_path / "lapidarium.yaml").write_text("format: 2\n", encoding="utf-8")
 
@@ -197,6 +231,7 @@ def test_read_of_an_empty_bundle(tmp_path):
     assert ContentFilesStore().read(tmp_path) == {
         "profile": None,
         "links": [],
+        "friends": [],
         "types": [],
         "entries": [],
         "assets": [],

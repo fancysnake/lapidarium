@@ -6,6 +6,7 @@ import re
 from functools import partial
 from typing import TYPE_CHECKING, override
 
+from lapidarium.mills.schema import url_errors
 from lapidarium.pacts import (
     BundleValidationError,
     ContentBundle,
@@ -30,7 +31,7 @@ from lapidarium.pacts import (
 from lapidarium.specs import SLUG_PATTERN
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Collection, Iterator, Mapping
     from pathlib import Path
 
     from lapidarium.pacts import (
@@ -38,6 +39,7 @@ if TYPE_CHECKING:
         ContentStoreProtocol,
         EntryRepositoryProtocol,
         EntryTypeRepositoryProtocol,
+        MediaAssetDTO,
         MediaAssetRepositoryProtocol,
         Metadata,
         ProfileRepositoryProtocol,
@@ -160,17 +162,28 @@ class ContentExportService(ContentExportServiceProtocol):
             if (messages := _draft_links(entry))
         }:
             raise BundleValidationError(drafts)
-        alts: dict[str, str] = {}
-        if profile and profile.photo:
-            alts[profile.photo.path] = profile.photo.alt
-        for entry in published:
-            assets = [entry.cover, *(part.asset for part in entry.parts)]
-            alts.update((asset.path, asset.alt) for asset in assets if asset)
+        links = self._profile.list_links()
+        friends = self._profile.list_friends()
+        used: list[MediaAssetDTO | None] = [
+            *((profile.photo, profile.button) if profile else ()),
+            *(friend.button for friend in friends),
+            *(entry.cover for entry in published),
+            *(part.asset for entry in published for part in entry.parts),
+        ]
+        alts = {asset.path: asset.alt for asset in used if asset}
         bundle: ContentBundle = {
             "profile": _profile_to_data(profile) if profile else None,
             "links": [
                 {"platform": link.platform, "url": link.url, "label": link.label}
-                for link in self._profile.list_links()
+                for link in links
+            ],
+            "friends": [
+                {
+                    "name": friend.name,
+                    "url": friend.url,
+                    "button": friend.button.path if friend.button else "",
+                }
+                for friend in friends
             ],
             "types": [type_to_data(t) for t in self._types.list_all()],
             "entries": [entry_to_data(entry) for entry in published],
@@ -208,6 +221,38 @@ def _draft_links(entry: EntryDTO) -> list[str]:
     ]
 
 
+def _profile_assets(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
+    """Each asset path profile.yaml refers to, labelled; blank when unset."""
+    if profile := bundle["profile"]:
+        yield "Photo", profile["photo"]
+        yield "Button", profile["button"]
+    for friend in bundle["friends"]:
+        yield f"Button of {friend['name']!r}", friend["button"]
+
+
+def _profile_urls(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
+    """Each address profile.yaml links out to, labelled."""
+    for link in bundle["links"]:
+        yield f"Link {link['label']!r}", link["url"]
+    for friend in bundle["friends"]:
+        yield f"Friend {friend['name']!r}", friend["url"]
+
+
+def _profile_errors(bundle: ContentBundle, *, paths: Collection[str]) -> list[str]:
+    return [
+        *(
+            f"{label} is not among the assets."
+            for label, path in _profile_assets(bundle)
+            if path and path not in paths
+        ),
+        *(
+            f"{label}: {message}"
+            for label, url in _profile_urls(bundle)
+            for message in url_errors(url)
+        ),
+    ]
+
+
 def _profile_to_data(profile: ProfileDTO) -> ProfileData:
     return {
         "name": profile.name,
@@ -216,6 +261,9 @@ def _profile_to_data(profile: ProfileDTO) -> ProfileData:
         "photo": profile.photo.path if profile.photo else "",
         "bio": profile.bio,
         "email": profile.email,
+        "button": profile.button.path if profile.button else "",
+        "friends_title": profile.friends_title,
+        "friends_intro": profile.friends_intro,
     }
 
 
@@ -283,6 +331,7 @@ class ContentImportService(ContentImportServiceProtocol):
             if bundle["profile"]:
                 self._profile.save(bundle["profile"])
             self._profile.replace_links(bundle["links"])
+            self._profile.replace_friends(bundle["friends"])
         return _summary(bundle)
 
     def _with_tint(self, entry_type: EntryTypeData) -> EntryTypeData:
@@ -329,9 +378,8 @@ class ContentImportService(ContentImportServiceProtocol):
             )
             if messages:
                 errors[where] = messages
-        profile = bundle["profile"]
-        if profile and profile["photo"] and profile["photo"] not in alts:
-            errors["profile.yaml"] = ["Photo is not among the assets."]
+        if messages := _profile_errors(bundle, paths=alts.keys()):
+            errors["profile.yaml"] = messages
         if errors:
             raise BundleValidationError(errors)
         return metadata

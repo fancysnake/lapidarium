@@ -15,27 +15,30 @@ from lapidarium.pacts import (
     EntryTypeDTO,
     FieldDefinitionDTO,
     FieldKind,
+    FriendDTO,
     LinkDTO,
     MediaAssetDTO,
     PartDTO,
     PartKind,
-    ProfileDTO,
     RelationDTO,
     SyndicationLinkDTO,
     TypeRole,
 )
-from tests.factories import entry_data, field_data, type_data
+from tests.factories import entry_data, field_data, profile_data, profile_dto, type_data
 
 NOW = dt.datetime(2026, 10, 2, 12, tzinfo=dt.UTC)
 ROOT = Path("/export")
 COVER = MediaAssetDTO(path="assets/moose.png", url="/m/moose.png", alt="Moose")
 PHOTO = MediaAssetDTO(path="assets/me.png", url="/m/me.png", alt="Me")
+BUTTON = MediaAssetDTO(path="assets/me-88.png", url="/m/me-88.png", alt="")
+ADA_BUTTON = MediaAssetDTO(path="assets/ada-88.png", url="/m/ada-88.png", alt="")
 
 
 def _bundle(**overrides):
     return {
         "profile": None,
         "links": [],
+        "friends": [],
         "types": [type_data()],
         "entries": [entry_data()],
         "assets": [],
@@ -105,16 +108,20 @@ def _entry_dto():
 @pytest.fixture(name="repos")
 def repos_fixture():
     repos = MagicMock()
-    repos.profile.get.return_value = ProfileDTO(
-        name="Mira",
+    repos.profile.get.return_value = profile_dto(
         handle="@mira",
         tagline="GM",
         photo=PHOTO,
-        bio="",
-        email="mira@example.com",
+        button=BUTTON,
+        friends_title="Table friends",
+        friends_intro="People I play with.",
     )
     repos.profile.list_links.return_value = [
         LinkDTO(platform="itch", url="https://mira.itch.io", label="itch")
+    ]
+    repos.profile.list_friends.return_value = [
+        FriendDTO(name="Ada", url="https://ada.example.org", button=ADA_BUTTON),
+        FriendDTO(name="Bo", url="https://bo.example.org", button=None),
     ]
     repos.types.list_all.return_value = [_type_dto()]
     repos.entries.list_published.return_value = [_entry_dto()]
@@ -147,7 +154,7 @@ def _import_service(repos):
 def test_export_writes_published_content_and_the_assets_it_uses(repos):
     summary = _export_service(repos).export(ROOT)
 
-    assert summary == ContentSummaryDTO(types=1, entries=1, assets=2)
+    assert summary == ContentSummaryDTO(types=1, entries=1, assets=4)
     repos.store.write.assert_called_once_with(
         ROOT,
         {
@@ -158,9 +165,20 @@ def test_export_writes_published_content_and_the_assets_it_uses(repos):
                 "photo": "assets/me.png",
                 "bio": "",
                 "email": "mira@example.com",
+                "button": "assets/me-88.png",
+                "friends_title": "Table friends",
+                "friends_intro": "People I play with.",
             },
             "links": [
                 {"platform": "itch", "url": "https://mira.itch.io", "label": "itch"}
+            ],
+            "friends": [
+                {
+                    "name": "Ada",
+                    "url": "https://ada.example.org",
+                    "button": "assets/ada-88.png",
+                },
+                {"name": "Bo", "url": "https://bo.example.org", "button": ""},
             ],
             "types": [
                 {
@@ -206,6 +224,12 @@ def test_export_writes_published_content_and_the_assets_it_uses(repos):
                 )
             ],
             "assets": [
+                {
+                    "path": "assets/ada-88.png",
+                    "alt": "",
+                    "content": b"assets/ada-88.png",
+                },
+                {"path": "assets/me-88.png", "alt": "", "content": b"assets/me-88.png"},
                 {"path": "assets/me.png", "alt": "Me", "content": b"assets/me.png"},
                 {
                     "path": "assets/moose.png",
@@ -219,6 +243,7 @@ def test_export_writes_published_content_and_the_assets_it_uses(repos):
 
 def test_export_without_a_profile(repos):
     repos.profile.get.return_value = None
+    repos.profile.list_friends.return_value = []
     repos.entries.list_published.return_value = []
 
     summary = _export_service(repos).export(ROOT)
@@ -253,14 +278,8 @@ def test_export_refuses_a_published_link_to_a_draft(repos):
 
 
 def test_import_saves_everything_in_one_transaction(repos):
-    profile = {
-        "name": "Mira",
-        "handle": "",
-        "tagline": "",
-        "photo": "assets/me.png",
-        "bio": "",
-        "email": "",
-    }
+    profile = profile_data(photo="assets/me.png")
+    friends = [{"name": "Ada", "url": "https://ada.example.org", "button": ""}]
     asset = {"path": "assets/me.png", "alt": "Me", "content": b"png"}
     project = type_data("project", role=TypeRole.CONTAINER_OUTCOME, tint="#f0f0f0")
     session = type_data(
@@ -279,6 +298,7 @@ def test_import_saves_everything_in_one_transaction(repos):
     repos.store.read.return_value = _bundle(
         profile=profile,
         links=[{"platform": "itch", "url": "https://x.itch.io", "label": "itch"}],
+        friends=friends,
         types=[session, project],
         entries=[moose, saga],
         assets=[asset],
@@ -309,6 +329,45 @@ def test_import_saves_everything_in_one_transaction(repos):
     repos.profile.replace_links.assert_called_once_with(
         [{"platform": "itch", "url": "https://x.itch.io", "label": "itch"}]
     )
+    repos.profile.replace_friends.assert_called_once_with(friends)
+
+
+def test_import_refuses_buttons_missing_from_the_assets(repos):
+    profile = profile_data(photo="assets/me.png", button="assets/me-88.png")
+    friends = [
+        {"name": "Ada", "url": "https://ada.example.org", "button": "assets/a.png"},
+        {"name": "Bo", "url": "https://bo.example.org", "button": ""},
+    ]
+    repos.store.read.return_value = _bundle(profile=profile, friends=friends)
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "profile.yaml": [
+            "Photo is not among the assets.",
+            "Button is not among the assets.",
+            "Button of 'Ada' is not among the assets.",
+        ]
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
+def test_import_refuses_link_and_friend_urls_that_are_not_http(repos):
+    links = [{"platform": "x", "url": "javascript:alert(1)", "label": "X"}]
+    friends = [{"name": "Ada", "url": "ada.example.org", "button": ""}]
+    repos.store.read.return_value = _bundle(links=links, friends=friends)
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "profile.yaml": [
+            "Link 'X': Enter a full http(s) address.",
+            "Friend 'Ada': Enter a full http(s) address.",
+        ]
+    }
+    repos.transaction.atomic.assert_not_called()
 
 
 def test_import_rejects_entries_of_unknown_types(repos):
@@ -355,14 +414,7 @@ def test_import_reports_every_problem_by_file(repos):
         ],
     )
     repos.store.read.return_value = _bundle(
-        profile={
-            "name": "Mira",
-            "handle": "",
-            "tagline": "",
-            "photo": "assets/missing.png",
-            "bio": "",
-            "email": "",
-        },
+        profile=profile_data(photo="assets/missing.png"),
         types=[session],
         entries=[entry, entry_data("other", parts=[])],
         assets=[{"path": "assets/blank.png", "alt": "", "content": b""}],

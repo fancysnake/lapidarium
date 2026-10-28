@@ -12,7 +12,7 @@ This page describes format version 1.
 
 ```text
 lapidarium.yaml               format version
-profile.yaml                  profile and links
+profile.yaml                  profile, links and friends
 types/<key>.yaml              type settings and fields
 content/<type>/<slug>.md      frontmatter, then the text parts as the body
 assets.yaml                   alt text per asset path
@@ -31,8 +31,9 @@ field names there in `snake_case`.
 
 ## `profile.yaml`
 
-The profile's fields, plus `links`, a list of `platform`, `url` and `label`.
-`photo` is an asset path.
+The profile's fields, plus `links`, a list of `platform`, `url` and `label`,
+and `friends`, a list of `name`, `url` and `button`. `photo` and both kinds of
+`button` are asset paths.
 
 ```yaml
 --8<-- "src/lapidarium/links/content_files/demos/dev/profile.yaml"

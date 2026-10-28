@@ -75,6 +75,11 @@ def _host(url: str) -> str | None:
     return parts.hostname
 
 
+def url_errors(url: str) -> list[str]:
+    """Errors unless `url` is a full http(s) address."""
+    return [] if _host(url) else ["Enter a full http(s) address."]
+
+
 def _url_error(url: str, url_kind: UrlKind) -> str | None:
     if (host := _host(url)) is None:
         return "Enter a full http(s) address."
@@ -234,8 +239,8 @@ class SchemaService(SchemaServiceProtocol):
                 errors.append("An image part needs alt text on its asset.")
             case _:
                 pass
-        if part["url"] and _host(part["url"]) is None:
-            errors.append("Enter a full http(s) address.")
+        if part["url"]:
+            errors.extend(url_errors(part["url"]))
         return errors
 
     @override

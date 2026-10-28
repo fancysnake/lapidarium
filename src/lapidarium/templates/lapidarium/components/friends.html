@@ -1,0 +1,27 @@
+{% load i18n lapidarium %}
+{% if friends or site.profile.button %}
+  <section class="friends" aria-labelledby="friends-title">
+    <h2 class="section-title" id="friends-title">
+      {% if site.profile.friends_title %}{{ site.profile.friends_title }}{% else %}{% translate "Friends" %}{% endif %}
+    </h2>
+    {% if site.profile.friends_intro %}
+      <div class="part-text">{{ site.profile.friends_intro|markdown }}</div>
+    {% endif %}
+    {% if friends %}
+      <ul class="friends__list">
+        {% for friend in friends %}
+          <li>
+            {% include "lapidarium/components/web-button.html" with name=friend.name url=friend.url button=friend.button rel="external noopener" %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <details class="friends__back">
+      <summary>{% translate "Link back here" %}</summary>
+      {% link_back as snippet %}
+      {{ snippet }}
+      <p>{% translate "Paste this into your site:" %}</p>
+      <pre class="friends__snippet"><code>{{ snippet|force_escape }}</code></pre>
+    </details>
+  </section>
+{% endif %}

@@ -34,6 +34,7 @@ from lapidarium.links.db.django.models import (
     EntryType,
     ExternalItem,
     FieldDefinition,
+    Friend,
     Link,
     MediaAsset,
     Part,
@@ -79,6 +80,7 @@ if TYPE_CHECKING:
     TagAdminBase = admin.ModelAdmin[Tag]
     ProfileAdminBase = admin.ModelAdmin[Profile]
     LinkAdminBase = admin.ModelAdmin[Link]
+    FriendAdminBase = admin.ModelAdmin[Friend]
     ExternalItemAdminBase = admin.ModelAdmin[ExternalItem]
     FieldDefinitionInlineBase = admin.TabularInline[FieldDefinition, EntryType]
     PartInlineBase = admin.StackedInline[Part, Entry]
@@ -96,7 +98,8 @@ else:
     from unfold.admin import ModelAdmin, StackedInline, TabularInline
 
     EntryTypeAdminBase = EntryAdminBase = MediaAssetAdminBase = ModelAdmin
-    TagAdminBase = ProfileAdminBase = LinkAdminBase = ExternalItemAdminBase = ModelAdmin
+    TagAdminBase = ProfileAdminBase = LinkAdminBase = FriendAdminBase = ModelAdmin
+    ExternalItemAdminBase = ModelAdmin
     FieldDefinitionInlineBase = RelationInlineBase = TabularInline
     SyndicationInlineBase = TabularInline
     PartInlineBase = StackedInline
@@ -181,6 +184,7 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                 _item(gettext("Content types"), icon="category", model="entrytype"),
                 _item(gettext("Profile"), icon="person", model="profile"),
                 _item(gettext("Links"), icon="link", model="link"),
+                _item(gettext("Friends"), icon="diversity_3", model="friend"),
                 {
                     "title": gettext("Theme preview"),
                     "icon": "palette",
@@ -798,7 +802,7 @@ class TagAdmin(TagAdminBase):
 
 @admin.register(Profile)
 class ProfileAdmin(ProfileAdminBase):
-    autocomplete_fields = ("photo",)
+    autocomplete_fields = ("photo", "button")
 
     @override
     def has_add_permission(self, request: HttpRequest) -> bool:
@@ -808,6 +812,14 @@ class ProfileAdmin(ProfileAdminBase):
 @admin.register(Link)
 class LinkAdmin(LinkAdminBase):
     list_display = ("label", "platform", "url")
+    ordering_field = "order"
+    hide_ordering_field = True
+
+
+@admin.register(Friend)
+class FriendAdmin(FriendAdminBase):
+    list_display = ("name", "url", "button")
+    autocomplete_fields = ("button",)
     ordering_field = "order"
     hide_ordering_field = True
 

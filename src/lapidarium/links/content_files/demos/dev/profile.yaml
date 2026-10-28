@@ -4,6 +4,7 @@ tagline: I build small, boring, durable tools for the web, and talk about them.
 photo: assets/demo/sam.svg
 bio: Maintainer of a handful of Python libraries. Prefers HTML that works without JavaScript.
 email: sam@example.com
+friends_intro: Sites by people whose work I keep coming back to.
 links:
   - platform: github
     url: https://github.com/example
@@ -11,3 +12,8 @@ links:
   - platform: mastodon
     url: https://fosstodon.org/@example
     label: Mastodon
+friends:
+  - name: Ada's notebook
+    url: https://ada.example.org
+  - name: Small Web Club
+    url: https://smallweb.example.net

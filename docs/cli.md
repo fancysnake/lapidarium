@@ -34,7 +34,8 @@ mise run dj export_content <destination>
 ```
 
 Writes the content in [export format](export-format.md) v1: every content type,
-every published entry, the profile, the links and every asset they use. It
+every published entry, the profile, the links, the friends and every asset
+they use. It
 deletes and rewrites `types/`, `content/` and `assets/` in the destination,
 so point it at a directory that holds nothing else.
 
@@ -47,8 +48,9 @@ mise run dj import_content <source>
 ```
 
 Reads an export and merges it in. It checks the whole bundle first: format
-version, slugs, colour contrast, field values, role fields, parts, assets and
-relations. One error refuses the import, changes nothing and lists every
+version, slugs, colour contrast, field values, role fields, parts, assets,
+relations, and that profile links and friends point to http(s) addresses. One
+error refuses the import, changes nothing and lists every
 problem by file.
 
 A valid bundle is applied in one transaction, matched by key:
@@ -60,6 +62,7 @@ A valid bundle is applied in one transaction, matched by key:
 | Asset | path | the file overwritten |
 | Profile | there is one | updated, or created |
 | Links | — | always replaced; a bundle with none removes them all |
+| Friends | — | always replaced; a bundle with none removes them all |
 
 Nothing missing from the bundle is deleted. Every entry's type and every relation
 target must be in the bundle too.

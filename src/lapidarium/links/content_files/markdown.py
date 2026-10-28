@@ -2,7 +2,7 @@
 
 ```text
 lapidarium.yaml               format version
-profile.yaml                  profile and links
+profile.yaml                  profile, links and friends
 types/<key>.yaml              type settings and fields
 content/<type>/<slug>.md      frontmatter (built-ins, metadata, parts, relations,
                               syndication); text parts are the body, in order
@@ -35,6 +35,7 @@ from lapidarium.pacts import (
     ContentStoreProtocol,
     EntryData,
     EntryTypeData,
+    FriendData,
     LinkData,
     NotFoundError,
     PartKind,
@@ -90,12 +91,17 @@ _PROFILE_DEFAULTS: dict[str, Json] = {
     "photo": "",
     "bio": "",
     "email": "",
+    "button": "",
+    "friends_title": "",
+    "friends_intro": "",
 }
+_FRIEND_DEFAULTS: dict[str, Json] = {"button": ""}
 
 _TYPE = TypeAdapter(EntryTypeData)
 _ENTRY = TypeAdapter(EntryData)
 _PROFILE = TypeAdapter(ProfileData)
 _LINKS = TypeAdapter(list[LinkData])
+_FRIENDS = TypeAdapter(list[FriendData])
 
 
 class ContentFilesStore(ContentStoreProtocol):
@@ -127,6 +133,7 @@ class ContentFilesStore(ContentStoreProtocol):
         bundle: ContentBundle = {
             "profile": None,
             "links": [],
+            "friends": [],
             "types": [],
             "entries": [],
             "assets": [],
@@ -137,6 +144,9 @@ class ContentFilesStore(ContentStoreProtocol):
                     (root / "profile.yaml").read_text(encoding="utf-8")
                 )
                 bundle["links"] = _LINKS.validate_python(raw.pop("links", []))
+                bundle["friends"] = _FRIENDS.validate_python(
+                    [_FRIEND_DEFAULTS | friend for friend in raw.pop("friends", [])]
+                )
                 bundle["profile"] = _PROFILE.validate_python(_PROFILE_DEFAULTS | raw)
         for path in sorted((root / "types").glob("*.yaml")):
             with _collect(errors, f"types/{path.name}"):
@@ -167,6 +177,10 @@ class ContentFilesStore(ContentStoreProtocol):
         if bundle["profile"]:
             profile = _PROFILE.dump_python(bundle["profile"], mode="python")
             profile["links"] = _LINKS.dump_python(bundle["links"], mode="python")
+            profile["friends"] = [
+                _without_defaults(friend, _FRIEND_DEFAULTS)
+                for friend in _FRIENDS.dump_python(bundle["friends"], mode="python")
+            ]
             (root / "profile.yaml").write_text(_dump(profile), encoding="utf-8")
         else:
             (root / "profile.yaml").unlink(missing_ok=True)

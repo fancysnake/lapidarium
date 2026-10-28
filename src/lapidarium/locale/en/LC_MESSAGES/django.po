@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 15:28+0200\n"
+"POT-Creation-Date: 2026-10-27 21:49+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -58,6 +58,9 @@ msgid "Profile"
 msgstr ""
 
 msgid "Links"
+msgstr ""
+
+msgid "Friends"
 msgstr ""
 
 msgid "Theme preview"
@@ -190,6 +193,10 @@ msgid "media asset"
 msgstr ""
 
 msgid "media assets"
+msgstr ""
+
+#, python-format
+msgid "A button is an %(width)dx%(height)d image."
 msgstr ""
 
 msgid "key"
@@ -399,6 +406,21 @@ msgstr ""
 msgid "e-mail"
 msgstr ""
 
+msgid "button"
+msgstr ""
+
+msgid "The site's own 88x31 button, for friends to link back with."
+msgstr ""
+
+msgid "friends title"
+msgstr ""
+
+msgid "Heading of the friends section; “Friends” when blank."
+msgstr ""
+
+msgid "friends intro"
+msgstr ""
+
 msgid "profile"
 msgstr ""
 
@@ -406,6 +428,15 @@ msgid "link"
 msgstr ""
 
 msgid "links"
+msgstr ""
+
+msgid "An 88x31 image; without one, the name shows as a text button."
+msgstr ""
+
+msgid "friend"
+msgstr ""
+
+msgid "friends"
 msgstr ""
 
 msgid "source"
@@ -526,6 +557,12 @@ msgid "All"
 msgstr ""
 
 msgid "updated"
+msgstr ""
+
+msgid "Link back here"
+msgstr ""
+
+msgid "Paste this into your site:"
 msgstr ""
 
 msgid "New entries and where to meet, now and then. No algorithm in between."
