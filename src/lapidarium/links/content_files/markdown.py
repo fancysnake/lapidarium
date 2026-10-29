@@ -282,6 +282,13 @@ def _showcases_file(showcases: list[ShowcaseData]) -> str:
     return _dump([_without_defaults(s, _SHOWCASE_DEFAULTS) for s in data])
 
 
+def _parse_picks(refs: Json) -> list[dict[str, str]]:
+    if not isinstance(refs, list):
+        msg = "Expected a list of <type>/<slug> entries."
+        raise TypeError(msg)
+    return [dict(zip(("type", "slug"), _parse_ref(ref), strict=True)) for ref in refs]
+
+
 def _read_showcases(path: Path) -> list[ShowcaseData]:
     if (loaded := yaml.safe_load(path.read_text(encoding="utf-8"))) is None:
         return []
@@ -291,10 +298,7 @@ def _read_showcases(path: Path) -> list[ShowcaseData]:
     return _SHOWCASES.validate_python(
         [
             _SHOWCASE_DEFAULTS | showcase | {
-                "entries": [
-                    dict(zip(("type", "slug"), _parse_ref(ref), strict=True))
-                    for ref in showcase.get("entries", [])
-                ]
+                "entries": _parse_picks(showcase.get("entries", []))
             }
             for showcase in loaded
         ]

@@ -220,6 +220,20 @@ def test_read_refuses_showcases_that_are_not_a_list(bundle_dir, document):
     assert caught.value.errors == {"showcases.yaml": ["Expected a list of showcases."]}
 
 
+@pytest.mark.parametrize("entries", ("{session/moose: project/saga}", "session/moose"))
+def test_read_refuses_showcase_entries_that_are_not_a_list(bundle_dir, entries):
+    (bundle_dir / "showcases.yaml").write_text(
+        f"- title: Start\n  entries: {entries}\n", encoding="utf-8"
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        ContentFilesStore().read(bundle_dir)
+
+    assert caught.value.errors == {
+        "showcases.yaml": ["Expected a list of <type>/<slug> entries."]
+    }
+
+
 def test_read_refuses_refs_without_a_type(bundle_dir):
     (bundle_dir / "showcases.yaml").write_text(
         "- title: Start\n  entries: [moose]\n", encoding="utf-8"
