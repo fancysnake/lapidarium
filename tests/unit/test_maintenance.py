@@ -12,6 +12,7 @@ HOUR = dt.timedelta(hours=1)
 MAINTENANCE = MaintenanceDTO(
     starts_at=NOW - HOUR,
     ends_at=NOW + HOUR,
+    title="Setting up the site",
     reasons=("feeding the mimics", "identifying player tribes"),
 )
 
@@ -24,12 +25,12 @@ def _service(maintenance):
     return MaintenanceService(maintenance=repo, clock=lambda: NOW, rng=rng)
 
 
-def test_notice_shows_a_random_reason_and_the_wait_until_its_end():
+def test_notice_shows_the_title_a_random_reason_and_the_wait_until_its_end():
     notice = _service(MAINTENANCE).notice()
 
     assert notice == MaintenanceNoticeDTO(
-        starts_at=NOW - HOUR,
         ends_at=NOW + HOUR,
+        title="Setting up the site",
         reason="identifying player tribes",
         seconds_left=3600,
     )

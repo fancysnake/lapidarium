@@ -439,6 +439,12 @@ class Maintenance(models.Model):
         blank=True,
         help_text=_("The site goes live by itself then; stays hidden when blank."),
     )
+    title = models.CharField(
+        _("title"),
+        max_length=_SHORT,
+        blank=True,
+        help_text=_("The heading above the reason."),
+    )
     reasons = models.TextField(
         _("reasons"),
         blank=True,

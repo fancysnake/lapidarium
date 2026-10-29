@@ -39,8 +39,8 @@ class MaintenanceService(MaintenanceServiceProtocol):
         ):
             return None
         return MaintenanceNoticeDTO(
-            starts_at=state.starts_at,
             ends_at=state.ends_at,
+            title=state.title,
             reason=self._rng.choice(state.reasons) if state.reasons else "",
             seconds_left=(
                 math.ceil((state.ends_at - now).total_seconds())

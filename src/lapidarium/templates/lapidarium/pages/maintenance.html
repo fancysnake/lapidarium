@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
-    <title>{% translate "Under maintenance" %} · {{ site.owner_name }}</title>
+    <title>{% if notice.title %}{{ notice.title }}{% else %}{% translate "Under maintenance" %}{% endif %} · {{ site.owner_name }}</title>
     {% include "lapidarium/components/stylesheets.html" %}
   </head>
   <body>
@@ -14,6 +14,7 @@
         <div class="hero__text">
           <h1 class="hero__name" id="maintenance-name">{{ site.owner_name }}</h1>
           {% if site.profile and site.profile.tagline %}<p class="hero__lead">{{ site.profile.tagline }}</p>{% endif %}
+          {% if notice.title %}<h2 class="maintenance__title">{{ notice.title }}</h2>{% endif %}
           <p class="maintenance__reason">
             {% if notice.reason %}
               {{ notice.reason }}
@@ -21,12 +22,11 @@
               {% translate "The site is being prepared." %}
             {% endif %}
           </p>
-          <p class="maintenance__when">
-            {% translate "Since" %} <time datetime="{{ notice.starts_at|date:'c' }}">{{ notice.starts_at|date:"DATETIME_FORMAT" }}</time>
-            {% if notice.ends_at %}
-              · {% translate "back by" %} <time datetime="{{ notice.ends_at|date:'c' }}">{{ notice.ends_at|date:"DATETIME_FORMAT" }}</time>
-            {% endif %}
-          </p>
+          {% if notice.ends_at %}
+            <p class="maintenance__when">
+              {% translate "back by" %} <time datetime="{{ notice.ends_at|date:'c' }}">{{ notice.ends_at|date:"DATETIME_FORMAT" }}</time>
+            </p>
+          {% endif %}
         </div>
         {% if site.profile and site.profile.photo %}
           <div class="hero__portrait">

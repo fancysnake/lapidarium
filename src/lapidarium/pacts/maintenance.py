@@ -15,6 +15,7 @@ class MaintenanceDTO(BaseModel):
 
     starts_at: dt.datetime
     ends_at: dt.datetime | None
+    title: str
     reasons: tuple[str, ...]
 
 
@@ -23,8 +24,8 @@ class MaintenanceNoticeDTO(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    starts_at: dt.datetime
     ends_at: dt.datetime | None
+    title: str
     reason: str
     # Whole seconds until `ends_at`, rounded up; `None` without an end.
     seconds_left: int | None

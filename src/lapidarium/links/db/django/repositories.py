@@ -497,6 +497,7 @@ class MaintenanceRepository(MaintenanceRepositoryProtocol):
         return MaintenanceDTO(
             starts_at=maintenance.starts_at,
             ends_at=maintenance.ends_at,
+            title=maintenance.title.strip(),
             reasons=tuple(
                 reason
                 for line in maintenance.reasons.splitlines()

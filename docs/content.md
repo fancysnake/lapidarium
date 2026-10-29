@@ -230,8 +230,9 @@ entries when it gained this switch starts live.
 
 | Field | Effect |
 |---|---|
-| Starts | shown as "since"; before it, the site stays live |
+| Starts | before it, the site stays live |
 | Ends | shown as "back by"; the site goes live by itself then |
+| Title | the heading above the reason, and the browser tab's title |
 | Reasons | one per line; each visit shows one at random |
 
 The page shows the profile's name, tagline and photo. It answers `503 Service
