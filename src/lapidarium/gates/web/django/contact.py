@@ -19,7 +19,7 @@ from lapidarium.gates.web.django.rendering import (
 if TYPE_CHECKING:
     from django.http import HttpResponse
 
-    from lapidarium.pacts import ContactData
+    from lapidarium.pacts.outreach import ContactData
 
 
 # Anonymous, like the newsletter form; see there.

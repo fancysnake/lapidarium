@@ -34,7 +34,8 @@ layer imports only the ones before it; import-linter enforces the order in
 
 ```text
 src/lapidarium/
-  pacts.py, specs.py      the contracts
+  pacts/                  the contracts, one module per concern
+  specs.py                the invariants
   mills/                  services, one module per concern
   links/
     db/django/            models, migrations, admin, repositories

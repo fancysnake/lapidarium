@@ -11,14 +11,14 @@ from django.conf import settings
 from django.core import checks
 from django.utils.module_loading import import_string
 
-from lapidarium.pacts import ProblemLevel
+from lapidarium.pacts.theme import ProblemLevel
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from django.apps import AppConfig
 
-    from lapidarium.pacts import ServicesProtocol
+    from lapidarium.pacts.services import ServicesProtocol
 
 
 def theme_check(

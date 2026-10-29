@@ -3,6 +3,7 @@
 ```text
 lapidarium.yaml               format version
 profile.yaml                  profile, links and friends
+showcases.yaml                showcases, each listing its entries as <type>/<slug>
 types/<key>.yaml              type settings and fields
 content/<type>/<slug>.md      frontmatter (built-ins, metadata, parts, relations,
                               syndication); text parts are the body, in order
@@ -25,7 +26,7 @@ from typing import TYPE_CHECKING, override
 import yaml
 from pydantic import TypeAdapter, ValidationError
 
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EXPORT_FORMAT_VERSION,
     FIELD_DEFAULTS,
@@ -35,17 +36,16 @@ from lapidarium.pacts import (
     ContentStoreProtocol,
     EntryData,
     EntryTypeData,
-    FriendData,
-    LinkData,
     NotFoundError,
     PartKind,
-    ProfileData,
+    ShowcaseData,
 )
+from lapidarium.pacts.site import FriendData, LinkData, ProfileData
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-    from lapidarium.pacts import ContentBundle, SettingDefault
+    from lapidarium.pacts.content import ContentBundle, SettingDefault
 
 DEMOS = Path(__file__).resolve().parent / "demos"
 MANIFEST = "lapidarium.yaml"
@@ -96,12 +96,14 @@ _PROFILE_DEFAULTS: dict[str, Json] = {
     "friends_intro": "",
 }
 _FRIEND_DEFAULTS: dict[str, Json] = {"button": ""}
+_SHOWCASE_DEFAULTS: dict[str, Json] = {"intro": "", "hidden": False, "entries": []}
 
 _TYPE = TypeAdapter(EntryTypeData)
 _ENTRY = TypeAdapter(EntryData)
 _PROFILE = TypeAdapter(ProfileData)
 _LINKS = TypeAdapter(list[LinkData])
 _FRIENDS = TypeAdapter(list[FriendData])
+_SHOWCASES = TypeAdapter(list[ShowcaseData])
 
 
 class ContentFilesStore(ContentStoreProtocol):
@@ -134,6 +136,7 @@ class ContentFilesStore(ContentStoreProtocol):
             "profile": None,
             "links": [],
             "friends": [],
+            "showcases": [],
             "types": [],
             "entries": [],
             "assets": [],
@@ -148,6 +151,9 @@ class ContentFilesStore(ContentStoreProtocol):
                     [_FRIEND_DEFAULTS | friend for friend in raw.pop("friends", [])]
                 )
                 bundle["profile"] = _PROFILE.validate_python(_PROFILE_DEFAULTS | raw)
+        if (root / "showcases.yaml").exists():
+            with _collect(errors, "showcases.yaml"):
+                bundle["showcases"] = _read_showcases(root / "showcases.yaml")
         for path in sorted((root / "types").glob("*.yaml")):
             with _collect(errors, f"types/{path.name}"):
                 bundle["types"].append(_read_type(path))
@@ -184,6 +190,12 @@ class ContentFilesStore(ContentStoreProtocol):
             (root / "profile.yaml").write_text(_dump(profile), encoding="utf-8")
         else:
             (root / "profile.yaml").unlink(missing_ok=True)
+        if bundle["showcases"]:
+            (root / "showcases.yaml").write_text(
+                _showcases_file(bundle["showcases"]), encoding="utf-8"
+            )
+        else:
+            (root / "showcases.yaml").unlink(missing_ok=True)
         for entry_type in bundle["types"]:
             path = root / "types" / f"{entry_type['key']}.yaml"
             path.write_text(_type_file(entry_type), encoding="utf-8")
@@ -249,6 +261,50 @@ def _read_type(path: Path) -> EntryTypeData:
     return _TYPE.validate_python(_TYPE_DEFAULTS | loaded | {"fields": fields})
 
 
+def _format_ref(type_key: str, slug: str) -> str:
+    return f"{type_key}/{slug}"
+
+
+def _parse_ref(ref: Json) -> tuple[str, str]:
+    type_key, slash, slug = str(ref).partition("/")
+    if not slash:
+        msg = f"Expected <type>/<slug>, got {ref!r}."
+        raise ValueError(msg)
+    return type_key, slug
+
+
+def _showcases_file(showcases: list[ShowcaseData]) -> str:
+    data = _SHOWCASES.dump_python(showcases, mode="python")
+    for showcase in data:
+        showcase["entries"] = [
+            _format_ref(e["type"], e["slug"]) for e in showcase["entries"]
+        ]
+    return _dump([_without_defaults(s, _SHOWCASE_DEFAULTS) for s in data])
+
+
+def _parse_picks(refs: Json) -> list[dict[str, str]]:
+    if not isinstance(refs, list):
+        msg = "Expected a list of <type>/<slug> entries."
+        raise TypeError(msg)
+    return [dict(zip(("type", "slug"), _parse_ref(ref), strict=True)) for ref in refs]
+
+
+def _read_showcases(path: Path) -> list[ShowcaseData]:
+    if (loaded := yaml.safe_load(path.read_text(encoding="utf-8"))) is None:
+        return []
+    if not isinstance(loaded, list):
+        msg = "Expected a list of showcases."
+        raise TypeError(msg)
+    return _SHOWCASES.validate_python(
+        [
+            _SHOWCASE_DEFAULTS | showcase | {
+                "entries": _parse_picks(showcase.get("entries", []))
+            }
+            for showcase in loaded
+        ]
+    )
+
+
 def _entry_file(entry: EntryData) -> str:
     data = _ENTRY.dump_python(entry, mode="python")
     data["parts"] = [
@@ -263,7 +319,7 @@ def _entry_file(entry: EntryData) -> str:
         for part in data["parts"]
     ]
     data["relations"] = [
-        {"role": r["role"], "to": f"{r['target_type']}/{r['target_slug']}"}
+        {"role": r["role"], "to": _format_ref(r["target_type"], r["target_slug"])}
         for r in data["relations"]
     ]
     body = f"\n\n{PART_BREAK}\n\n".join(
@@ -292,9 +348,7 @@ def _read_entry(path: Path) -> EntryData:
     relations = [
         dict(
             zip(
-                ("target_type", "target_slug"),
-                str(relation["to"]).split("/", 1),
-                strict=True,
+                ("target_type", "target_slug"), _parse_ref(relation["to"]), strict=True
             ),
             role=relation["role"],
         )

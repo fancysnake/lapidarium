@@ -4,17 +4,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import NotFoundError, OutreachServiceProtocol, RateLimitedError
+from lapidarium.pacts.content import NotFoundError
+from lapidarium.pacts.outreach import RateLimitedError
+from lapidarium.pacts.services import OutreachServiceProtocol
 from lapidarium.specs import OUTREACH_LIMIT, OUTREACH_WINDOW
 
 if TYPE_CHECKING:
-    from lapidarium.pacts import (
+    from lapidarium.pacts.outreach import (
         ContactData,
         MailerProtocol,
         NewsletterProtocol,
-        ProfileRepositoryProtocol,
         ThrottleProtocol,
     )
+    from lapidarium.pacts.site import ProfileRepositoryProtocol
 
 
 class OutreachService(OutreachServiceProtocol):

@@ -4,7 +4,7 @@ import pytest
 from django.core.cache import caches
 
 from lapidarium.links.db.django.models import Entry, EntryType, Tag
-from lapidarium.pacts import PAGE_CACHE
+from lapidarium.pacts.content import PAGE_CACHE
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 

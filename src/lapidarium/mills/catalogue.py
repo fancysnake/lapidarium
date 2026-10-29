@@ -5,26 +5,29 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import (
-    CONTAINER_ROLES,
+from lapidarium.pacts.catalogue import (
     CardDTO,
-    CatalogueServiceProtocol,
     DetailDTO,
     DoorDTO,
-    DoorPick,
-    EntryRefDTO,
     FactDTO,
     FeedChange,
     FeedItemDTO,
-    FieldKind,
     FilterDTO,
     HomeDTO,
-    ListFilter,
     ListingDTO,
+    ShowcaseBandDTO,
+)
+from lapidarium.pacts.content import (
+    CONTAINER_ROLES,
+    DoorPick,
+    EntryRefDTO,
+    FieldKind,
+    ListFilter,
     NotFoundError,
     RelationRole,
     TypeRole,
 )
+from lapidarium.pacts.services import CatalogueServiceProtocol
 from lapidarium.specs import (
     PAGE_SIZE,
     SEARCH_LIMIT,
@@ -40,13 +43,14 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
     from random import Random
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.catalogue import ExternalItemRepositoryProtocol
+    from lapidarium.pacts.content import (
         EntryDTO,
         EntryRepositoryProtocol,
         EntryTypeDTO,
         EntryTypeRepositoryProtocol,
-        ExternalItemRepositoryProtocol,
         FieldDefinitionDTO,
+        ShowcaseDTO,
     )
 
 type _Key = tuple[str, str]
@@ -214,6 +218,24 @@ def _filters(
     return tuple(offered)
 
 
+def _band(catalogue: Catalogue, showcase: ShowcaseDTO) -> ShowcaseBandDTO | None:
+    """Band the showcase's published entries; `None` when none are left."""
+    entries = [
+        entry
+        for ref in showcase.entries
+        if (entry := catalogue.get(ref.type_key, ref.slug))
+    ]
+    if not entries:
+        return None
+    types = {entry.type_key for entry in entries}
+    return ShowcaseBandDTO(
+        title=showcase.title,
+        intro=showcase.intro,
+        type_key=types.pop() if len(types) == 1 else "",
+        entries=tuple(entries),
+    )
+
+
 def _unique(entries: Iterable[EntryDTO], *, besides: EntryDTO) -> list[EntryDTO]:
     seen = {_key(besides)}
     unique: list[EntryDTO] = []
@@ -268,6 +290,11 @@ class CatalogueService(CatalogueServiceProtocol):
         upcoming = self._upcoming(catalogue.of_role(TypeRole.CALENDAR))
         return HomeDTO(
             doors=tuple(doors),
+            showcases=tuple(
+                band
+                for showcase in self._entries.list_showcases()
+                if not showcase.hidden and (band := _band(catalogue, showcase))
+            ),
             whats_new=self._feed(catalogue, limit=WHATS_NEW_HOME),
             next_up=catalogue.card(upcoming[0]) if upcoming else None,
         )

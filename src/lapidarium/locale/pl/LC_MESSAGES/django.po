@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 21:48+0100\n"
+"POT-Creation-Date: 2026-10-29 20:16+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -62,6 +62,9 @@ msgstr "Linki"
 
 msgid "Friends"
 msgstr "Przyjaciele"
+
+msgid "Showcases"
+msgstr "Wyróżnienia"
 
 msgid "Theme preview"
 msgstr "Podgląd motywu"
@@ -443,6 +446,30 @@ msgstr "przyjaciel"
 msgid "friends"
 msgstr "przyjaciele"
 
+msgid "intro"
+msgstr "wstęp"
+
+msgid "hidden"
+msgstr "ukryta"
+
+msgid "Kept, but not on the home page."
+msgstr "Zostaje, ale nie pojawia się na stronie głównej."
+
+msgid "showcase"
+msgstr "wyróżnienie"
+
+msgid "showcases"
+msgstr "wyróżnienia"
+
+msgid "showcase entry"
+msgstr "wpis w wyróżnieniu"
+
+msgid "showcase entries"
+msgstr "wpisy w wyróżnieniu"
+
+msgid "This entry is in the showcase already."
+msgstr "Ten wpis jest już w tym wyróżnieniu."
+
 msgid "source"
 msgstr "źródło"
 
@@ -596,6 +623,9 @@ msgstr "Strona %(page)s z %(pages)s"
 
 msgid "Older"
 msgstr "Starsze"
+
+msgid "Take a look"
+msgstr "Zobacz"
 
 msgid "Where to find me"
 msgstr "Gdzie mnie znaleźć"

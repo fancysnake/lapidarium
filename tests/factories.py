@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EntryDTO,
     EntryRefDTO,
@@ -11,11 +11,12 @@ from lapidarium.pacts import (
     FieldDefinitionDTO,
     FieldKind,
     PartKind,
-    ProfileDTO,
     RelationDTO,
+    ShowcaseDTO,
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.site import ProfileDTO
 
 
 def type_data(key="session", **overrides):
@@ -167,5 +168,27 @@ def profile_data(**overrides):
     return {
         "name": "Mira",
         **dict.fromkeys((*blank, "friends_title", "friends_intro"), ""),
+        **overrides,
+    }
+
+
+def showcase_dto(title="Start here", *, entries=(), **overrides):
+    return ShowcaseDTO(
+        **{
+            "title": title,
+            "intro": "",
+            "hidden": False,
+            "entries": entries,
+            **overrides,
+        }
+    )
+
+
+def showcase_data(title="Start here", *, entries=(), **overrides):
+    return {
+        "title": title,
+        "intro": "",
+        "hidden": False,
+        "entries": [{"type": type_key, "slug": slug} for type_key, slug in entries],
         **overrides,
     }

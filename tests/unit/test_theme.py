@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.theme import ThemeService
-from lapidarium.pacts import REQUIRED_TOKENS, ProblemLevel, ThemeDTO, ThemeProblem
+from lapidarium.pacts.theme import REQUIRED_TOKENS, ProblemLevel, ThemeDTO, ThemeProblem
 
 COMPLETE = dict.fromkeys(REQUIRED_TOKENS, "1rem") | {
     "--color-bg": "#ffffff",

@@ -36,12 +36,14 @@ from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
 from lapidarium.mills.theme import ThemeService
-from lapidarium.pacts import NewsletterBackend, ServicesProtocol
+from lapidarium.pacts.outreach import NewsletterBackend
+from lapidarium.pacts.services import ServicesProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from lapidarium.pacts import NewsletterProtocol, RootRequestProtocol
+    from lapidarium.pacts.outreach import NewsletterProtocol
+    from lapidarium.pacts.services import RootRequestProtocol
 
 
 def newsletter_backend() -> NewsletterBackend:

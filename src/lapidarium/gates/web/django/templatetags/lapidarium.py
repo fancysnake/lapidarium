@@ -13,14 +13,14 @@ from django.utils.safestring import SafeString
 
 from lapidarium.gates.web.django import embeds
 from lapidarium.gates.web.django.paths import entry_path
-from lapidarium.pacts import BUTTON_SIZE
+from lapidarium.pacts.site import BUTTON_SIZE
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from django.template.context import Context
 
-    from lapidarium.pacts import EntryDTO, EntryRefDTO
+    from lapidarium.pacts.content import EntryDTO, EntryRefDTO
 
 register = template.Library()
 

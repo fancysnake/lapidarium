@@ -3,8 +3,8 @@ import datetime as dt
 import pytest
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
-from lapidarium.pacts import BundleValidationError, NotFoundError
-from tests.factories import profile_data
+from lapidarium.pacts.content import BundleValidationError, NotFoundError
+from tests.factories import profile_data, showcase_data
 
 ENTRY = """---
 title: Moose
@@ -177,6 +177,88 @@ def test_friends_round_trip_and_leave_a_blank_button_out(bundle_dir):
     )
 
 
+def test_showcases_round_trip_and_leave_defaults_out(bundle_dir):
+    showcases = (
+        "- title: Start here\n"
+        "  intro: The best of it.\n"
+        "  entries:\n"
+        "  - session/moose\n"
+        "  - project/saga\n"
+        "- title: Later\n"
+        "  hidden: true\n"
+    )
+    (bundle_dir / "showcases.yaml").write_text(showcases, encoding="utf-8")
+    store = ContentFilesStore()
+
+    bundle = store.read(bundle_dir)
+    store.write(bundle_dir, bundle)
+
+    assert bundle["showcases"] == [
+        showcase_data(
+            "Start here",
+            intro="The best of it.",
+            entries=[("session", "moose"), ("project", "saga")],
+        ),
+        showcase_data("Later", hidden=True),
+    ]
+    assert (bundle_dir / "showcases.yaml").read_text(encoding="utf-8") == showcases
+
+
+def test_empty_showcases_file_means_no_showcases(bundle_dir):
+    (bundle_dir / "showcases.yaml").write_text("", encoding="utf-8")
+
+    assert not ContentFilesStore().read(bundle_dir)["showcases"]
+
+
+@pytest.mark.parametrize("document", ("{}\n", "false\n", "title: Start\n"))
+def test_read_refuses_showcases_that_are_not_a_list(bundle_dir, document):
+    (bundle_dir / "showcases.yaml").write_text(document, encoding="utf-8")
+
+    with pytest.raises(BundleValidationError) as caught:
+        ContentFilesStore().read(bundle_dir)
+
+    assert caught.value.errors == {"showcases.yaml": ["Expected a list of showcases."]}
+
+
+@pytest.mark.parametrize("entries", ("{session/moose: project/saga}", "session/moose"))
+def test_read_refuses_showcase_entries_that_are_not_a_list(bundle_dir, entries):
+    (bundle_dir / "showcases.yaml").write_text(
+        f"- title: Start\n  entries: {entries}\n", encoding="utf-8"
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        ContentFilesStore().read(bundle_dir)
+
+    assert caught.value.errors == {
+        "showcases.yaml": ["Expected a list of <type>/<slug> entries."]
+    }
+
+
+def test_read_refuses_refs_without_a_type(bundle_dir):
+    (bundle_dir / "showcases.yaml").write_text(
+        "- title: Start\n  entries: [moose]\n", encoding="utf-8"
+    )
+    moose = bundle_dir / "content" / "session" / "moose.md"
+    moose.write_text(ENTRY.replace("to: project/saga", "to: saga"), encoding="utf-8")
+
+    with pytest.raises(BundleValidationError) as caught:
+        ContentFilesStore().read(bundle_dir)
+
+    assert caught.value.errors == {
+        "showcases.yaml": ["Expected <type>/<slug>, got 'moose'."],
+        "content/session/moose.md": ["Expected <type>/<slug>, got 'saga'."],
+    }
+
+
+def test_write_without_showcases_removes_their_file(bundle_dir):
+    (bundle_dir / "showcases.yaml").write_text("- title: Old\n", encoding="utf-8")
+    store = ContentFilesStore()
+
+    store.write(bundle_dir, {**store.read(bundle_dir), "showcases": []})
+
+    assert not (bundle_dir / "showcases.yaml").exists()
+
+
 def test_read_requires_format_one(tmp_path):
     (tmp_path / "lapidarium.yaml").write_text("format: 2\n", encoding="utf-8")
 
@@ -232,6 +314,7 @@ def test_read_of_an_empty_bundle(tmp_path):
         "profile": None,
         "links": [],
         "friends": [],
+        "showcases": [],
         "types": [],
         "entries": [],
         "assets": [],

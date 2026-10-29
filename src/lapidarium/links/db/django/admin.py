@@ -40,11 +40,13 @@ from lapidarium.links.db.django.models import (
     Part,
     Profile,
     Relation,
+    Showcase,
+    ShowcaseItem,
     SyndicationLink,
     Tag,
 )
 from lapidarium.links.db.django.repositories import entry_type_dto
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     ROLE_BUILTINS,
     EntryStatus,
@@ -66,12 +68,8 @@ if TYPE_CHECKING:
     from django.urls import URLPattern
     from django.utils.functional import _StrOrPromise
 
-    from lapidarium.pacts import (
-        MetadataInput,
-        PartData,
-        SchemaServiceProtocol,
-        ServicesProtocol,
-    )
+    from lapidarium.pacts.content import MetadataInput, PartData
+    from lapidarium.pacts.services import SchemaServiceProtocol, ServicesProtocol
 
     # Unfold's admin classes are Django's, restyled; type-check against Django's.
     EntryTypeAdminBase = admin.ModelAdmin[EntryType]
@@ -81,11 +79,13 @@ if TYPE_CHECKING:
     ProfileAdminBase = admin.ModelAdmin[Profile]
     LinkAdminBase = admin.ModelAdmin[Link]
     FriendAdminBase = admin.ModelAdmin[Friend]
+    ShowcaseAdminBase = admin.ModelAdmin[Showcase]
     ExternalItemAdminBase = admin.ModelAdmin[ExternalItem]
     FieldDefinitionInlineBase = admin.TabularInline[FieldDefinition, EntryType]
     PartInlineBase = admin.StackedInline[Part, Entry]
     RelationInlineBase = admin.TabularInline[Relation, Entry]
     SyndicationInlineBase = admin.TabularInline[SyndicationLink, Entry]
+    ShowcaseItemInlineBase = admin.TabularInline[ShowcaseItem, Showcase]
 
     EntryTypeFormBase = forms.ModelForm[EntryType]
     FieldDefinitionFormBase = forms.ModelForm[FieldDefinition]
@@ -99,9 +99,9 @@ else:
 
     EntryTypeAdminBase = EntryAdminBase = MediaAssetAdminBase = ModelAdmin
     TagAdminBase = ProfileAdminBase = LinkAdminBase = FriendAdminBase = ModelAdmin
-    ExternalItemAdminBase = ModelAdmin
+    ShowcaseAdminBase = ExternalItemAdminBase = ModelAdmin
     FieldDefinitionInlineBase = RelationInlineBase = TabularInline
-    SyndicationInlineBase = TabularInline
+    SyndicationInlineBase = ShowcaseItemInlineBase = TabularInline
     PartInlineBase = StackedInline
 
     EntryTypeFormBase = FieldDefinitionFormBase = EntryFormBase = forms.ModelForm
@@ -185,6 +185,7 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                 _item(gettext("Profile"), icon="person", model="profile"),
                 _item(gettext("Links"), icon="link", model="link"),
                 _item(gettext("Friends"), icon="diversity_3", model="friend"),
+                _item(gettext("Showcases"), icon="star", model="showcase"),
                 {
                     "title": gettext("Theme preview"),
                     "icon": "palette",
@@ -820,6 +821,24 @@ class LinkAdmin(LinkAdminBase):
 class FriendAdmin(FriendAdminBase):
     list_display = ("name", "url", "button")
     autocomplete_fields = ("button",)
+    ordering_field = "order"
+    hide_ordering_field = True
+
+
+class ShowcaseItemInline(ShowcaseItemInlineBase):
+    model = ShowcaseItem
+    extra = 0
+    ordering_field = "order"
+    hide_ordering_field = True
+    autocomplete_fields = ("entry",)
+    fields = ("entry", "order")
+
+
+@admin.register(Showcase)
+class ShowcaseAdmin(ShowcaseAdminBase):
+    inlines = (ShowcaseItemInline,)
+    list_display = ("title", "hidden")
+    list_filter = ("hidden",)
     ordering_field = "order"
     hide_ordering_field = True
 

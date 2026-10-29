@@ -12,8 +12,7 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
-from lapidarium.pacts import (
-    BUTTON_SIZE,
+from lapidarium.pacts.content import (
     DEFAULT_PARTS,
     FIELD_DEFAULTS,
     SUMMARY_MAX_LENGTH,
@@ -27,6 +26,7 @@ from lapidarium.pacts import (
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.site import BUTTON_SIZE
 
 if TYPE_CHECKING:
     from enum import StrEnum
@@ -467,6 +467,48 @@ class Friend(models.Model):
 
     def __str__(self) -> str:
         return str(self.name)
+
+
+class Showcase(models.Model):
+    title = models.CharField(_("title"), max_length=_SHORT)
+    intro = models.TextField(_("intro"), blank=True, help_text=_("Markdown."))
+    hidden = models.BooleanField(
+        _("hidden"), default=False, help_text=_("Kept, but not on the home page.")
+    )
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
+
+    class Meta:
+        ordering: ClassVar = ["order", "pk"]
+        verbose_name = _("showcase")
+        verbose_name_plural = _("showcases")
+
+    def __str__(self) -> str:
+        return str(self.title)
+
+
+class ShowcaseItem(models.Model):
+    showcase = models.ForeignKey(
+        Showcase, on_delete=models.CASCADE, related_name="items"
+    )
+    entry = models.ForeignKey(
+        Entry, on_delete=models.CASCADE, related_name="+", verbose_name=_("entry")
+    )
+    order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
+
+    class Meta:
+        ordering: ClassVar = ["order", "pk"]
+        verbose_name = _("showcase entry")
+        verbose_name_plural = _("showcase entries")
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["showcase", "entry"],
+                name="showcase_item_unique",
+                violation_error_message=_("This entry is in the showcase already."),
+            )
+        ]
+
+    def __str__(self) -> str:
+        return str(self.entry)
 
 
 class ExternalItem(models.Model):

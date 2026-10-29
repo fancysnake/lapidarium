@@ -7,7 +7,7 @@ from django.core import mail
 
 from lapidarium.gates.web.django.rendering import sender
 from lapidarium.links.db.django.models import Profile
-from lapidarium.pacts import DeliveryError
+from lapidarium.pacts.outreach import DeliveryError
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 

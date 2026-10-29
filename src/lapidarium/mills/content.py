@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from functools import partial
 from typing import TYPE_CHECKING, override
 
 from lapidarium.mills.schema import url_errors
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BundleValidationError,
     ContentBundle,
-    ContentExportServiceProtocol,
-    ContentImportServiceProtocol,
     ContentSummaryDTO,
     EntryData,
     EntryDTO,
@@ -20,12 +19,16 @@ from lapidarium.pacts import (
     EntryTypeDTO,
     ListFilter,
     LocalSetupDTO,
-    LocalSetupServiceProtocol,
     MetadataValidationError,
-    ProfileData,
-    ProfileDTO,
     RelationEndDTO,
     RelationRole,
+    ShowcaseData,
+    ShowcaseDTO,
+)
+from lapidarium.pacts.services import (
+    ContentExportServiceProtocol,
+    ContentImportServiceProtocol,
+    LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
 from lapidarium.specs import SLUG_PATTERN
@@ -34,7 +37,7 @@ if TYPE_CHECKING:
     from collections.abc import Collection, Iterator, Mapping
     from pathlib import Path
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         AccountRepositoryProtocol,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
@@ -42,9 +45,9 @@ if TYPE_CHECKING:
         MediaAssetDTO,
         MediaAssetRepositoryProtocol,
         Metadata,
-        ProfileRepositoryProtocol,
-        TransactionProtocol,
     )
+    from lapidarium.pacts.db import TransactionProtocol
+    from lapidarium.pacts.site import ProfileData, ProfileDTO, ProfileRepositoryProtocol
 
 type _EntryKey = tuple[str, str]
 
@@ -185,6 +188,10 @@ class ContentExportService(ContentExportServiceProtocol):
                 }
                 for friend in friends
             ],
+            "showcases": [
+                _showcase_to_data(showcase)
+                for showcase in self._entries.list_showcases()
+            ],
             "types": [type_to_data(t) for t in self._types.list_all()],
             "entries": [entry_to_data(entry) for entry in published],
             "assets": [
@@ -251,6 +258,35 @@ def _profile_errors(bundle: ContentBundle, *, paths: Collection[str]) -> list[st
             for message in url_errors(url)
         ),
     ]
+
+
+def _showcase_to_data(showcase: ShowcaseDTO) -> ShowcaseData:
+    """Keep only the showcase entries the export carries."""
+    return {
+        "title": showcase.title,
+        "intro": showcase.intro,
+        "hidden": showcase.hidden,
+        "entries": [
+            {"type": ref.type_key, "slug": ref.slug}
+            for ref in showcase.entries
+            if ref.status == EntryStatus.PUBLISHED
+        ],
+    }
+
+
+def _showcase_errors(
+    bundle: ContentBundle, *, entries: Collection[_EntryKey]
+) -> list[str]:
+    messages: list[str] = []
+    for showcase in bundle["showcases"]:
+        where = f"Showcase {showcase['title']!r}"
+        counts = Counter((item["type"], item["slug"]) for item in showcase["entries"])
+        for (type_key, slug), count in counts.items():
+            if (type_key, slug) not in entries:
+                messages.append(f"{where}: {type_key}/{slug} is not among the entries.")
+            if count > 1:
+                messages.append(f"{where}: {type_key}/{slug} is listed twice.")
+    return messages
 
 
 def _profile_to_data(profile: ProfileDTO) -> ProfileData:
@@ -332,6 +368,7 @@ class ContentImportService(ContentImportServiceProtocol):
                 self._profile.save(bundle["profile"])
             self._profile.replace_links(bundle["links"])
             self._profile.replace_friends(bundle["friends"])
+            self._entries.replace_showcases(bundle["showcases"])
         return _summary(bundle)
 
     def _with_tint(self, entry_type: EntryTypeData) -> EntryTypeData:
@@ -380,6 +417,8 @@ class ContentImportService(ContentImportServiceProtocol):
                 errors[where] = messages
         if messages := _profile_errors(bundle, paths=alts.keys()):
             errors["profile.yaml"] = messages
+        if messages := _showcase_errors(bundle, entries=entries.keys()):
+            errors["showcases.yaml"] = messages
         if errors:
             raise BundleValidationError(errors)
         return metadata
