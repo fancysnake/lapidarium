@@ -443,6 +443,51 @@ textarea.input { min-height: 10rem; padding-block: var(--space-3); }
   & span { color: var(--color-text-muted); }
 }
 
+/* --- Showcases: a full-width band of hand-picked entries --- */
+.showcase {
+  margin-bottom: var(--space-8);
+  padding-block: var(--space-7);
+  background: var(--type-tint);
+  border-block: 3px solid var(--type-color);
+}
+.showcase__title { margin-bottom: var(--space-3); color: var(--type-color); }
+.showcase__intro { max-width: 40rem; margin-bottom: var(--space-5); }
+.showcase__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.showcase__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.showcase__item-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 1.1875rem;
+  line-height: 1.25;
+}
+.showcase__summary { margin: 0; color: var(--color-text-strong); }
+.showcase__more {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  color: var(--type-color);
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; color: var(--type-color); }
+}
+
 /* --- What's new and following --- */
 .home-doors { padding-bottom: var(--space-8); }
 

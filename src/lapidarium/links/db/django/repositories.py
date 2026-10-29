@@ -20,6 +20,8 @@ from lapidarium.links.db.django.models import (
     Part,
     Profile,
     Relation,
+    Showcase,
+    ShowcaseItem,
     SyndicationLink,
     Tag,
 )
@@ -43,6 +45,7 @@ from lapidarium.pacts.content import (
     PartDTO,
     PartKind,
     RelationDTO,
+    ShowcaseDTO,
     SyndicationLinkDTO,
     TypeRole,
     UrlKind,
@@ -62,6 +65,7 @@ if TYPE_CHECKING:
         EntryTypeData,
         FieldDefinitionData,
         RelationData,
+        ShowcaseData,
     )
     from lapidarium.pacts.site import FriendData, LinkData, ProfileData
 
@@ -155,6 +159,15 @@ def asset_dto(asset: MediaAsset) -> MediaAssetDTO:
     return MediaAssetDTO(path=asset.file.name or "", url=asset.file.url, alt=asset.alt)
 
 
+def _entry_ref(entry: Entry) -> EntryRefDTO:
+    return EntryRefDTO(
+        type_key=entry.type.key,
+        slug=entry.slug,
+        title=entry.title,
+        status=EntryStatus(entry.status),
+    )
+
+
 def _entry_dto(entry: Entry) -> EntryDTO:
     return EntryDTO(
         type_key=entry.type.key,
@@ -187,15 +200,7 @@ def _entry_dto(entry: Entry) -> EntryDTO:
             for part in entry.parts.all()
         ),
         relations=tuple(
-            RelationDTO(
-                role=relation.role,
-                target=EntryRefDTO(
-                    type_key=relation.to_entry.type.key,
-                    slug=relation.to_entry.slug,
-                    title=relation.to_entry.title,
-                    status=EntryStatus(relation.to_entry.status),
-                ),
-            )
+            RelationDTO(role=relation.role, target=_entry_ref(relation.to_entry))
             for relation in entry.relations.all()
         ),
         syndication=tuple(
@@ -213,6 +218,14 @@ def _asset_by_path(path: str) -> MediaAsset | None:
         return MediaAsset.objects.get(file=path)
     except MediaAsset.DoesNotExist:
         raise NotFoundError(path) from None
+
+
+def _entry_by_key(type_key: str, slug: str) -> Entry:
+    try:
+        return Entry.objects.get(type__key=type_key, slug=slug)
+    except Entry.DoesNotExist:
+        msg = f"{type_key}/{slug}"
+        raise NotFoundError(msg) from None
 
 
 class EntryTypeRepository(EntryTypeRepositoryProtocol):
@@ -323,24 +336,52 @@ class EntryRepository(EntryRepositoryProtocol):
     def set_relations(
         self, type_key: str, slug: str, *, relations: Sequence[RelationData]
     ) -> None:
-        def entry(type_key: str, slug: str) -> Entry:
-            try:
-                return Entry.objects.get(type__key=type_key, slug=slug)
-            except Entry.DoesNotExist:
-                msg = f"{type_key}/{slug}"
-                raise NotFoundError(msg) from None
-
-        source = entry(type_key, slug)
+        source = _entry_by_key(type_key, slug)
         source.relations.all().delete()
         Relation.objects.bulk_create(
             Relation(
                 from_entry=source,
-                to_entry=entry(relation["target_type"], relation["target_slug"]),
+                to_entry=_entry_by_key(
+                    relation["target_type"], relation["target_slug"]
+                ),
                 role=relation["role"],
                 order=order,
             )
             for order, relation in enumerate(relations)
         )
+
+    @override
+    def list_showcases(self) -> list[ShowcaseDTO]:
+        items = ShowcaseItem.objects.select_related("entry__type")
+        showcases = Showcase.objects.prefetch_related(Prefetch("items", queryset=items))
+        return [
+            ShowcaseDTO(
+                title=showcase.title,
+                intro=showcase.intro,
+                hidden=showcase.hidden,
+                entries=tuple(_entry_ref(item.entry) for item in showcase.items.all()),
+            )
+            for showcase in showcases
+        ]
+
+    @override
+    def replace_showcases(self, showcases: Sequence[ShowcaseData]) -> None:
+        Showcase.objects.all().delete()
+        for order, data in enumerate(showcases):
+            showcase = Showcase.objects.create(
+                title=data["title"],
+                intro=data["intro"],
+                hidden=data["hidden"],
+                order=order,
+            )
+            ShowcaseItem.objects.bulk_create(
+                ShowcaseItem(
+                    showcase=showcase,
+                    entry=_entry_by_key(item["type"], item["slug"]),
+                    order=position,
+                )
+                for position, item in enumerate(data["entries"])
+            )
 
 
 class MediaAssetRepository(MediaAssetRepositoryProtocol):

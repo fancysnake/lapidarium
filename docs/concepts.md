@@ -22,6 +22,7 @@ Everything on the site is one of these records:
 | Entry of a container type | a project or a period that other entries belong to | the same, listing its contents |
 | Profile and links | who the site is about, and where else to find them | the about page and the footer |
 | Friend | a site the owner likes, shown as an 88×31 button | the about page |
+| Showcase | entries picked by hand, in order | a band on the home page |
 | External item | a post elsewhere: a video, a game page | none; it links out from what's new |
 
 Every entry, whatever its type, shares the same core: title, slug, a

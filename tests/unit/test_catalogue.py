@@ -11,16 +11,26 @@ from lapidarium.pacts.catalogue import (
     FactDTO,
     FeedChange,
     FilterDTO,
+    ShowcaseBandDTO,
 )
 from lapidarium.pacts.content import (
     DoorPick,
+    EntryStatus,
     FieldKind,
     NotFoundError,
     RelationRole,
     TypeRole,
 )
 from lapidarium.specs import PAGE_SIZE, SEARCH_LIMIT, WHATS_NEW_HOME
-from tests.factories import NOW, entry_dto, field_dto, ref_dto, relation_dto, type_dto
+from tests.factories import (
+    NOW,
+    entry_dto,
+    field_dto,
+    ref_dto,
+    relation_dto,
+    showcase_dto,
+    type_dto,
+)
 
 DAY = dt.timedelta(days=1)
 SESSION = type_dto(
@@ -44,12 +54,13 @@ EVENT = type_dto("event", route="events", role=TypeRole.CALENDAR)
 PROJECT = type_dto("project", route="projects", role=TypeRole.CONTAINER_OUTCOME)
 
 
-def _service(*, types=(SESSION,), entries=(), external=(), rng=None):
+def _service(*, types=(SESSION,), entries=(), external=(), showcases=(), rng=None):
     repos = MagicMock()
     repos.types.list_all.return_value = list(types)
     repos.entries.list_published.return_value = list(entries)
     repos.entries.search.return_value = list(entries)
     repos.external.list_recent.return_value = list(external)
+    repos.entries.list_showcases.return_value = list(showcases)
     service = CatalogueService(
         types=repos.types,
         entries=repos.entries,
@@ -209,6 +220,52 @@ def test_home_random_featured_draws_among_all_without_featured():
     service, _ = _service(types=types, entries=[entry_dto("a")], rng=rng)
 
     assert service.home().doors[0].pick.entry.slug == "a"
+
+
+def test_home_showcases_keep_their_order_and_published_entries_only():
+    second, first = entry_dto("second"), entry_dto("first")
+    showcase = showcase_dto(
+        "Start here",
+        intro="Read these *first*.",
+        entries=(
+            ref_dto("second"),
+            ref_dto("draft", status=EntryStatus.DRAFT),
+            ref_dto("first"),
+        ),
+    )
+    service, _ = _service(entries=[first, second], showcases=[showcase])
+
+    assert service.home().showcases == (
+        ShowcaseBandDTO(
+            title="Start here",
+            intro="Read these *first*.",
+            type_key="session",
+            cards=(_card(second), _card(first)),
+        ),
+    )
+
+
+def test_home_showcase_of_mixed_types_has_no_type():
+    showcase = showcase_dto(entries=(ref_dto("moose"), ref_dto("ballad", "song")))
+    service, _ = _service(
+        types=[SESSION, SONG],
+        entries=[entry_dto("moose"), entry_dto("ballad", "song")],
+        showcases=[showcase],
+    )
+
+    assert [band.type_key for band in service.home().showcases] == [""]
+
+
+def test_home_skips_hidden_showcases_and_those_with_nothing_to_show():
+    showcases = [
+        showcase_dto("Hidden", hidden=True, entries=(ref_dto("moose"),)),
+        showcase_dto("Gone", entries=(ref_dto("deleted"),)),
+        showcase_dto("Empty"),
+        showcase_dto("Shown", entries=(ref_dto("moose"),)),
+    ]
+    service, _ = _service(entries=[entry_dto("moose")], showcases=showcases)
+
+    assert [band.title for band in service.home().showcases] == ["Shown"]
 
 
 @pytest.mark.parametrize(

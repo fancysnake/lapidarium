@@ -1,0 +1,20 @@
+{% load i18n lapidarium %}
+<section class="showcase"
+         data-type="{{ showcase.type_key }}"
+         aria-labelledby="showcase-{{ forloop.counter }}-title">
+  <div class="container showcase__inner">
+    <h2 class="section-title showcase__title" id="showcase-{{ forloop.counter }}-title">{{ showcase.title }}</h2>
+    {% if showcase.intro %}
+      <div class="showcase__intro part-text">{{ showcase.intro|markdown }}</div>
+    {% endif %}
+    <ol class="showcase__items">
+      {% for card in showcase.cards %}
+        <li class="showcase__item">
+          <h3 class="showcase__item-title">{{ card.entry.title }}</h3>
+          <p class="showcase__summary">{{ card.entry.summary }}</p>
+          <a class="showcase__more" href="{% entry_url card.entry %}">{% translate "Take a look" %}<span class="visually-hidden">: {{ card.entry.title }}</span> →</a>
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>

@@ -293,12 +293,25 @@ class AssetData(TypedDict):
     content: bytes
 
 
+class ShowcaseItemData(TypedDict):
+    type: str
+    slug: str
+
+
+class ShowcaseData(TypedDict):
+    title: str
+    intro: str
+    hidden: bool
+    entries: list[ShowcaseItemData]
+
+
 class ContentBundle(TypedDict):
     """Everything export format v1 holds, as one value."""
 
     profile: ProfileData | None
     links: list[LinkData]
     friends: list[FriendData]
+    showcases: list[ShowcaseData]
     types: list[EntryTypeData]
     entries: list[EntryData]
     assets: list[AssetData]
@@ -413,6 +426,17 @@ class EntryDTO(BaseModel):
     updated_at: dt.datetime
 
 
+class ShowcaseDTO(BaseModel):
+    """Entries the owner picked by hand, in order, drafts among them."""
+
+    model_config = ConfigDict(frozen=True)
+
+    title: str
+    intro: str
+    hidden: bool
+    entries: tuple[EntryRefDTO, ...]
+
+
 class RelationEndDTO(BaseModel):
     """One end of a link between entries, as the relation rules see it."""
 
@@ -457,6 +481,11 @@ class EntryRepositoryProtocol(Protocol):
         self, type_key: str, slug: str, *, relations: Sequence[RelationData]
     ) -> None:
         """Replace an entry's outgoing relations; `NotFoundError` on a missing end."""
+
+    def list_showcases(self) -> list[ShowcaseDTO]: ...
+
+    def replace_showcases(self, showcases: Sequence[ShowcaseData]) -> None:
+        """Replace every showcase; `NotFoundError` on an entry that does not exist."""
 
 
 class MediaAssetRepositoryProtocol(Protocol):

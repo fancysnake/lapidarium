@@ -23,7 +23,16 @@ from lapidarium.pacts.content import (
     TypeRole,
 )
 from lapidarium.pacts.site import FriendDTO, LinkDTO
-from tests.factories import entry_data, field_data, profile_data, profile_dto, type_data
+from tests.factories import (
+    entry_data,
+    field_data,
+    profile_data,
+    profile_dto,
+    ref_dto,
+    showcase_data,
+    showcase_dto,
+    type_data,
+)
 
 NOW = dt.datetime(2026, 10, 2, 12, tzinfo=dt.UTC)
 ROOT = Path("/export")
@@ -38,6 +47,7 @@ def _bundle(**overrides):
         "profile": None,
         "links": [],
         "friends": [],
+        "showcases": [],
         "types": [type_data()],
         "entries": [entry_data()],
         "assets": [],
@@ -124,6 +134,13 @@ def repos_fixture():
     ]
     repos.types.list_all.return_value = [_type_dto()]
     repos.entries.list_published.return_value = [_entry_dto()]
+    repos.entries.list_showcases.return_value = [
+        showcase_dto(
+            "Start here",
+            hidden=True,
+            entries=(ref_dto("moose"), ref_dto("draft", status=EntryStatus.DRAFT)),
+        )
+    ]
     repos.assets.read.side_effect = lambda path: path.encode()
     return repos
 
@@ -178,6 +195,9 @@ def test_export_writes_published_content_and_the_assets_it_uses(repos):
                     "button": "assets/ada-88.png",
                 },
                 {"name": "Bo", "url": "https://bo.example.org", "button": ""},
+            ],
+            "showcases": [
+                showcase_data("Start here", hidden=True, entries=[("session", "moose")])
             ],
             "types": [
                 {
@@ -294,10 +314,12 @@ def test_import_saves_everything_in_one_transaction(repos):
         ],
     )
     saga = entry_data("saga", "project", outcome="ongoing")
+    showcases = [showcase_data(entries=[("project", "saga"), ("session", "moose")])]
     repos.store.read.return_value = _bundle(
         profile=profile,
         links=[{"platform": "itch", "url": "https://x.itch.io", "label": "itch"}],
         friends=friends,
+        showcases=showcases,
         types=[session, project],
         entries=[moose, saga],
         assets=[asset],
@@ -329,6 +351,20 @@ def test_import_saves_everything_in_one_transaction(repos):
         [{"platform": "itch", "url": "https://x.itch.io", "label": "itch"}]
     )
     repos.profile.replace_friends.assert_called_once_with(friends)
+    repos.entries.replace_showcases.assert_called_once_with(showcases)
+
+
+def test_import_refuses_showcase_entries_missing_from_the_bundle(repos):
+    showcases = [showcase_data("Start", entries=[("session", "moose"), ("song", "x")])]
+    repos.store.read.return_value = _bundle(showcases=showcases)
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "showcases.yaml": ["Showcase 'Start': song/x is not among the entries."]
+    }
+    repos.transaction.atomic.assert_not_called()
 
 
 def test_import_refuses_buttons_missing_from_the_assets(repos):

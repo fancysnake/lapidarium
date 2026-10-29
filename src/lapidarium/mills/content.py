@@ -21,6 +21,8 @@ from lapidarium.pacts.content import (
     MetadataValidationError,
     RelationEndDTO,
     RelationRole,
+    ShowcaseData,
+    ShowcaseDTO,
 )
 from lapidarium.pacts.services import (
     ContentExportServiceProtocol,
@@ -185,6 +187,10 @@ class ContentExportService(ContentExportServiceProtocol):
                 }
                 for friend in friends
             ],
+            "showcases": [
+                _showcase_to_data(showcase, published={_key(e) for e in published})
+                for showcase in self._entries.list_showcases()
+            ],
             "types": [type_to_data(t) for t in self._types.list_all()],
             "entries": [entry_to_data(entry) for entry in published],
             "assets": [
@@ -250,6 +256,38 @@ def _profile_errors(bundle: ContentBundle, *, paths: Collection[str]) -> list[st
             for label, url in _profile_urls(bundle)
             for message in url_errors(url)
         ),
+    ]
+
+
+def _key(entry: EntryDTO) -> _EntryKey:
+    return entry.type_key, entry.slug
+
+
+def _showcase_to_data(
+    showcase: ShowcaseDTO, *, published: Collection[_EntryKey]
+) -> ShowcaseData:
+    """Keep only the showcase entries the export carries."""
+    return {
+        "title": showcase.title,
+        "intro": showcase.intro,
+        "hidden": showcase.hidden,
+        "entries": [
+            {"type": ref.type_key, "slug": ref.slug}
+            for ref in showcase.entries
+            if (ref.type_key, ref.slug) in published
+        ],
+    }
+
+
+def _showcase_errors(
+    bundle: ContentBundle, *, entries: Collection[_EntryKey]
+) -> list[str]:
+    return [
+        f"Showcase {showcase['title']!r}: {item['type']}/{item['slug']} "
+        "is not among the entries."
+        for showcase in bundle["showcases"]
+        for item in showcase["entries"]
+        if (item["type"], item["slug"]) not in entries
     ]
 
 
@@ -332,6 +370,7 @@ class ContentImportService(ContentImportServiceProtocol):
                 self._profile.save(bundle["profile"])
             self._profile.replace_links(bundle["links"])
             self._profile.replace_friends(bundle["friends"])
+            self._entries.replace_showcases(bundle["showcases"])
         return _summary(bundle)
 
     def _with_tint(self, entry_type: EntryTypeData) -> EntryTypeData:
@@ -380,6 +419,8 @@ class ContentImportService(ContentImportServiceProtocol):
                 errors[where] = messages
         if messages := _profile_errors(bundle, paths=alts.keys()):
             errors["profile.yaml"] = messages
+        if messages := _showcase_errors(bundle, entries=entries.keys()):
+            errors["showcases.yaml"] = messages
         if errors:
             raise BundleValidationError(errors)
         return metadata

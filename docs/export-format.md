@@ -13,6 +13,7 @@ This page describes format version 1.
 ```text
 lapidarium.yaml               format version
 profile.yaml                  profile, links and friends
+showcases.yaml                showcases and their entries
 types/<key>.yaml              type settings and fields
 content/<type>/<slug>.md      frontmatter, then the text parts as the body
 assets.yaml                   alt text per asset path
@@ -37,6 +38,16 @@ and `friends`, a list of `name`, `url` and `button`. `photo` and both kinds of
 
 ```yaml
 --8<-- "src/lapidarium/links/content_files/demos/dev/profile.yaml"
+```
+
+## `showcases.yaml`
+
+A list of showcases, in order: `title`, `intro`, `hidden` and `entries`, each
+entry as `<type>/<slug>`. Every entry must be in the bundle. Export leaves out
+entries that are not published.
+
+```yaml
+--8<-- "src/lapidarium/links/content_files/demos/dev/showcases.yaml"
 ```
 
 ## `types/<key>.yaml`

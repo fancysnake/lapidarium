@@ -19,6 +19,8 @@ from lapidarium.links.db.django.models import (
     Link,
     MediaAsset,
     Profile,
+    Showcase,
+    ShowcaseItem,
 )
 from lapidarium.links.db.django.repositories import (
     AccountRepository,
@@ -34,12 +36,15 @@ from lapidarium.pacts.content import (
     FIELD_DEFAULTS,
     TYPE_DEFAULTS,
     DoorPick,
+    EntryRefDTO,
+    EntryStatus,
     EntryTypeDTO,
     FieldKind,
     Layout,
     NotFoundError,
     Outcome,
     PartKind,
+    ShowcaseDTO,
     TypeRole,
     UrlKind,
 )
@@ -50,6 +55,7 @@ from tests.factories import (
     field_data,
     part_data,
     profile_data,
+    showcase_data,
     type_data,
 )
 
@@ -321,6 +327,65 @@ def test_friends_read_back_in_the_order_saved():
         f | {"button": f["button"]["path"] if f["button"] else ""} for f in saved
     ] == (friends)
     assert list(Friend.objects.values_list("order", flat=True)) == [0, 1]
+
+
+@pytest.mark.usefixtures("demo")
+def test_showcases_read_back_in_the_order_saved():
+    repository = EntryRepository()
+    repository.replace_showcases(
+        [showcase_data("Gone", entries=[("event", "pyrkon-2027")])]
+    )
+    showcases = [
+        showcase_data(
+            "Start here",
+            intro="The best.",
+            entries=[("song", "ballada-o-losiu"), ("session", "bal-w-zamku")],
+        ),
+        showcase_data("Later", hidden=True),
+    ]
+
+    repository.replace_showcases(showcases)
+
+    assert repository.list_showcases() == [
+        ShowcaseDTO(
+            title="Start here",
+            intro="The best.",
+            hidden=False,
+            entries=(
+                EntryRefDTO(
+                    type_key="song",
+                    slug="ballada-o-losiu",
+                    title="Ballada o łosiu",
+                    status=EntryStatus.PUBLISHED,
+                ),
+                EntryRefDTO(
+                    type_key="session",
+                    slug="bal-w-zamku",
+                    title="Bal w zamku Ravenloft",
+                    status=EntryStatus.PUBLISHED,
+                ),
+            ),
+        ),
+        ShowcaseDTO(title="Later", intro="", hidden=True, entries=()),
+    ]
+
+
+@pytest.mark.usefixtures("demo")
+def test_showcases_refuse_a_missing_entry():
+    with pytest.raises(NotFoundError, match="session/nope"):
+        EntryRepository().replace_showcases(
+            [showcase_data(entries=[("session", "nope")])]
+        )
+
+
+@pytest.mark.usefixtures("demo")
+def test_a_showcase_holds_an_entry_once():
+    showcase = Showcase.objects.create(title="Start")
+    entry = Entry.objects.first()
+    ShowcaseItem.objects.create(showcase=showcase, entry=entry)
+
+    with pytest.raises(IntegrityError):
+        ShowcaseItem.objects.create(showcase=showcase, entry=entry)
 
 
 def _png(size):

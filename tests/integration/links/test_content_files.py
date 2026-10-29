@@ -4,7 +4,7 @@ import pytest
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
 from lapidarium.pacts.content import BundleValidationError, NotFoundError
-from tests.factories import profile_data
+from tests.factories import profile_data, showcase_data
 
 ENTRY = """---
 title: Moose
@@ -177,6 +177,42 @@ def test_friends_round_trip_and_leave_a_blank_button_out(bundle_dir):
     )
 
 
+def test_showcases_round_trip_and_leave_defaults_out(bundle_dir):
+    showcases = (
+        "- title: Start here\n"
+        "  intro: The best of it.\n"
+        "  entries:\n"
+        "  - session/moose\n"
+        "  - project/saga\n"
+        "- title: Later\n"
+        "  hidden: true\n"
+    )
+    (bundle_dir / "showcases.yaml").write_text(showcases, encoding="utf-8")
+    store = ContentFilesStore()
+
+    bundle = store.read(bundle_dir)
+    store.write(bundle_dir, bundle)
+
+    assert bundle["showcases"] == [
+        showcase_data(
+            "Start here",
+            intro="The best of it.",
+            entries=[("session", "moose"), ("project", "saga")],
+        ),
+        showcase_data("Later", hidden=True),
+    ]
+    assert (bundle_dir / "showcases.yaml").read_text(encoding="utf-8") == showcases
+
+
+def test_write_without_showcases_removes_their_file(bundle_dir):
+    (bundle_dir / "showcases.yaml").write_text("- title: Old\n", encoding="utf-8")
+    store = ContentFilesStore()
+
+    store.write(bundle_dir, {**store.read(bundle_dir), "showcases": []})
+
+    assert not (bundle_dir / "showcases.yaml").exists()
+
+
 def test_read_requires_format_one(tmp_path):
     (tmp_path / "lapidarium.yaml").write_text("format: 2\n", encoding="utf-8")
 
@@ -232,6 +268,7 @@ def test_read_of_an_empty_bundle(tmp_path):
         "profile": None,
         "links": [],
         "friends": [],
+        "showcases": [],
         "types": [],
         "entries": [],
         "assets": [],

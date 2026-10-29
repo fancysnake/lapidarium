@@ -39,6 +39,9 @@
         </div>
       {% endif %}
     </section>
+    {% for showcase in home.showcases %}
+      {% include "lapidarium/components/showcase.html" %}
+    {% endfor %}
     {% if home.doors %}
       <section class="container home-doors" aria-labelledby="doors-title">
         <h2 class="section-title" id="doors-title">{% translate "What you will find here" %}</h2>

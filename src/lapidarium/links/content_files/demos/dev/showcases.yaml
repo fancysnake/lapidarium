@@ -1,0 +1,5 @@
+- title: Start here
+  intro: Two pages to read before the rest.
+  entries:
+  - doc/getting-started
+  - doc/defining-types

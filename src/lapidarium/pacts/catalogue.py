@@ -59,6 +59,17 @@ class DoorDTO(BaseModel):
     pick: CardDTO
 
 
+class ShowcaseBandDTO(BaseModel):
+    """A showcase as the home page shows it; `type_key` is blank when types mix."""
+
+    model_config = ConfigDict(frozen=True)
+
+    title: str
+    intro: str
+    type_key: str
+    cards: tuple[CardDTO, ...]
+
+
 class FeedItemDTO(BaseModel):
     """A line of "what's new": an entry, or an item from a feed elsewhere."""
 
@@ -77,6 +88,7 @@ class HomeDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     doors: tuple[DoorDTO, ...]
+    showcases: tuple[ShowcaseBandDTO, ...]
     whats_new: tuple[FeedItemDTO, ...]
     next_up: CardDTO | None
 

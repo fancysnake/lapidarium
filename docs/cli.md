@@ -34,8 +34,8 @@ mise run dj export_content <destination>
 ```
 
 Writes the content in [export format](export-format.md) v1: every content type,
-every published entry, the profile, the links, the friends and every asset
-they use. It
+every published entry, the profile, the links, the friends, the showcases and
+every asset they use. It
 deletes and rewrites `types/`, `content/` and `assets/` in the destination,
 so point it at a directory that holds nothing else.
 
@@ -63,6 +63,7 @@ A valid bundle is applied in one transaction, matched by key:
 | Profile | there is one | updated, or created |
 | Links | — | always replaced; a bundle with none removes them all |
 | Friends | — | always replaced; a bundle with none removes them all |
+| Showcases | — | always replaced; a bundle with none removes them all |
 
-Nothing missing from the bundle is deleted. Every entry's type and every relation
-target must be in the bundle too.
+Nothing missing from the bundle is deleted. Every entry's type, every relation
+target and every showcase entry must be in the bundle too.

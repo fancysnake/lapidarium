@@ -12,6 +12,7 @@ them. To start from files instead, write a bundle in the
 4. [Content types](#content-types): what kinds of work the site shows.
 5. [Fields](#fields): what each kind records beyond a title.
 6. [Entries](#entries): the work itself.
+7. [Showcases](#showcases): entries to feature on the home page.
 
 [What appears where](#what-appears-where) says which of these settings drive
 the menu, the home page and the feeds.
@@ -206,12 +207,25 @@ while published entries link to it. Publish the containers first.
 
 **Syndication links** record where else the entry is posted: platform and URL.
 
+## Showcases
+
+**Admin → Showcases.** A band on the home page of entries picked by hand:
+"start with these games", "songs people ask for". Each has a title, an
+optional intro in Markdown, its entries in order, and its own order among the
+showcases. *Hidden* keeps a showcase without showing it.
+
+Each entry shows its title, its summary and a "Take a look" link. When every
+entry is of one type, the band takes that type's colour; a mix takes the
+theme's neutral one. Drafts never show, and a showcase with no published entry
+left does not appear. Showcases sit between the hero and the doors, and leave
+the doors' picks alone.
+
 ## What appears where
 
 | Place | Shows |
 |---|---|
 | Menu | every type with *in menu*, by order, then About and Search |
-| Home | the profile's tagline and photo, a door per type, the next calendar entry, the five newest lines of what's new |
+| Home | the profile's tagline and photo, the next calendar entry, the showcases, a door per type, the five newest lines of what's new |
 | What's new (`/new/`) | published entries, newest change first, marked added or updated |
 | Type list (`/<route>/`) | its published entries, twelve a page, with its filters; calendar types split upcoming from archive |
 | About (`/about/`) | bio, links, the timeline of container entries, and friends |

@@ -12,6 +12,7 @@ from lapidarium.pacts.content import (
     FieldKind,
     PartKind,
     RelationDTO,
+    ShowcaseDTO,
     TypeRole,
     UrlKind,
 )
@@ -167,5 +168,27 @@ def profile_data(**overrides):
     return {
         "name": "Mira",
         **dict.fromkeys((*blank, "friends_title", "friends_intro"), ""),
+        **overrides,
+    }
+
+
+def showcase_dto(title="Start here", *, entries=(), **overrides):
+    return ShowcaseDTO(
+        **{
+            "title": title,
+            "intro": "",
+            "hidden": False,
+            "entries": entries,
+            **overrides,
+        }
+    )
+
+
+def showcase_data(title="Start here", *, entries=(), **overrides):
+    return {
+        "title": title,
+        "intro": "",
+        "hidden": False,
+        "entries": [{"type": type_key, "slug": slug} for type_key, slug in entries],
         **overrides,
     }

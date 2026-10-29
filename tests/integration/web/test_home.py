@@ -2,8 +2,9 @@ from http import HTTPStatus
 
 import pytest
 
-from lapidarium.links.db.django.models import Entry, EntryType, Profile
+from lapidarium.links.db.django.models import Entry, EntryType, Profile, Showcase
 from lapidarium.pacts.catalogue import FeedChange
+from lapidarium.pacts.content import EntryStatus
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -44,11 +45,43 @@ def test_home_shows_doors_whats_new_and_the_next_event(site):
     assert 'href="/contact/"' in response.text
 
 
+def test_home_shows_showcases_as_bands_in_their_type_colour(site):
+    response = site.get("/")
+
+    showcases = response.context["home"].showcases
+    assert [
+        (s.title, s.type_key, [c.entry.slug for c in s.cards]) for s in showcases
+    ] == [
+        (
+            "Jak lubię grać",
+            "",
+            ["jak-prowadzic-one-shoty", "bal-w-zamku", "krotkie-nogi"],
+        ),
+        ("Piosenki, o które pytacie", "song", ["ballada-o-losiu"]),
+    ]
+    assert showcases[0].intro.startswith("Od tego warto zacząć")
+    assert '<section class="showcase"\n         data-type=""' in response.text
+    assert '<section class="showcase"\n         data-type="song"' in response.text
+    assert 'href="/piosenki/ballada-o-losiu/"' in response.text
+    assert response.text.count('class="showcase__more"') == 4
+
+
+def test_home_leaves_out_hidden_showcases_and_those_left_empty(site):
+    Showcase.objects.filter(title="Jak lubię grać").update(hidden=True)
+    Entry.objects.filter(slug="ballada-o-losiu").update(status=EntryStatus.DRAFT)
+
+    response = site.get("/")
+
+    assert response.context["home"].showcases == ()
+    assert 'class="showcase"' not in response.text
+
+
 def test_an_empty_site_still_has_a_home_page(browser):
     response = browser.get("/")
 
     assert response.status_code == HTTPStatus.OK
     assert response.context["home"].doors == ()
+    assert response.context["home"].showcases == ()
     assert response.context["home"].whats_new == ()
     assert response.context["home"].next_up is None
     assert response.context["site"].profile is None

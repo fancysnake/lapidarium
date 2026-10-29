@@ -12,10 +12,12 @@ from lapidarium.links.db.django.models import (
     FieldDefinition,
     Profile,
     Relation,
+    Showcase,
 )
 
 TYPES = "/admin/lapidarium_db/entrytype/"
 ENTRIES = "/admin/lapidarium_db/entry/"
+SHOWCASES = "/admin/lapidarium_db/showcase/"
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -136,6 +138,7 @@ def test_sidebar_lists_content_types_then_site_records(admin):
         "/admin/lapidarium_db/profile/",
         "/admin/lapidarium_db/link/",
         "/admin/lapidarium_db/friend/",
+        "/admin/lapidarium_db/showcase/",
         "/admin/theme-preview/",
     ]
 
@@ -756,3 +759,56 @@ def test_part_format_errors_come_before_part_kind_rules(admin):
 
     _, inlines = _errors(response)
     assert inlines["parts"] == ([{"url": ["Enter a valid URL."]}], [])
+
+
+# Showcases
+
+
+@pytest.mark.usefixtures("demo")
+def test_showcase_keeps_its_entries_in_order(admin):
+    song = Entry.objects.get(slug="ballada-o-losiu")
+    game = Entry.objects.get(slug="krotkie-nogi")
+
+    response = admin.post(
+        f"{SHOWCASES}add/",
+        {
+            "title": "Start here",
+            "intro": "",
+            "order": "0",
+            **_inline(
+                "items",
+                [{"entry": game.pk, "order": "1"}, {"entry": song.pk, "order": "0"}],
+            ),
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    showcase = Showcase.objects.get(title="Start here")
+    assert not showcase.hidden
+    assert [item.entry.slug for item in showcase.items.all()] == [
+        "ballada-o-losiu",
+        "krotkie-nogi",
+    ]
+
+
+@pytest.mark.usefixtures("demo")
+def test_showcase_refuses_the_same_entry_twice(admin):
+    song = Entry.objects.get(slug="ballada-o-losiu")
+
+    response = admin.post(
+        f"{SHOWCASES}add/",
+        {
+            "title": "Twice",
+            "intro": "",
+            "order": "0",
+            **_inline(
+                "items",
+                [{"entry": song.pk, "order": "0"}, {"entry": song.pk, "order": "1"}],
+            ),
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    _, inlines = _errors(response)
+    assert inlines["items"][1] == ["Please correct the duplicate data for entry."]
+    assert not Showcase.objects.filter(title="Twice").exists()
