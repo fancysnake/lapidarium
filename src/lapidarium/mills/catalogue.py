@@ -5,26 +5,28 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import (
-    CONTAINER_ROLES,
+from lapidarium.pacts.catalogue import (
     CardDTO,
-    CatalogueServiceProtocol,
     DetailDTO,
     DoorDTO,
-    DoorPick,
-    EntryRefDTO,
     FactDTO,
     FeedChange,
     FeedItemDTO,
-    FieldKind,
     FilterDTO,
     HomeDTO,
-    ListFilter,
     ListingDTO,
+)
+from lapidarium.pacts.content import (
+    CONTAINER_ROLES,
+    DoorPick,
+    EntryRefDTO,
+    FieldKind,
+    ListFilter,
     NotFoundError,
     RelationRole,
     TypeRole,
 )
+from lapidarium.pacts.services import CatalogueServiceProtocol
 from lapidarium.specs import (
     PAGE_SIZE,
     SEARCH_LIMIT,
@@ -40,12 +42,12 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
     from random import Random
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.catalogue import ExternalItemRepositoryProtocol
+    from lapidarium.pacts.content import (
         EntryDTO,
         EntryRepositoryProtocol,
         EntryTypeDTO,
         EntryTypeRepositoryProtocol,
-        ExternalItemRepositoryProtocol,
         FieldDefinitionDTO,
     )
 

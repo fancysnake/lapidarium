@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, override
 
 from django.db import transaction
 
-from lapidarium.pacts import TransactionProtocol
+from lapidarium.pacts.db import TransactionProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable

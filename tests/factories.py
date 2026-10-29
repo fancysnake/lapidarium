@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EntryDTO,
     EntryRefDTO,
@@ -11,11 +11,11 @@ from lapidarium.pacts import (
     FieldDefinitionDTO,
     FieldKind,
     PartKind,
-    ProfileDTO,
     RelationDTO,
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.site import ProfileDTO
 
 
 def type_data(key="session", **overrides):

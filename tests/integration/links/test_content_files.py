@@ -3,7 +3,7 @@ import datetime as dt
 import pytest
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
-from lapidarium.pacts import BundleValidationError, NotFoundError
+from lapidarium.pacts.content import BundleValidationError, NotFoundError
 from tests.factories import profile_data
 
 ENTRY = """---

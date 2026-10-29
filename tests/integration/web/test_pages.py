@@ -16,7 +16,7 @@ from lapidarium.links.db.django.models import (
     MediaAsset,
     Profile,
 )
-from lapidarium.pacts import FeedChange
+from lapidarium.pacts.catalogue import FeedChange
 from tests.integration.web.conftest import NOW
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]

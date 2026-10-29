@@ -44,7 +44,7 @@ from lapidarium.links.db.django.models import (
     Tag,
 )
 from lapidarium.links.db.django.repositories import entry_type_dto
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     ROLE_BUILTINS,
     EntryStatus,
@@ -66,12 +66,8 @@ if TYPE_CHECKING:
     from django.urls import URLPattern
     from django.utils.functional import _StrOrPromise
 
-    from lapidarium.pacts import (
-        MetadataInput,
-        PartData,
-        SchemaServiceProtocol,
-        ServicesProtocol,
-    )
+    from lapidarium.pacts.content import MetadataInput, PartData
+    from lapidarium.pacts.services import SchemaServiceProtocol, ServicesProtocol
 
     # Unfold's admin classes are Django's, restyled; type-check against Django's.
     EntryTypeAdminBase = admin.ModelAdmin[EntryType]

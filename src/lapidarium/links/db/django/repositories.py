@@ -23,7 +23,8 @@ from lapidarium.links.db.django.models import (
     SyndicationLink,
     Tag,
 )
-from lapidarium.pacts import (
+from lapidarium.pacts.catalogue import ExternalItemDTO, ExternalItemRepositoryProtocol
+from lapidarium.pacts.content import (
     AccountRepositoryProtocol,
     AssetData,
     DoorPick,
@@ -33,38 +34,36 @@ from lapidarium.pacts import (
     EntryStatus,
     EntryTypeDTO,
     EntryTypeRepositoryProtocol,
-    ExternalItemDTO,
-    ExternalItemRepositoryProtocol,
     FieldDefinitionDTO,
     FieldKind,
-    FriendDTO,
     Layout,
-    LinkDTO,
     MediaAssetDTO,
     MediaAssetRepositoryProtocol,
     NotFoundError,
     PartDTO,
     PartKind,
-    ProfileDTO,
-    ProfileRepositoryProtocol,
     RelationDTO,
     SyndicationLinkDTO,
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.site import (
+    FriendDTO,
+    LinkDTO,
+    ProfileDTO,
+    ProfileRepositoryProtocol,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         EntryData,
         EntryTypeData,
         FieldDefinitionData,
-        FriendData,
-        LinkData,
-        ProfileData,
         RelationData,
     )
+    from lapidarium.pacts.site import FriendData, LinkData, ProfileData
 
 
 def field_dto(field: FieldDefinition) -> FieldDefinitionDTO:

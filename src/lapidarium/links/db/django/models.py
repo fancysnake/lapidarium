@@ -12,8 +12,7 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
-from lapidarium.pacts import (
-    BUTTON_SIZE,
+from lapidarium.pacts.content import (
     DEFAULT_PARTS,
     FIELD_DEFAULTS,
     SUMMARY_MAX_LENGTH,
@@ -27,6 +26,7 @@ from lapidarium.pacts import (
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.site import BUTTON_SIZE
 
 if TYPE_CHECKING:
     from enum import StrEnum

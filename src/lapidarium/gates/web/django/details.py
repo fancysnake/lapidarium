@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.http import Http404, HttpResponse
 
 from lapidarium.gates.web.django.rendering import RootRequest, cached, render_page
-from lapidarium.pacts import NotFoundError
+from lapidarium.pacts.content import NotFoundError
 
 
 @cached

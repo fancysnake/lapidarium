@@ -7,7 +7,7 @@ from django.core.cache import caches
 from django.db import transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 
-from lapidarium.pacts import PAGE_CACHE
+from lapidarium.pacts.content import PAGE_CACHE
 
 
 def clear_pages(**_kwargs: object) -> None:

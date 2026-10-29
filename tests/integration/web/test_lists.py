@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 
 from lapidarium.links.db.django.models import Entry, EntryType
-from lapidarium.pacts import FilterDTO
+from lapidarium.pacts.catalogue import FilterDTO
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 

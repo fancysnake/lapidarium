@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, override
 from django.core.management.base import BaseCommand, CommandError
 
 from lapidarium.gates.cli.django.services import build_services
-from lapidarium.pacts import BundleValidationError
+from lapidarium.pacts.content import BundleValidationError
 
 if TYPE_CHECKING:
     from argparse import ArgumentParser

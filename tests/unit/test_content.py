@@ -6,7 +6,7 @@ import pytest
 
 from lapidarium.mills.content import ContentExportService, ContentImportService
 from lapidarium.mills.schema import SchemaService
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BundleValidationError,
     ContentSummaryDTO,
     EntryDTO,
@@ -15,8 +15,6 @@ from lapidarium.pacts import (
     EntryTypeDTO,
     FieldDefinitionDTO,
     FieldKind,
-    FriendDTO,
-    LinkDTO,
     MediaAssetDTO,
     PartDTO,
     PartKind,
@@ -24,6 +22,7 @@ from lapidarium.pacts import (
     SyndicationLinkDTO,
     TypeRole,
 )
+from lapidarium.pacts.site import FriendDTO, LinkDTO
 from tests.factories import entry_data, field_data, profile_data, profile_dto, type_data
 
 NOW = dt.datetime(2026, 10, 2, 12, tzinfo=dt.UTC)

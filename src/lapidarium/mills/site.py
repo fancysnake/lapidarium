@@ -4,15 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from lapidarium.pacts import SiteDTO, SiteServiceProtocol, TypeColourDTO
+from lapidarium.pacts.services import SiteServiceProtocol
+from lapidarium.pacts.site import SiteDTO, TypeColourDTO
 
 if TYPE_CHECKING:
-    from lapidarium.pacts import (
-        EntryTypeRepositoryProtocol,
-        FriendDTO,
-        ProfileRepositoryProtocol,
-        SchemaServiceProtocol,
-    )
+    from lapidarium.pacts.content import EntryTypeRepositoryProtocol
+    from lapidarium.pacts.services import SchemaServiceProtocol
+    from lapidarium.pacts.site import FriendDTO, ProfileRepositoryProtocol
 
 
 class SiteService(SiteServiceProtocol):

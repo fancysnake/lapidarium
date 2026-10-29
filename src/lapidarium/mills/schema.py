@@ -13,7 +13,7 @@ from lapidarium.mills.colour import (
     mix,
     tint_over,
 )
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     CONTAINER_ROLES,
     ROLE_BUILTINS,
@@ -26,16 +26,16 @@ from lapidarium.pacts import (
     PartKind,
     RelationEndDTO,
     RelationRole,
-    SchemaServiceProtocol,
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.services import SchemaServiceProtocol
 from lapidarium.specs import CONTRAST_FLOOR, GITHUB_HOSTS, ITCH_HOST, YOUTUBE_HOSTS
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         FieldDefinitionDTO,
         Metadata,
         MetadataInput,

@@ -28,14 +28,13 @@ from lapidarium.links.db.django.repositories import (
     MediaAssetRepository,
     ProfileRepository,
 )
-from lapidarium.pacts import (
+from lapidarium.pacts.catalogue import ExternalItemDTO
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
-    BUTTON_SIZE,
     FIELD_DEFAULTS,
     TYPE_DEFAULTS,
     DoorPick,
     EntryTypeDTO,
-    ExternalItemDTO,
     FieldKind,
     Layout,
     NotFoundError,
@@ -44,6 +43,7 @@ from lapidarium.pacts import (
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.site import BUTTON_SIZE
 from tests.factories import (
     NOW,
     entry_data,

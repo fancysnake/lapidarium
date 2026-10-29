@@ -3,7 +3,7 @@ import datetime as dt
 import pytest
 
 from lapidarium.mills.schema import SchemaService
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     FIELD_DEFAULTS,
     EntryTypeDTO,
     FieldDefinitionDTO,

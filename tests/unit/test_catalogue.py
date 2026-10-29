@@ -5,14 +5,16 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.catalogue import Catalogue, CatalogueService, when
-from lapidarium.pacts import (
+from lapidarium.pacts.catalogue import (
     CardDTO,
-    DoorPick,
     ExternalItemDTO,
     FactDTO,
     FeedChange,
-    FieldKind,
     FilterDTO,
+)
+from lapidarium.pacts.content import (
+    DoorPick,
+    FieldKind,
     NotFoundError,
     RelationRole,
     TypeRole,

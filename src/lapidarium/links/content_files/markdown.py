@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, override
 import yaml
 from pydantic import TypeAdapter, ValidationError
 
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EXPORT_FORMAT_VERSION,
     FIELD_DEFAULTS,
@@ -35,17 +35,15 @@ from lapidarium.pacts import (
     ContentStoreProtocol,
     EntryData,
     EntryTypeData,
-    FriendData,
-    LinkData,
     NotFoundError,
     PartKind,
-    ProfileData,
 )
+from lapidarium.pacts.site import FriendData, LinkData, ProfileData
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-    from lapidarium.pacts import ContentBundle, SettingDefault
+    from lapidarium.pacts.content import ContentBundle, SettingDefault
 
 DEMOS = Path(__file__).resolve().parent / "demos"
 MANIFEST = "lapidarium.yaml"

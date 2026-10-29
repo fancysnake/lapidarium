@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.outreach import OutreachService
-from lapidarium.pacts import NotFoundError, RateLimitedError
+from lapidarium.pacts.content import NotFoundError
+from lapidarium.pacts.outreach import RateLimitedError
 from lapidarium.specs import OUTREACH_LIMIT, OUTREACH_WINDOW
 from tests.factories import profile_dto
 

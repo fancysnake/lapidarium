@@ -7,11 +7,9 @@ from functools import partial
 from typing import TYPE_CHECKING, override
 
 from lapidarium.mills.schema import url_errors
-from lapidarium.pacts import (
+from lapidarium.pacts.content import (
     BundleValidationError,
     ContentBundle,
-    ContentExportServiceProtocol,
-    ContentImportServiceProtocol,
     ContentSummaryDTO,
     EntryData,
     EntryDTO,
@@ -20,12 +18,14 @@ from lapidarium.pacts import (
     EntryTypeDTO,
     ListFilter,
     LocalSetupDTO,
-    LocalSetupServiceProtocol,
     MetadataValidationError,
-    ProfileData,
-    ProfileDTO,
     RelationEndDTO,
     RelationRole,
+)
+from lapidarium.pacts.services import (
+    ContentExportServiceProtocol,
+    ContentImportServiceProtocol,
+    LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
 from lapidarium.specs import SLUG_PATTERN
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Collection, Iterator, Mapping
     from pathlib import Path
 
-    from lapidarium.pacts import (
+    from lapidarium.pacts.content import (
         AccountRepositoryProtocol,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
@@ -42,9 +42,9 @@ if TYPE_CHECKING:
         MediaAssetDTO,
         MediaAssetRepositoryProtocol,
         Metadata,
-        ProfileRepositoryProtocol,
-        TransactionProtocol,
     )
+    from lapidarium.pacts.db import TransactionProtocol
+    from lapidarium.pacts.site import ProfileData, ProfileDTO, ProfileRepositoryProtocol
 
 type _EntryKey = tuple[str, str]
 
