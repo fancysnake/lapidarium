@@ -367,6 +367,22 @@ def test_import_refuses_showcase_entries_missing_from_the_bundle(repos):
     repos.transaction.atomic.assert_not_called()
 
 
+def test_import_refuses_an_entry_listed_twice_in_one_showcase(repos):
+    showcases = [
+        showcase_data("Start", entries=[("session", "moose"), ("session", "moose")]),
+        showcase_data("Again", entries=[("session", "moose")]),
+    ]
+    repos.store.read.return_value = _bundle(showcases=showcases)
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "showcases.yaml": ["Showcase 'Start': session/moose is listed twice."]
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
 def test_import_refuses_buttons_missing_from_the_assets(repos):
     profile = profile_data(photo="assets/me.png", button="assets/me-88.png")
     friends = [

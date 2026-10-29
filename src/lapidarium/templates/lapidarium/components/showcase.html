@@ -1,18 +1,18 @@
 {% load i18n lapidarium %}
 <section class="showcase"
          data-type="{{ showcase.type_key }}"
-         aria-labelledby="showcase-{{ forloop.counter }}-title">
+         aria-labelledby="showcase-{{ index }}-title">
   <div class="container showcase__inner">
-    <h2 class="section-title showcase__title" id="showcase-{{ forloop.counter }}-title">{{ showcase.title }}</h2>
+    <h2 class="section-title showcase__title" id="showcase-{{ index }}-title">{{ showcase.title }}</h2>
     {% if showcase.intro %}
       <div class="showcase__intro part-text">{{ showcase.intro|markdown }}</div>
     {% endif %}
     <ol class="showcase__items">
-      {% for card in showcase.cards %}
+      {% for entry in showcase.entries %}
         <li class="showcase__item">
-          <h3 class="showcase__item-title">{{ card.entry.title }}</h3>
-          <p class="showcase__summary">{{ card.entry.summary }}</p>
-          <a class="showcase__more" href="{% entry_url card.entry %}">{% translate "Take a look" %}<span class="visually-hidden">: {{ card.entry.title }}</span> →</a>
+          <h3 class="pick__title">{{ entry.title }}</h3>
+          <p class="pick__summary">{{ entry.summary }}</p>
+          <a class="pick__more" href="{% entry_url entry %}">{% translate "Take a look" %}<span class="visually-hidden">: {{ entry.title }}</span> →</a>
         </li>
       {% endfor %}
     </ol>

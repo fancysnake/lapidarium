@@ -67,7 +67,7 @@ class ShowcaseBandDTO(BaseModel):
     title: str
     intro: str
     type_key: str
-    cards: tuple[CardDTO, ...]
+    entries: tuple[EntryDTO, ...]
 
 
 class FeedItemDTO(BaseModel):

@@ -204,6 +204,38 @@ def test_showcases_round_trip_and_leave_defaults_out(bundle_dir):
     assert (bundle_dir / "showcases.yaml").read_text(encoding="utf-8") == showcases
 
 
+def test_empty_showcases_file_means_no_showcases(bundle_dir):
+    (bundle_dir / "showcases.yaml").write_text("", encoding="utf-8")
+
+    assert not ContentFilesStore().read(bundle_dir)["showcases"]
+
+
+@pytest.mark.parametrize("document", ("{}\n", "false\n", "title: Start\n"))
+def test_read_refuses_showcases_that_are_not_a_list(bundle_dir, document):
+    (bundle_dir / "showcases.yaml").write_text(document, encoding="utf-8")
+
+    with pytest.raises(BundleValidationError) as caught:
+        ContentFilesStore().read(bundle_dir)
+
+    assert caught.value.errors == {"showcases.yaml": ["Expected a list of showcases."]}
+
+
+def test_read_refuses_refs_without_a_type(bundle_dir):
+    (bundle_dir / "showcases.yaml").write_text(
+        "- title: Start\n  entries: [moose]\n", encoding="utf-8"
+    )
+    moose = bundle_dir / "content" / "session" / "moose.md"
+    moose.write_text(ENTRY.replace("to: project/saga", "to: saga"), encoding="utf-8")
+
+    with pytest.raises(BundleValidationError) as caught:
+        ContentFilesStore().read(bundle_dir)
+
+    assert caught.value.errors == {
+        "showcases.yaml": ["Expected <type>/<slug>, got 'moose'."],
+        "content/session/moose.md": ["Expected <type>/<slug>, got 'saga'."],
+    }
+
+
 def test_write_without_showcases_removes_their_file(bundle_dir):
     (bundle_dir / "showcases.yaml").write_text("- title: Old\n", encoding="utf-8")
     store = ContentFilesStore()

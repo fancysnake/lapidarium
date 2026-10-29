@@ -49,9 +49,7 @@ def test_home_shows_showcases_as_bands_in_their_type_colour(site):
     response = site.get("/")
 
     showcases = response.context["home"].showcases
-    assert [
-        (s.title, s.type_key, [c.entry.slug for c in s.cards]) for s in showcases
-    ] == [
+    assert [(s.title, s.type_key, [e.slug for e in s.entries]) for s in showcases] == [
         (
             "Jak lubię grać",
             "",
@@ -63,7 +61,7 @@ def test_home_shows_showcases_as_bands_in_their_type_colour(site):
     assert '<section class="showcase"\n         data-type=""' in response.text
     assert '<section class="showcase"\n         data-type="song"' in response.text
     assert 'href="/piosenki/ballada-o-losiu/"' in response.text
-    assert response.text.count('class="showcase__more"') == 4
+    assert response.text.count('class="pick__more"') == 4
 
 
 def test_home_leaves_out_hidden_showcases_and_those_left_empty(site):

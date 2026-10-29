@@ -40,7 +40,7 @@
       {% endif %}
     </section>
     {% for showcase in home.showcases %}
-      {% include "lapidarium/components/showcase.html" %}
+      {% include "lapidarium/components/showcase.html" with index=forloop.counter %}
     {% endfor %}
     {% if home.doors %}
       <section class="container home-doors" aria-labelledby="doors-title">
@@ -61,7 +61,7 @@
               {% include "lapidarium/components/feed-item.html" %}
             {% endfor %}
           </ul>
-          <a class="door__more" href="{% url 'whats_new' %}">{% translate "Everything new" %} →</a>
+          <a class="pick__more door__more" href="{% url 'whats_new' %}">{% translate "Everything new" %} →</a>
         {% else %}
           <p class="empty">{% translate "Nothing here yet." %}</p>
         {% endif %}

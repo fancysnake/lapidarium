@@ -240,7 +240,7 @@ def test_home_showcases_keep_their_order_and_published_entries_only():
             title="Start here",
             intro="Read these *first*.",
             type_key="session",
-            cards=(_card(second), _card(first)),
+            entries=(second, first),
         ),
     )
 

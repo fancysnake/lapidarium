@@ -232,7 +232,7 @@ def _band(catalogue: Catalogue, showcase: ShowcaseDTO) -> ShowcaseBandDTO | None
         title=showcase.title,
         intro=showcase.intro,
         type_key=types.pop() if len(types) == 1 else "",
-        cards=catalogue.cards(entries),
+        entries=tuple(entries),
     )
 
 

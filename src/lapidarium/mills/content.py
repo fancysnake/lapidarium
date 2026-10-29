@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from functools import partial
 from typing import TYPE_CHECKING, override
 
@@ -188,7 +189,7 @@ class ContentExportService(ContentExportServiceProtocol):
                 for friend in friends
             ],
             "showcases": [
-                _showcase_to_data(showcase, published={_key(e) for e in published})
+                _showcase_to_data(showcase)
                 for showcase in self._entries.list_showcases()
             ],
             "types": [type_to_data(t) for t in self._types.list_all()],
@@ -259,13 +260,7 @@ def _profile_errors(bundle: ContentBundle, *, paths: Collection[str]) -> list[st
     ]
 
 
-def _key(entry: EntryDTO) -> _EntryKey:
-    return entry.type_key, entry.slug
-
-
-def _showcase_to_data(
-    showcase: ShowcaseDTO, *, published: Collection[_EntryKey]
-) -> ShowcaseData:
+def _showcase_to_data(showcase: ShowcaseDTO) -> ShowcaseData:
     """Keep only the showcase entries the export carries."""
     return {
         "title": showcase.title,
@@ -274,7 +269,7 @@ def _showcase_to_data(
         "entries": [
             {"type": ref.type_key, "slug": ref.slug}
             for ref in showcase.entries
-            if (ref.type_key, ref.slug) in published
+            if ref.status == EntryStatus.PUBLISHED
         ],
     }
 
@@ -282,13 +277,16 @@ def _showcase_to_data(
 def _showcase_errors(
     bundle: ContentBundle, *, entries: Collection[_EntryKey]
 ) -> list[str]:
-    return [
-        f"Showcase {showcase['title']!r}: {item['type']}/{item['slug']} "
-        "is not among the entries."
-        for showcase in bundle["showcases"]
-        for item in showcase["entries"]
-        if (item["type"], item["slug"]) not in entries
-    ]
+    messages: list[str] = []
+    for showcase in bundle["showcases"]:
+        where = f"Showcase {showcase['title']!r}"
+        counts = Counter((item["type"], item["slug"]) for item in showcase["entries"])
+        for (type_key, slug), count in counts.items():
+            if (type_key, slug) not in entries:
+                messages.append(f"{where}: {type_key}/{slug} is not among the entries.")
+            if count > 1:
+                messages.append(f"{where}: {type_key}/{slug} is listed twice.")
+    return messages
 
 
 def _profile_to_data(profile: ProfileDTO) -> ProfileData:

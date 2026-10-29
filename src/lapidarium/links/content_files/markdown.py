@@ -4,7 +4,7 @@
 lapidarium.yaml               format version
 profile.yaml                  profile, links and friends
 showcases.yaml                showcases, each listing its entries as <type>/<slug>
-types/<key>.yaml             type settings and fields
+types/<key>.yaml              type settings and fields
 content/<type>/<slug>.md      frontmatter (built-ins, metadata, parts, relations,
                               syndication); text parts are the body, in order
 assets.yaml                   alt text per asset path
@@ -261,20 +261,38 @@ def _read_type(path: Path) -> EntryTypeData:
     return _TYPE.validate_python(_TYPE_DEFAULTS | loaded | {"fields": fields})
 
 
+def _format_ref(type_key: str, slug: str) -> str:
+    return f"{type_key}/{slug}"
+
+
+def _parse_ref(ref: Json) -> tuple[str, str]:
+    type_key, slash, slug = str(ref).partition("/")
+    if not slash:
+        msg = f"Expected <type>/<slug>, got {ref!r}."
+        raise ValueError(msg)
+    return type_key, slug
+
+
 def _showcases_file(showcases: list[ShowcaseData]) -> str:
     data = _SHOWCASES.dump_python(showcases, mode="python")
     for showcase in data:
-        showcase["entries"] = [f"{e['type']}/{e['slug']}" for e in showcase["entries"]]
+        showcase["entries"] = [
+            _format_ref(e["type"], e["slug"]) for e in showcase["entries"]
+        ]
     return _dump([_without_defaults(s, _SHOWCASE_DEFAULTS) for s in data])
 
 
 def _read_showcases(path: Path) -> list[ShowcaseData]:
-    loaded = yaml.safe_load(path.read_text(encoding="utf-8")) or []
+    if (loaded := yaml.safe_load(path.read_text(encoding="utf-8"))) is None:
+        return []
+    if not isinstance(loaded, list):
+        msg = "Expected a list of showcases."
+        raise TypeError(msg)
     return _SHOWCASES.validate_python(
         [
             _SHOWCASE_DEFAULTS | showcase | {
                 "entries": [
-                    dict(zip(("type", "slug"), str(ref).split("/", 1), strict=True))
+                    dict(zip(("type", "slug"), _parse_ref(ref), strict=True))
                     for ref in showcase.get("entries", [])
                 ]
             }
@@ -297,7 +315,7 @@ def _entry_file(entry: EntryData) -> str:
         for part in data["parts"]
     ]
     data["relations"] = [
-        {"role": r["role"], "to": f"{r['target_type']}/{r['target_slug']}"}
+        {"role": r["role"], "to": _format_ref(r["target_type"], r["target_slug"])}
         for r in data["relations"]
     ]
     body = f"\n\n{PART_BREAK}\n\n".join(
@@ -326,9 +344,7 @@ def _read_entry(path: Path) -> EntryData:
     relations = [
         dict(
             zip(
-                ("target_type", "target_slug"),
-                str(relation["to"]).split("/", 1),
-                strict=True,
+                ("target_type", "target_slug"), _parse_ref(relation["to"]), strict=True
             ),
             role=relation["role"],
         )
