@@ -1,0 +1,39 @@
+{% load i18n %}<!DOCTYPE html>
+{% get_current_language as language %}
+<html lang="{{ language }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% translate "Under maintenance" %} · {{ notice.owner_name }}</title>
+    {% include "lapidarium/components/stylesheets.html" %}
+  </head>
+  <body>
+    <main class="container page maintenance">
+      <section class="hero" aria-labelledby="maintenance-name">
+        <div class="hero__text">
+          <h1 class="hero__name" id="maintenance-name">{{ notice.owner_name }}</h1>
+          {% if notice.profile and notice.profile.tagline %}<p class="hero__lead">{{ notice.profile.tagline }}</p>{% endif %}
+          <p class="maintenance__reason">
+            {% if notice.reason %}
+              {{ notice.reason }}
+            {% else %}
+              {% translate "The site is being prepared." %}
+            {% endif %}
+          </p>
+          <p class="maintenance__when">
+            {% translate "Since" %} <time datetime="{{ notice.starts_at|date:'c' }}">{{ notice.starts_at|date:"DATETIME_FORMAT" }}</time>
+            {% if notice.ends_at %}
+              · {% translate "back by" %} <time datetime="{{ notice.ends_at|date:'c' }}">{{ notice.ends_at|date:"DATETIME_FORMAT" }}</time>
+            {% endif %}
+          </p>
+        </div>
+        {% if notice.profile and notice.profile.photo %}
+          <div class="hero__portrait">
+            <img src="{{ notice.profile.photo.url }}" alt="{{ notice.profile.photo.alt }}">
+          </div>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>

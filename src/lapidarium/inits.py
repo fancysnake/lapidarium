@@ -17,6 +17,7 @@ from lapidarium.links.db.django.repositories import (
     EntryRepository,
     EntryTypeRepository,
     ExternalItemRepository,
+    MaintenanceRepository,
     MediaAssetRepository,
     ProfileRepository,
 )
@@ -115,6 +116,10 @@ class Repositories:
         return ProfileRepository()
 
     @cached_property
+    def maintenance(self) -> MaintenanceRepository:
+        return MaintenanceRepository()
+
+    @cached_property
     def content_files(self) -> ContentFilesStore:
         return ContentFilesStore()
 
@@ -178,8 +183,11 @@ class Services(ServicesProtocol):
         return SiteService(
             types=repos.entry_types,
             profile=repos.profile,
+            maintenance=repos.maintenance,
             schema=self.schema,
             site_name=settings.SITE_NAME,
+            clock=timezone.now,
+            rng=SystemRandom(),
         )
 
     @cached_property

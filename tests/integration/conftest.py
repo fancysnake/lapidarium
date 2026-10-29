@@ -1,6 +1,15 @@
 import pytest
 
 from lapidarium.inits import Services
+from lapidarium.links.db.django.models import Maintenance
+
+
+@pytest.fixture(scope="session", name="django_db_setup")
+def live_site_db_fixture(django_db_setup, django_db_blocker):
+    """Start tests from a live site; a new one starts in maintenance."""
+    del django_db_setup  # Requested for its effect: the migrated test database.
+    with django_db_blocker.unblock():
+        Maintenance.objects.all().delete()
 
 
 @pytest.fixture(name="media_root")

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 20:16+0100\n"
+"POT-Creation-Date: 2026-10-29 23:57+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -55,6 +55,9 @@ msgid "Content types"
 msgstr ""
 
 msgid "Profile"
+msgstr ""
+
+msgid "Maintenance"
 msgstr ""
 
 msgid "Links"
@@ -179,6 +182,18 @@ msgid "%d entry skipped: a published entry may only link to published ones."
 msgid_plural "%d entries skipped: a published entry may only link to published ones."
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "Turn on: hide the site from visitors"
+msgstr ""
+
+msgid "Visitors now see the maintenance page."
+msgstr ""
+
+msgid "Turn off: publish the site"
+msgstr ""
+
+msgid "The site is live."
+msgstr ""
 
 msgid "Use #rrggbb."
 msgstr ""
@@ -425,6 +440,27 @@ msgid "friends intro"
 msgstr ""
 
 msgid "profile"
+msgstr ""
+
+msgid "on"
+msgstr ""
+
+msgid "The site goes live by itself then; stays hidden when blank."
+msgstr ""
+
+msgid "reasons"
+msgstr ""
+
+msgid "One per line; each visit shows one, picked at random."
+msgstr ""
+
+msgid "maintenance"
+msgstr ""
+
+msgid "On"
+msgstr ""
+
+msgid "Off"
 msgstr ""
 
 msgid "link"
@@ -675,6 +711,18 @@ msgid "Archive"
 msgstr ""
 
 msgid "Entries"
+msgstr ""
+
+msgid "Under maintenance"
+msgstr ""
+
+msgid "The site is being prepared."
+msgstr ""
+
+msgid "Since"
+msgstr ""
+
+msgid "back by"
 msgstr ""
 
 msgid "Almost there: check your inbox and confirm the subscription."

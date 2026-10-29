@@ -13,6 +13,7 @@ them. To start from files instead, write a bundle in the
 5. [Fields](#fields): what each kind records beyond a title.
 6. [Entries](#entries): the work itself.
 7. [Showcases](#showcases): entries to feature on the home page.
+8. [Maintenance](#maintenance): publish the site when it is ready.
 
 [What appears where](#what-appears-where) says which of these settings drive
 the menu, the home page and the feeds.
@@ -219,6 +220,25 @@ entry is of one type, the band takes that type's colour; a mix takes the
 theme's neutral one. Drafts never show, and a showcase with no published entry
 left does not appear. Showcases sit between the hero and the doors, and leave
 the doors' picks alone.
+
+## Maintenance
+
+**Admin → Maintenance.** A new instance starts in maintenance: visitors who are
+not signed in get one page wherever they go, while you fill in the site from
+the admin and preview it signed in. An instance that already had a profile or
+entries when it gained this switch starts live.
+
+| Field | Effect |
+|---|---|
+| On | hides the site; *Turn on* and *Turn off* in the list do the same |
+| Starts | shown as "since"; before it, the site stays live |
+| Ends | shown as "back by"; the site goes live by itself then |
+| Reasons | one per line; each visit shows one at random |
+
+The page shows the profile's name, tagline and photo. It answers `503 Service
+Unavailable` with `noindex`, so search engines do not index the empty site,
+and with `Retry-After` when an end is set. The admin, `/healthz/` and uploads
+stay open. *Turn on* sets *Starts* to now.
 
 ## What appears where
 

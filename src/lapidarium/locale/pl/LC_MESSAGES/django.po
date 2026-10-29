@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 20:16+0100\n"
+"POT-Creation-Date: 2026-10-29 23:57+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -56,6 +56,9 @@ msgstr "Rodzaje treści"
 
 msgid "Profile"
 msgstr "Profil"
+
+msgid "Maintenance"
+msgstr "Przerwa techniczna"
 
 msgid "Links"
 msgstr "Linki"
@@ -183,6 +186,18 @@ msgstr[0] "Pominięto %d wpis: opublikowany wpis może linkować tylko do opubli
 msgstr[1] "Pominięto %d wpisy: opublikowany wpis może linkować tylko do opublikowanych."
 msgstr[2] "Pominięto %d wpisów: opublikowany wpis może linkować tylko do opublikowanych."
 msgstr[3] "Pominięto %d wpisu: opublikowany wpis może linkować tylko do opublikowanych."
+
+msgid "Turn on: hide the site from visitors"
+msgstr "Włącz: ukryj stronę przed odwiedzającymi"
+
+msgid "Visitors now see the maintenance page."
+msgstr "Odwiedzający widzą teraz stronę przerwy technicznej."
+
+msgid "Turn off: publish the site"
+msgstr "Wyłącz: opublikuj stronę"
+
+msgid "The site is live."
+msgstr "Strona jest opublikowana."
 
 msgid "Use #rrggbb."
 msgstr "Użyj formatu #rrggbb."
@@ -430,6 +445,27 @@ msgstr "wstęp sekcji przyjaciół"
 
 msgid "profile"
 msgstr "profil"
+
+msgid "on"
+msgstr "włączona"
+
+msgid "The site goes live by itself then; stays hidden when blank."
+msgstr "Wtedy strona sama się opublikuje; bez daty zostaje ukryta."
+
+msgid "reasons"
+msgstr "powody"
+
+msgid "One per line; each visit shows one, picked at random."
+msgstr "Jeden w wierszu; każda wizyta pokazuje losowo wybrany."
+
+msgid "maintenance"
+msgstr "przerwa techniczna"
+
+msgid "On"
+msgstr "Włączona"
+
+msgid "Off"
+msgstr "Wyłączona"
 
 msgid "link"
 msgstr "link"
@@ -680,6 +716,18 @@ msgstr "Archiwum"
 
 msgid "Entries"
 msgstr "Wpisy"
+
+msgid "Under maintenance"
+msgstr "Przerwa techniczna"
+
+msgid "The site is being prepared."
+msgstr "Strona jest w przygotowaniu."
+
+msgid "Since"
+msgstr "Od"
+
+msgid "back by"
+msgstr "powrót do"
 
 msgid "Almost there: check your inbox and confirm the subscription."
 msgstr "Prawie gotowe: sprawdź skrzynkę i potwierdź zapis."

@@ -27,7 +27,7 @@ if TYPE_CHECKING:
         TypeRole,
     )
     from lapidarium.pacts.outreach import ContactData
-    from lapidarium.pacts.site import FriendDTO, SiteDTO
+    from lapidarium.pacts.site import FriendDTO, MaintenanceNoticeDTO, SiteDTO
     from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
 
 
@@ -102,6 +102,9 @@ class SiteServiceProtocol(Protocol):
     def chrome(self) -> SiteDTO: ...
 
     def friends(self) -> tuple[FriendDTO, ...]: ...
+
+    def maintenance(self) -> MaintenanceNoticeDTO | None:
+        """Return what visitors see instead of the site; `None` while it is live."""
 
 
 class CatalogueServiceProtocol(Protocol):

@@ -30,6 +30,9 @@ All notable changes to this project are documented here. The format follows
 - Newsletter (Mailchimp or log) and contact form, with a honeypot and a rate
   limit per sender.
 - Rendered public pages cached, cleared on every content change.
+- Site-wide maintenance switch: a new instance starts hidden behind one page
+  (503, `Retry-After`, a random reason line) for visitors who are not signed
+  in, until the owner turns it off or its end time passes.
 - Base theme tokens and `base.css` ported from the prototype; type colours come
   from the admin. Videos load only when played; every page works without
   JavaScript.
