@@ -432,7 +432,6 @@ class Profile(models.Model):
 class Maintenance(models.Model):
     """Singleton: hides the whole site from visitors who are not signed in."""
 
-    enabled = models.BooleanField(_("on"), default=True)
     starts_at = models.DateTimeField(_("starts"), default=timezone.now)
     ends_at = models.DateTimeField(
         _("ends"),
@@ -451,7 +450,9 @@ class Maintenance(models.Model):
         verbose_name_plural = _("maintenance")
 
     def __str__(self) -> str:
-        return str(_("On") if self.enabled else _("Off"))
+        now = timezone.now()
+        on = self.starts_at <= now and (self.ends_at is None or now < self.ends_at)
+        return str(_("On") if on else _("Off"))
 
 
 class Link(models.Model):

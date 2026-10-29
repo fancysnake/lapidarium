@@ -6,8 +6,9 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 from django.conf import settings
-from django.shortcuts import render
 from django.utils.cache import add_never_cache_headers
+
+from lapidarium.gates.web.django.rendering import render_page
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -33,16 +34,16 @@ class MaintenanceMiddleware:
         if (
             request.user.is_authenticated
             or _exempt(request.path_info)
-            or (notice := request.services.site.maintenance()) is None
+            or (notice := request.services.maintenance.notice()) is None
         ):
             return self.get_response(request)
-        response = render(
+        response = render_page(
             request,
             "lapidarium/pages/maintenance.html",
-            {"notice": notice},
             status=HTTPStatus.SERVICE_UNAVAILABLE,
+            notice=notice,
         )
-        if notice.retry_after is not None:
-            response["Retry-After"] = str(notice.retry_after)
+        if notice.seconds_left is not None:
+            response["Retry-After"] = str(notice.seconds_left)
         add_never_cache_headers(response)
         return response

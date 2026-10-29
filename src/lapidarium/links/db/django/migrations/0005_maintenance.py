@@ -30,7 +30,6 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("enabled", models.BooleanField(default=True, verbose_name="on")),
                 (
                     "starts_at",
                     models.DateTimeField(

@@ -825,12 +825,12 @@ class MaintenanceAdmin(MaintenanceAdminBase):
 
     @admin.action(description=_("Turn on: hide the site from visitors"))
     def turn_on(self, request: HttpRequest, queryset: QuerySet[Maintenance]) -> None:
-        queryset.update(enabled=True, starts_at=timezone.now())
+        queryset.update(starts_at=timezone.now(), ends_at=None)
         self.message_user(request, gettext("Visitors now see the maintenance page."))
 
     @admin.action(description=_("Turn off: publish the site"))
     def turn_off(self, request: HttpRequest, queryset: QuerySet[Maintenance]) -> None:
-        queryset.update(enabled=False)
+        queryset.update(ends_at=timezone.now())
         self.message_user(request, gettext("The site is live."))
 
 

@@ -7,6 +7,7 @@ from http import HTTPStatus
 import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from lapidarium.links.db.django.models import Entry, Maintenance, Profile
 from tests.integration.web.conftest import NOW
@@ -46,13 +47,17 @@ def test_every_page_answers_with_the_maintenance_page(site, path):
     assert response["Retry-After"] == "3600"
     assert "no-cache" in response["Cache-Control"]
     assert response.templates[0].name == "lapidarium/pages/maintenance.html"
-    notice = response.context["notice"]
+    site_frame = response.context["site"]
     profile = Profile.objects.get()
-    assert notice.profile is not None
-    assert (notice.profile.name, notice.owner_name) == (profile.name, profile.name)
+    assert site_frame.profile is not None
+    assert (site_frame.profile.name, site_frame.owner_name) == (
+        profile.name,
+        profile.name,
+    )
+    notice = response.context["notice"]
     assert (notice.starts_at, notice.ends_at) == (NOW - HOUR, NOW + HOUR)
     assert notice.reason in REASONS
-    assert notice.retry_after == 3600
+    assert notice.seconds_left == 3600
     assert notice.reason in response.content.decode()
 
 
@@ -71,9 +76,9 @@ def test_without_an_end_or_reasons_the_page_gives_neither(browser):
 
     assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     assert "Retry-After" not in response
+    assert response.context["site"].profile is None
     notice = response.context["notice"]
-    assert notice.profile is None
-    assert (notice.ends_at, notice.reason, notice.retry_after) == (None, "", None)
+    assert (notice.ends_at, notice.reason, notice.seconds_left) == (None, "", None)
     assert "The site is being prepared." in response.content.decode()
 
 
@@ -99,8 +104,8 @@ def test_the_admin_health_probe_and_uploads_stay_open(client):
 
 @pytest.mark.parametrize(
     "values",
-    ({"enabled": False}, {"starts_at": NOW + HOUR}, {"ends_at": NOW}),
-    ids=("off", "not-started", "ended"),
+    ({"starts_at": NOW + HOUR}, {"ends_at": NOW}),
+    ids=("not-started", "ended"),
 )
 def test_outside_its_window_the_site_is_live(site, values):
     _maintenance(**values)
@@ -114,9 +119,23 @@ def test_a_new_site_starts_in_maintenance_and_one_with_content_does_not():
     )
 
     migration.hide_a_new_site(apps, None)
-    assert Maintenance.objects.get().enabled is True
+    maintenance = Maintenance.objects.get()
+    assert maintenance.starts_at <= timezone.now()
+    assert maintenance.ends_at is None
 
     Maintenance.objects.all().delete()
     Profile.objects.create(name="Mira")
     migration.hide_a_new_site(apps, None)
     assert not Maintenance.objects.exists()
+
+
+def test_turning_on_after_the_end_hides_the_site_again(client, admin_client):
+    now = timezone.now()
+    maintenance = _maintenance(starts_at=now - 2 * HOUR, ends_at=now - HOUR)
+
+    admin_client.post(
+        "/admin/lapidarium_db/maintenance/",
+        {"action": "turn_on", "_selected_action": [maintenance.pk]},
+    )
+
+    assert client.get("/").status_code == HTTPStatus.SERVICE_UNAVAILABLE

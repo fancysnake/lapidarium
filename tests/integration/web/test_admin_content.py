@@ -716,7 +716,9 @@ def test_maintenance_turns_off_and_back_on_from_the_list(admin):
     response = admin.post(MAINTENANCE, {"action": "turn_off", **selected}, follow=True)
 
     assert [str(m) for m in response.context["messages"]] == ["The site is live."]
-    assert Maintenance.objects.get().enabled is False
+    maintenance.refresh_from_db()
+    assert maintenance.ends_at is not None
+    assert maintenance.ends_at > since
 
     response = admin.post(MAINTENANCE, {"action": "turn_on", **selected}, follow=True)
 
@@ -724,8 +726,8 @@ def test_maintenance_turns_off_and_back_on_from_the_list(admin):
         "Visitors now see the maintenance page."
     ]
     maintenance.refresh_from_db()
-    assert maintenance.enabled is True
     assert maintenance.starts_at > since
+    assert maintenance.ends_at is None
 
 
 @pytest.mark.usefixtures("demo")

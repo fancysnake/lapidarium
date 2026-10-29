@@ -230,7 +230,6 @@ entries when it gained this switch starts live.
 
 | Field | Effect |
 |---|---|
-| On | hides the site; *Turn on* and *Turn off* in the list do the same |
 | Starts | shown as "since"; before it, the site stays live |
 | Ends | shown as "back by"; the site goes live by itself then |
 | Reasons | one per line; each visit shows one at random |
@@ -238,7 +237,8 @@ entries when it gained this switch starts live.
 The page shows the profile's name, tagline and photo. It answers `503 Service
 Unavailable` with `noindex`, so search engines do not index the empty site,
 and with `Retry-After` when an end is set. The admin, `/healthz/` and uploads
-stay open. *Turn on* sets *Starts* to now.
+stay open. In the list, *Turn on* sets *Starts* to now and clears *Ends*;
+*Turn off* sets *Ends* to now.
 
 ## What appears where
 

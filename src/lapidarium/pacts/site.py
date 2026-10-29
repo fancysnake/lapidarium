@@ -1,8 +1,7 @@
-"""Who the site is about: profile, links, friends, the page chrome, maintenance."""
+"""Who the site is about: profile, links, friends, the page chrome."""
 
 from __future__ import annotations
 
-import datetime as dt
 from typing import TYPE_CHECKING, Protocol, TypedDict
 
 from pydantic import BaseModel, ConfigDict
@@ -94,31 +93,6 @@ class SiteDTO(BaseModel):
     dark_colours: tuple[TypeColourDTO, ...]
 
 
-class MaintenanceDTO(BaseModel):
-    """The site-wide switch that hides the site from visitors."""
-
-    model_config = ConfigDict(frozen=True)
-
-    enabled: bool
-    starts_at: dt.datetime
-    ends_at: dt.datetime | None
-    reasons: tuple[str, ...]
-
-
-class MaintenanceNoticeDTO(BaseModel):
-    """What a visitor sees while the site is in maintenance."""
-
-    model_config = ConfigDict(frozen=True)
-
-    profile: ProfileDTO | None
-    owner_name: str
-    starts_at: dt.datetime
-    ends_at: dt.datetime | None
-    reason: str
-    # Whole seconds until `ends_at`, for `Retry-After`.
-    retry_after: int | None
-
-
 class ProfileRepositoryProtocol(Protocol):
     def get(self) -> ProfileDTO | None: ...
 
@@ -131,7 +105,3 @@ class ProfileRepositoryProtocol(Protocol):
     def list_friends(self) -> list[FriendDTO]: ...
 
     def replace_friends(self, friends: Sequence[FriendData]) -> None: ...
-
-
-class MaintenanceRepositoryProtocol(Protocol):
-    def get(self) -> MaintenanceDTO | None: ...

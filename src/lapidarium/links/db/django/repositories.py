@@ -51,11 +51,10 @@ from lapidarium.pacts.content import (
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.maintenance import MaintenanceDTO, MaintenanceRepositoryProtocol
 from lapidarium.pacts.site import (
     FriendDTO,
     LinkDTO,
-    MaintenanceDTO,
-    MaintenanceRepositoryProtocol,
     ProfileDTO,
     ProfileRepositoryProtocol,
 )
@@ -496,7 +495,6 @@ class MaintenanceRepository(MaintenanceRepositoryProtocol):
         if (maintenance := Maintenance.objects.first()) is None:
             return None
         return MaintenanceDTO(
-            enabled=maintenance.enabled,
             starts_at=maintenance.starts_at,
             ends_at=maintenance.ends_at,
             reasons=tuple(

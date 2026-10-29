@@ -33,6 +33,7 @@ from lapidarium.mills.content import (
     ContentImportService,
     LocalSetupService,
 )
+from lapidarium.mills.maintenance import MaintenanceService
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
@@ -183,9 +184,14 @@ class Services(ServicesProtocol):
         return SiteService(
             types=repos.entry_types,
             profile=repos.profile,
-            maintenance=repos.maintenance,
             schema=self.schema,
             site_name=settings.SITE_NAME,
+        )
+
+    @cached_property
+    def maintenance(self) -> MaintenanceService:
+        return MaintenanceService(
+            maintenance=self._repositories.maintenance,
             clock=timezone.now,
             rng=SystemRandom(),
         )
