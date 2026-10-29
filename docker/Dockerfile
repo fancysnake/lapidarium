@@ -29,6 +29,10 @@ RUN mise exec -- poetry install --only main --no-root
 
 COPY --chown=appuser:appuser src ./src
 
+# The project itself, after the dependency layer: importlib.metadata reads the
+# engine version from it.
+RUN mise exec -- poetry install --only main
+
 # Catalogs compile here: .mo files are build output and stay out of git.
 RUN find src -name django.po -execdir msgfmt --check -o django.mo django.po \;
 
