@@ -101,6 +101,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "lapidarium.inits.ServiceInjectionMiddleware",
+    "lapidarium.gates.web.django.maintenance.MaintenanceMiddleware",
 ]
 
 ROOT_URLCONF = "lapidarium.gates.web.django.urls"

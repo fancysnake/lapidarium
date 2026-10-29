@@ -17,6 +17,7 @@ from lapidarium.links.db.django.repositories import (
     EntryRepository,
     EntryTypeRepository,
     ExternalItemRepository,
+    MaintenanceRepository,
     MediaAssetRepository,
     ProfileRepository,
 )
@@ -32,6 +33,7 @@ from lapidarium.mills.content import (
     ContentImportService,
     LocalSetupService,
 )
+from lapidarium.mills.maintenance import MaintenanceService
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
@@ -115,6 +117,10 @@ class Repositories:
         return ProfileRepository()
 
     @cached_property
+    def maintenance(self) -> MaintenanceRepository:
+        return MaintenanceRepository()
+
+    @cached_property
     def content_files(self) -> ContentFilesStore:
         return ContentFilesStore()
 
@@ -180,6 +186,14 @@ class Services(ServicesProtocol):
             profile=repos.profile,
             schema=self.schema,
             site_name=settings.SITE_NAME,
+        )
+
+    @cached_property
+    def maintenance(self) -> MaintenanceService:
+        return MaintenanceService(
+            maintenance=self._repositories.maintenance,
+            clock=timezone.now,
+            rng=SystemRandom(),
         )
 
     @cached_property

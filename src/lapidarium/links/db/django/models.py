@@ -10,6 +10,7 @@ from django.core.files.images import get_image_dimensions
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from lapidarium.pacts.content import (
@@ -426,6 +427,32 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return str(self.name)
+
+
+class Maintenance(models.Model):
+    """Singleton: hides the whole site from visitors who are not signed in."""
+
+    starts_at = models.DateTimeField(_("starts"), default=timezone.now)
+    ends_at = models.DateTimeField(
+        _("ends"),
+        null=True,
+        blank=True,
+        help_text=_("The site goes live by itself then; stays hidden when blank."),
+    )
+    reasons = models.TextField(
+        _("reasons"),
+        blank=True,
+        help_text=_("One per line; each visit shows one, picked at random."),
+    )
+
+    class Meta:
+        verbose_name = _("maintenance")
+        verbose_name_plural = _("maintenance")
+
+    def __str__(self) -> str:
+        now = timezone.now()
+        on = self.starts_at <= now and (self.ends_at is None or now < self.ends_at)
+        return str(_("On") if on else _("Off"))
 
 
 class Link(models.Model):

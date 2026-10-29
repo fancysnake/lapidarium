@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         RelationEndDTO,
         TypeRole,
     )
+    from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
     from lapidarium.pacts.outreach import ContactData
     from lapidarium.pacts.site import FriendDTO, SiteDTO
     from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
@@ -104,6 +105,11 @@ class SiteServiceProtocol(Protocol):
     def friends(self) -> tuple[FriendDTO, ...]: ...
 
 
+class MaintenanceServiceProtocol(Protocol):
+    def notice(self) -> MaintenanceNoticeDTO | None:
+        """Return what visitors see instead of the site; `None` while it is live."""
+
+
 class CatalogueServiceProtocol(Protocol):
     def home(self) -> HomeDTO: ...
 
@@ -167,6 +173,9 @@ class ServicesProtocol(Protocol):
 
     @property
     def site(self) -> SiteServiceProtocol: ...
+
+    @property
+    def maintenance(self) -> MaintenanceServiceProtocol: ...
 
     @property
     def catalogue(self) -> CatalogueServiceProtocol: ...

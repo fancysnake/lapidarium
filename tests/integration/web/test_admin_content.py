@@ -1,15 +1,18 @@
 """Admin for content types and entries: dynamic forms, inlines, graph integrity."""
 
+import datetime as dt
 from http import HTTPStatus
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from lapidarium import inits
 from lapidarium.links.db.django.models import (
     Entry,
     EntryType,
     FieldDefinition,
+    Maintenance,
     Profile,
     Relation,
     Showcase,
@@ -18,6 +21,7 @@ from lapidarium.links.db.django.models import (
 TYPES = "/admin/lapidarium_db/entrytype/"
 ENTRIES = "/admin/lapidarium_db/entry/"
 SHOWCASES = "/admin/lapidarium_db/showcase/"
+MAINTENANCE = "/admin/lapidarium_db/maintenance/"
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -136,6 +140,7 @@ def test_sidebar_lists_content_types_then_site_records(admin):
     assert [item["link"] for item in groups[2]["items"]] == [
         TYPES,
         "/admin/lapidarium_db/profile/",
+        "/admin/lapidarium_db/maintenance/",
         "/admin/lapidarium_db/link/",
         "/admin/lapidarium_db/friend/",
         "/admin/lapidarium_db/showcase/",
@@ -697,9 +702,38 @@ def test_profile_is_a_singleton(admin):
     assert admin.get("/admin/lapidarium_db/profile/add/").status_code == HTTPStatus.OK
 
 
+def test_maintenance_is_a_singleton(admin):
+    assert admin.get(f"{MAINTENANCE}add/").status_code == HTTPStatus.OK
+    Maintenance.objects.create()
+    assert admin.get(f"{MAINTENANCE}add/").status_code == HTTPStatus.FORBIDDEN
+
+
+def test_maintenance_turns_off_and_back_on_from_the_list(admin):
+    since = timezone.now() - dt.timedelta(days=1)
+    maintenance = Maintenance.objects.create(starts_at=since)
+    selected = {"_selected_action": [maintenance.pk]}
+
+    response = admin.post(MAINTENANCE, {"action": "turn_off", **selected}, follow=True)
+
+    assert [str(m) for m in response.context["messages"]] == ["The site is live."]
+    maintenance.refresh_from_db()
+    assert maintenance.ends_at is not None
+    assert maintenance.ends_at > since
+
+    response = admin.post(MAINTENANCE, {"action": "turn_on", **selected}, follow=True)
+
+    assert [str(m) for m in response.context["messages"]] == [
+        "Visitors now see the maintenance page."
+    ]
+    maintenance.refresh_from_db()
+    assert maintenance.starts_at > since
+    assert maintenance.ends_at is None
+
+
 @pytest.mark.usefixtures("demo")
 @pytest.mark.parametrize(
-    "model", ("mediaasset", "tag", "link", "externalitem", "entrytype", "entry")
+    "model",
+    ("mediaasset", "tag", "link", "externalitem", "entrytype", "entry", "maintenance"),
 )
 def test_changelists_render(admin, model):
     response = admin.get(f"/admin/lapidarium_db/{model}/")

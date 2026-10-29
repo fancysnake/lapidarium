@@ -12,6 +12,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
+from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext, ngettext
@@ -36,6 +37,7 @@ from lapidarium.links.db.django.models import (
     FieldDefinition,
     Friend,
     Link,
+    Maintenance,
     MediaAsset,
     Part,
     Profile,
@@ -81,6 +83,7 @@ if TYPE_CHECKING:
     FriendAdminBase = admin.ModelAdmin[Friend]
     ShowcaseAdminBase = admin.ModelAdmin[Showcase]
     ExternalItemAdminBase = admin.ModelAdmin[ExternalItem]
+    MaintenanceAdminBase = admin.ModelAdmin[Maintenance]
     FieldDefinitionInlineBase = admin.TabularInline[FieldDefinition, EntryType]
     PartInlineBase = admin.StackedInline[Part, Entry]
     RelationInlineBase = admin.TabularInline[Relation, Entry]
@@ -99,7 +102,7 @@ else:
 
     EntryTypeAdminBase = EntryAdminBase = MediaAssetAdminBase = ModelAdmin
     TagAdminBase = ProfileAdminBase = LinkAdminBase = FriendAdminBase = ModelAdmin
-    ShowcaseAdminBase = ExternalItemAdminBase = ModelAdmin
+    ShowcaseAdminBase = ExternalItemAdminBase = MaintenanceAdminBase = ModelAdmin
     FieldDefinitionInlineBase = RelationInlineBase = TabularInline
     SyndicationInlineBase = ShowcaseItemInlineBase = TabularInline
     PartInlineBase = StackedInline
@@ -183,6 +186,7 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
             "items": [
                 _item(gettext("Content types"), icon="category", model="entrytype"),
                 _item(gettext("Profile"), icon="person", model="profile"),
+                _item(gettext("Maintenance"), icon="construction", model="maintenance"),
                 _item(gettext("Links"), icon="link", model="link"),
                 _item(gettext("Friends"), icon="diversity_3", model="friend"),
                 _item(gettext("Showcases"), icon="star", model="showcase"),
@@ -808,6 +812,26 @@ class ProfileAdmin(ProfileAdminBase):
     @override
     def has_add_permission(self, request: HttpRequest) -> bool:
         return super().has_add_permission(request) and not Profile.objects.exists()
+
+
+@admin.register(Maintenance)
+class MaintenanceAdmin(MaintenanceAdminBase):
+    list_display = ("__str__", "starts_at", "ends_at")
+    actions = ("turn_on", "turn_off")
+
+    @override
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return super().has_add_permission(request) and not Maintenance.objects.exists()
+
+    @admin.action(description=_("Turn on: hide the site from visitors"))
+    def turn_on(self, request: HttpRequest, queryset: QuerySet[Maintenance]) -> None:
+        queryset.update(starts_at=timezone.now(), ends_at=None)
+        self.message_user(request, gettext("Visitors now see the maintenance page."))
+
+    @admin.action(description=_("Turn off: publish the site"))
+    def turn_off(self, request: HttpRequest, queryset: QuerySet[Maintenance]) -> None:
+        queryset.update(ends_at=timezone.now())
+        self.message_user(request, gettext("The site is live."))
 
 
 @admin.register(Link)

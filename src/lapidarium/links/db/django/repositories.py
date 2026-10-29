@@ -16,6 +16,7 @@ from lapidarium.links.db.django.models import (
     FieldDefinition,
     Friend,
     Link,
+    Maintenance,
     MediaAsset,
     Part,
     Profile,
@@ -50,6 +51,7 @@ from lapidarium.pacts.content import (
     TypeRole,
     UrlKind,
 )
+from lapidarium.pacts.maintenance import MaintenanceDTO, MaintenanceRepositoryProtocol
 from lapidarium.pacts.site import (
     FriendDTO,
     LinkDTO,
@@ -484,6 +486,22 @@ class ProfileRepository(ProfileRepositoryProtocol):
                 button=_asset_by_path(friend["button"]),
             )
             for order, friend in enumerate(friends)
+        )
+
+
+class MaintenanceRepository(MaintenanceRepositoryProtocol):
+    @override
+    def get(self) -> MaintenanceDTO | None:
+        if (maintenance := Maintenance.objects.first()) is None:
+            return None
+        return MaintenanceDTO(
+            starts_at=maintenance.starts_at,
+            ends_at=maintenance.ends_at,
+            reasons=tuple(
+                reason
+                for line in maintenance.reasons.splitlines()
+                if (reason := line.strip())
+            ),
         )
 
 
