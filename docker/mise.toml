@@ -40,5 +40,5 @@ gunicorn \
     --graceful-timeout 30 \
     --access-logfile - \
     --error-logfile - \
-    --chdir /app/src lapidarium.edges.wsgi:application
+    lapidarium.edges.wsgi:application
 """
