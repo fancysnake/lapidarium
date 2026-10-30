@@ -1,3 +1,7 @@
+---
+description: "The lapidarium export format: YAML for content types and the profile, markdown with frontmatter for entries, the assets folder, and the checks run on import."
+---
+
 # Export format
 
 An instance's content as plain files: YAML for types and the profile, markdown

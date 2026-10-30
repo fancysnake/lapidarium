@@ -1,3 +1,7 @@
+---
+description: "Self-hosted portfolio site engine for creators: Django and PostgreSQL, content types defined in the admin, pages built from parts, markdown export, no Node."
+---
+
 # lapidarium
 
 --8<-- "README.md:intro"

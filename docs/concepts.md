@@ -1,3 +1,7 @@
+---
+description: "How lapidarium models a portfolio: content types, entries built from ordered parts, media assets, links between entries, and the principles behind the engine."
+---
+
 # How it works
 
 lapidarium is built on a few decisions about where content lives, what it is

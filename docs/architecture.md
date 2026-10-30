@@ -1,3 +1,7 @@
+---
+description: "The lapidarium code layout for contributors: Django layers enforced by import-linter, services free of Django, the ORM kept in links, and daily work."
+---
+
 # Architecture
 
 lapidarium is one Django project, `src/lapidarium/`, cut into layers. Each

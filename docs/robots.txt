@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lapidarium.fancysnake.dev/sitemap.xml

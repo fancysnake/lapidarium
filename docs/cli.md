@@ -1,3 +1,7 @@
+---
+description: "The lapidarium management commands: setup_local, load_demo, export_content and import_content, their options, and how to run them in a clone or container."
+---
+
 # Commands
 
 The engine's management commands, on top of Django's own (`migrate`,

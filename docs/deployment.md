@@ -1,3 +1,7 @@
+---
+description: "Deploy a lapidarium portfolio site to production: the Docker image, Compose, PostgreSQL, uploads, mail, backups and upgrades, through to the first admin login."
+---
+
 # Deployment
 
 A production instance is one web container from the published image, a
