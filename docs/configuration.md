@@ -1,3 +1,7 @@
+---
+description: "Every environment variable a lapidarium instance reads: core, files, caching, mail and newsletter, proxies and themes, each with its type, default and effect."
+---
+
 # Configuration
 
 An instance is configured through the environment. The settings module,

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="lapidarium: self-hosted portfolio engine for creators. Cut stones on the shelves of a cyan-lit display case.">
+  <desc>lapidarium: self-hosted portfolio engine for creators. Cut stones on the shelves of a cyan-lit display case.</desc>
+  <defs>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#00b8d4" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#00b8d4" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0b1e22"/>
+
+  <!-- The text block. -->
+  <rect x="80" y="150" width="64" height="6" fill="#00b8d4"/>
+  <text x="76" y="270" font-family="Bitstream Charter, Liberation Serif, serif" font-size="104" font-weight="bold" fill="#ffffff">lapidarium</text>
+  <text x="80" y="340" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">Self-hosted portfolio engine</text>
+  <text x="80" y="388" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">for creators</text>
+  <text x="80" y="470" font-family="Liberation Sans, FreeSans, sans-serif" font-size="26" fill="#c9d6d9">Content types in the admin · pages built from parts</text>
+  <text x="80" y="506" font-family="Liberation Sans, FreeSans, sans-serif" font-size="26" fill="#c9d6d9">Django · PostgreSQL · zero Node</text>
+  <text x="80" y="566" font-family="Liberation Mono, monospace" font-size="22" fill="#62ebff">lapidarium.fancysnake.dev</text>
+
+  <!-- The case: glass front, three shelves, a stone on each. -->
+  <g transform="translate(800 90)">
+    <rect x="0" y="0" width="320" height="450" rx="10" fill="url(#glow)" stroke="#00b8d4" stroke-width="4"/>
+    <line x1="0" y1="150" x2="320" y2="150" stroke="#00b8d4" stroke-width="3"/>
+    <line x1="0" y1="300" x2="320" y2="300" stroke="#00b8d4" stroke-width="3"/>
+    <line x1="22" y1="22" x2="60" y2="22" stroke="#62ebff" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Brilliant cut. -->
+    <g transform="translate(160 92)" stroke="#0b1e22" stroke-width="2" stroke-linejoin="round">
+      <polygon points="-60,-26 -36,-50 36,-50 60,-26 0,52" fill="#00b8d4"/>
+      <polygon points="-36,-50 36,-50 22,-26 -22,-26" fill="#62ebff"/>
+      <polygon points="-60,-26 -22,-26 0,52" fill="#4dd0e1"/>
+      <polygon points="60,-26 22,-26 0,52" fill="#007c8a"/>
+      <polygon points="-22,-26 22,-26 0,52" fill="#00a0b8"/>
+    </g>
+
+    <!-- Emerald cut. -->
+    <g transform="translate(160 240)" stroke="#0b1e22" stroke-width="2" stroke-linejoin="round">
+      <polygon points="-70,-26 -54,-42 54,-42 70,-26 70,26 54,42 -54,42 -70,26" fill="#007c8a"/>
+      <polygon points="-44,-20 44,-20 44,20 -44,20" fill="#4dd0e1"/>
+      <polygon points="-54,-42 54,-42 44,-20 -44,-20" fill="#62ebff"/>
+      <polygon points="-44,20 44,20 54,42 -54,42" fill="#00636e"/>
+    </g>
+
+    <!-- Rough stone. -->
+    <g transform="translate(160 380)" stroke="#0b1e22" stroke-width="2" stroke-linejoin="round">
+      <polygon points="-58,30 -46,-14 -12,-40 30,-30 58,4 44,30" fill="#00636e"/>
+      <polygon points="-46,-14 -12,-40 2,-6" fill="#4dd0e1"/>
+      <polygon points="-12,-40 30,-30 2,-6" fill="#00b8d4"/>
+      <polygon points="30,-30 58,4 2,-6" fill="#007c8a"/>
+      <polygon points="-58,30 -46,-14 2,-6 -10,30" fill="#00a0b8"/>
+    </g>
+  </g>
+</svg>

@@ -1,3 +1,7 @@
+---
+description: "Set up a lapidarium portfolio site from nothing in the admin: profile, links, friends, content types, fields, entries, showcases, and what appears where."
+---
+
 # Content
 
 A new instance has no content types, so its public site is an empty frame.

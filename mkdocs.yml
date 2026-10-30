@@ -1,6 +1,6 @@
 site_name: lapidarium
 site_url: https://lapidarium.fancysnake.dev
-site_description: Engine for a creator's portfolio site — admin-defined content types, pages built from parts, zero Node.
+site_description: "Self-hosted portfolio engine for creators: content types defined in the admin, pages built from ordered parts, markdown export. Django, PostgreSQL, zero Node."
 repo_url: https://github.com/fancysnake/lapidarium
 repo_name: fancysnake/lapidarium
 copyright: MIT
@@ -16,6 +16,7 @@ validation:
 
 theme:
   name: material
+  custom_dir: overrides
   icon:
     logo: material/bank
   palette:
@@ -35,6 +36,9 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/fancysnake/lapidarium
+    - icon: fontawesome/solid/globe
+      link: https://fancysnake.dev
+      name: fancysnake.dev
 
 extra_css:
   - stylesheets/lapidarium.css
@@ -43,7 +47,6 @@ markdown_extensions:
   - toc: {permalink: true}
   - pymdownx.highlight
   - pymdownx.superfences
-  - admonition
   # Shared prose lives in README.md and is included from there, so the two
   # cannot drift. base_path is the repo root, which is where mkdocs runs.
   - pymdownx.snippets: {base_path: ["."], check_paths: true}

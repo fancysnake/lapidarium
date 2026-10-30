@@ -1,3 +1,7 @@
+---
+description: "Theme a lapidarium portfolio site with plain CSS: pick a theme, set design tokens, style the stable component classes, override templates, preview it."
+---
+
 # Themes
 
 A theme changes how the site looks, not what it says. The engine renders the

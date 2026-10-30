@@ -1,3 +1,7 @@
+---
+description: "Run a lapidarium portfolio site locally from a clone: SQLite, a demo site loaded, the public pages and the admin up in four commands, PostgreSQL optional."
+---
+
 # Getting started
 
 This runs the engine from a clone, on SQLite, with a demo site loaded. It is

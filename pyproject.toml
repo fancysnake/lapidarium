@@ -1,7 +1,7 @@
 [project]
 name = "lapidarium"
 version = "0.1.0"
-description = "Engine for a creator's portfolio site: admin-defined content types, pages built from parts, zero Node"
+description = "Self-hosted portfolio engine for creators: content types defined in the admin, pages built from ordered parts, markdown export. Django, PostgreSQL, zero Node."
 authors = [{ name = "Radosław Ganczarek", email = "radoslaw@ganczarek.in" }]
 license = { text = "MIT" }
 readme = "README.md"
