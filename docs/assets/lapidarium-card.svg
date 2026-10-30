@@ -1,14 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="lapidarium: self-hosted portfolio engine for creators. The logo: four cut stones in a frame, on a cyan tile.">
-  <desc>lapidarium: self-hosted portfolio engine for creators. The logo: four cut stones in a frame, on a cyan tile.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="card-alt">
+  <desc id="card-alt">lapidarium: a home base for multi-format creators, every piece of work at its own address. The logo: four cut stones in a frame, on a cyan tile.</desc>
 
   <rect width="1200" height="630" fill="#0b1e22"/>
 
   <!-- The text block. -->
   <rect x="80" y="150" width="64" height="6" fill="#00b8d4"/>
   <text x="76" y="270" font-family="Bitstream Charter, Liberation Serif, serif" font-size="104" font-weight="bold" fill="#ffffff">lapidarium</text>
-  <text x="80" y="340" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">Self-hosted portfolio engine</text>
-  <text x="80" y="388" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">for creators</text>
-  <text x="80" y="470" font-family="Liberation Sans, FreeSans, sans-serif" font-size="26" fill="#c9d6d9">Content types in the admin · pages built from parts</text>
+  <text x="80" y="340" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">A home base for</text>
+  <text x="80" y="388" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">multi-format creators</text>
+  <text x="80" y="470" font-family="Liberation Sans, FreeSans, sans-serif" font-size="26" fill="#c9d6d9">Every piece of work at its own address</text>
   <text x="80" y="506" font-family="Liberation Sans, FreeSans, sans-serif" font-size="26" fill="#c9d6d9">Django · PostgreSQL · zero Node</text>
   <text x="80" y="566" font-family="Liberation Mono, monospace" font-size="22" fill="#62ebff">lapidarium.fancysnake.dev</text>
 

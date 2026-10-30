@@ -4,7 +4,7 @@
 {% if page and page.meta.title %}
   {% set title = page.meta.title ~ " - " ~ config.site_name %}
 {% elif page and page.is_homepage %}
-  {% set title = "lapidarium — self-hosted portfolio site engine for creators" %}
+  {% set title = "lapidarium — a home base for multi-format creators" %}
 {% elif page and page.title %}
   {% set title = page.title | striptags ~ " - " ~ config.site_name %}
 {% else %}
@@ -29,7 +29,7 @@
   <meta property="og:image" content="{{ card }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="lapidarium: self-hosted portfolio engine for creators. The logo: four cut stones in a frame, on a cyan tile.">
+  <meta property="og:image:alt" content="lapidarium: a home base for multi-format creators, every piece of work at its own address. The logo: four cut stones in a frame, on a cyan tile.">
   {# X reads og:* for title, description and image. #}
   <meta name="twitter:card" content="summary_large_image">
   {% if page.is_homepage %}

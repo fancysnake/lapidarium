@@ -63,3 +63,6 @@ tests/
 
 [Getting started](getting-started.md) sets up a clone. `mise run fullcheck`
 is the gate before a commit; `CONTRIBUTING.md` in the repository has the rest.
+
+The documentation describes what a fresh instance does now. A plan is not a
+feature until it ships.
