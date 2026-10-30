@@ -23,6 +23,7 @@ def _maintenance(**values):
         **{
             "starts_at": NOW - HOUR,
             "ends_at": NOW + HOUR,
+            "title": "Setting up the site",
             "reasons": f"{REASONS[0]}\n\n  {REASONS[1]}  \n",
             **values,
         }
@@ -55,10 +56,14 @@ def test_every_page_answers_with_the_maintenance_page(site, path):
         profile.name,
     )
     notice = response.context["notice"]
-    assert (notice.starts_at, notice.ends_at) == (NOW - HOUR, NOW + HOUR)
+    assert (notice.ends_at, notice.title) == (NOW + HOUR, "Setting up the site")
     assert notice.reason in REASONS
     assert notice.seconds_left == 3600
-    assert notice.reason in response.content.decode()
+    html = response.content.decode()
+    assert "<title>Setting up the site · " in html
+    assert '<h2 class="maintenance__title">Setting up the site</h2>' in html
+    assert notice.reason in html
+    assert "back by" in html
 
 
 def test_a_detail_page_hides_behind_the_maintenance_page(site):
@@ -69,8 +74,8 @@ def test_a_detail_page_hides_behind_the_maintenance_page(site):
     assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
 
 
-def test_without_an_end_or_reasons_the_page_gives_neither(browser):
-    _maintenance(ends_at=None, reasons="")
+def test_without_an_end_title_or_reasons_the_page_gives_none(browser):
+    _maintenance(ends_at=None, title="", reasons="")
 
     response = browser.get("/")
 
@@ -78,8 +83,17 @@ def test_without_an_end_or_reasons_the_page_gives_neither(browser):
     assert "Retry-After" not in response
     assert response.context["site"].profile is None
     notice = response.context["notice"]
-    assert (notice.ends_at, notice.reason, notice.seconds_left) == (None, "", None)
-    assert "The site is being prepared." in response.content.decode()
+    assert (notice.ends_at, notice.title, notice.reason, notice.seconds_left) == (
+        None,
+        "",
+        "",
+        None,
+    )
+    html = response.content.decode()
+    assert "<title>Under maintenance · " in html
+    assert "maintenance__title" not in html
+    assert "The site is being prepared." in html
+    assert "back by" not in html
 
 
 def test_signed_in_users_see_the_real_site(site):

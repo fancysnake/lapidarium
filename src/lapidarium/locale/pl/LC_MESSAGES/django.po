@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 00:10+0100\n"
+"POT-Creation-Date: 2026-10-30 10:55+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -449,6 +449,9 @@ msgstr "profil"
 msgid "The site goes live by itself then; stays hidden when blank."
 msgstr "Wtedy strona sama się opublikuje; bez daty zostaje ukryta."
 
+msgid "The heading above the reason; when blank, there is none and the tab reads “Under maintenance”."
+msgstr "Nagłówek nad powodem; bez tytułu nagłówka nie ma, a karta pokazuje „Przerwa techniczna”."
+
 msgid "reasons"
 msgstr "powody"
 
@@ -719,9 +722,6 @@ msgstr "Przerwa techniczna"
 
 msgid "The site is being prepared."
 msgstr "Strona jest w przygotowaniu."
-
-msgid "Since"
-msgstr "Od"
 
 msgid "back by"
 msgstr "powrót do"
