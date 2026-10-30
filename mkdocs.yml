@@ -1,6 +1,6 @@
 site_name: lapidarium
 site_url: https://lapidarium.fancysnake.dev
-site_description: "Self-hosted portfolio engine for creators: content types defined in the admin, pages built from ordered parts, markdown export. Django, PostgreSQL, zero Node."
+site_description: "Self-hosted home base for multi-format creators: admin-defined content types, every piece at its own address, markdown export. Django, PostgreSQL, zero Node."
 repo_url: https://github.com/fancysnake/lapidarium
 repo_name: fancysnake/lapidarium
 copyright: MIT
@@ -17,8 +17,8 @@ validation:
 theme:
   name: material
   custom_dir: overrides
-  icon:
-    logo: material/bank
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: lapidarium
@@ -64,5 +64,6 @@ nav:
       - export-format.md
       - themes.md
   - Project:
+      - mission.md
       - architecture.md
       - changelog.md

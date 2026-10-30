@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-64 -64 1152 1152" role="img" aria-label="lapidarium">
+  <!-- The cyan tile of the social card keeps the black logo visible on dark tabs. -->
+  <rect x="-64" y="-64" width="1152" height="1152" rx="77" fill="#00b8d4"/>
+  <g fill="#000000">
+    <path fill-rule="evenodd" d="M64 64H960V960H64Z M128 128V896H896V128Z"/>
+    <rect x="192" y="192" width="256" height="256"/>
+    <polygon points="640,192 768,192 832,256 704,448 576,256"/>
+    <polygon points="256,576 384,576 448,640 448,768 384,832 256,832 192,768 192,640"/>
+    <circle cx="704" cy="704" r="128"/>
+  </g>
+</svg>

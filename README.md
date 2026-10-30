@@ -3,8 +3,9 @@
 Documentation is at [https://lapidarium.fancysnake.dev](https://lapidarium.fancysnake.dev).
 
 <!-- --8<-- [start:intro] -->
-Engine for a creator's portfolio site. You define the content types in the admin
-(sessions, songs, repos, talks, whatever you make); every entry is a page built
+A home base for multi-format creators: one site you own, where every piece of
+work has its own address and links to the rest. You define the content types in
+the admin (sessions, songs, repos, talks, whatever you make); every entry is built
 from ordered parts: text, video, audio, image, file, link. The engine gives you
 lists, feeds, search, calendar, themes and an export of everything to
 plain markdown files.

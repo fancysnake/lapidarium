@@ -35,5 +35,7 @@ loaded.
 - [Export format](export-format.md): the markdown files an instance exports and
   imports.
 - [Themes](themes.md): tokens, component classes and template overrides.
+- [Mission](mission.md): why lapidarium exists, what it stands for, and what
+  it is not.
 - [Architecture](architecture.md): how the code is laid out, for contributors.
 - [Changelog](changelog.md): what changed in each release.

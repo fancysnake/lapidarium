@@ -4,6 +4,7 @@ The homepage has none of its own: it falls back to the site description.
 """
 
 import re
+import tomllib
 
 import pytest
 import yaml
@@ -45,3 +46,19 @@ def test_page_has_a_short_description(page):
 def test_homepage_falls_back_to_a_short_site_description():
     assert not _description(HOMEPAGE)
     assert 0 < len(CONFIG["site_description"]) <= LIMIT
+
+
+def test_site_description_matches_the_package_description():
+    with (REPO / "pyproject.toml").open("rb") as file:
+        project = tomllib.load(file)["project"]
+    assert CONFIG["site_description"] == project["description"]
+
+
+def test_card_alt_text_matches_the_card_description():
+    template = (REPO / "overrides" / "main.html").read_text(encoding="utf-8")
+    card = (DOCS / "assets" / "lapidarium-card.svg").read_text(encoding="utf-8")
+    alt = re.search(r'<meta property="og:image:alt" content="([^"]*)">', template)
+    desc = re.search(r"<desc[^>]*>([^<]*)</desc>", card)
+    assert alt is not None
+    assert desc is not None
+    assert alt.group(1) == desc.group(1)
