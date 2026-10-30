@@ -52,7 +52,7 @@ All notable changes to this project are documented here. The format follows
 - Polish and English UI catalogs; `mise run i18n:make` and `i18n:compile`.
 - Documentation site at <https://lapidarium.fancysnake.dev>: deployment of a
   new instance, every environment variable, content setup from scratch, the
-  export format, commands, themes, the mission and how to describe it;
+  export format, commands, themes, the mission;
   `mise run site:dev` and `site:build`.
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.
