@@ -1,4 +1,4 @@
-# Project tasks. Python format/lint/test tasks live in python_tasks.toml.
+# Project tasks. Python format/lint/test tasks come from shared-configs' python.toml.
 
 [dj]
 description = "Run any django-admin subcommand against the dev settings"

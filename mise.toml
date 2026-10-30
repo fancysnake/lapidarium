@@ -16,7 +16,7 @@ python = "3.14.7"
 _.python.venv = { path = ".venv", create = true }
 _.file = "env/development.env"
 PYTHONPATH = "src"
-# Consumed by python_tasks.toml (vendored from shared-configs).
+# Consumed by shared-configs' python.toml.
 PACKAGE = "lapidarium"
 SRC_PATHS = "src"
 TEST_PATHS = "tests"
@@ -24,4 +24,7 @@ SCRIPT_PATHS = ""
 TOML_PATHS = "*.toml .taplo.toml .vekna.toml docker/*.toml"
 
 [task_config]
-includes = ["tasks.toml", "python_tasks.toml"]
+includes = [
+    "tasks.toml",
+    "git::https://github.com/fancysnake/shared-configs.git//python.toml",
+]
