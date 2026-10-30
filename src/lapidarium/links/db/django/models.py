@@ -443,7 +443,10 @@ class Maintenance(models.Model):
         _("title"),
         max_length=_SHORT,
         blank=True,
-        help_text=_("The heading above the reason."),
+        help_text=_(
+            "The heading above the reason; when blank, there is none"
+            " and the tab reads “Under maintenance”."
+        ),
     )
     reasons = models.TextField(
         _("reasons"),

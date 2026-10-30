@@ -232,7 +232,7 @@ entries when it gained this switch starts live.
 |---|---|
 | Starts | before it, the site stays live |
 | Ends | shown as "back by"; the site goes live by itself then |
-| Title | the heading above the reason, and the browser tab's title |
+| Title | the heading above the reason, and the browser tab's title; when blank, no heading, and the tab reads "Under maintenance" |
 | Reasons | one per line; each visit shows one at random |
 
 The page shows the profile's name, tagline and photo. It answers `503 Service

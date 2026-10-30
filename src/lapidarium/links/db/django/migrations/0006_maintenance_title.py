@@ -13,7 +13,10 @@ class Migration(migrations.Migration):
             name="title",
             field=models.CharField(
                 blank=True,
-                help_text="The heading above the reason.",
+                help_text=(
+                    "The heading above the reason; when blank, there is none"
+                    " and the tab reads “Under maintenance”."
+                ),
                 max_length=100,
                 verbose_name="title",
             ),

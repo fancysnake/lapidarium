@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
-    <title>{% if notice.title %}{{ notice.title }}{% else %}{% translate "Under maintenance" %}{% endif %} · {{ site.owner_name }}</title>
+    <title>{{ notice.title|default:_("Under maintenance") }} · {{ site.owner_name }}</title>
     {% include "lapidarium/components/stylesheets.html" %}
   </head>
   <body>

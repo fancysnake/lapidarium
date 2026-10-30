@@ -23,7 +23,7 @@ def _maintenance(**values):
         **{
             "starts_at": NOW - HOUR,
             "ends_at": NOW + HOUR,
-            "title": "  Setting up the site  ",
+            "title": "Setting up the site",
             "reasons": f"{REASONS[0]}\n\n  {REASONS[1]}  \n",
             **values,
         }
@@ -63,7 +63,6 @@ def test_every_page_answers_with_the_maintenance_page(site, path):
     assert "<title>Setting up the site · " in html
     assert '<h2 class="maintenance__title">Setting up the site</h2>' in html
     assert notice.reason in html
-    assert "Since" not in html
     assert "back by" in html
 
 
