@@ -88,10 +88,13 @@ fields they carry.
 | `calendar` | start, end, location, online | start | something that happens: events, sessions to come |
 | `container_timespan` | start, end | start | a period other entries belong to: a season, a residency |
 | `container_outcome` | outcome, start, end | outcome | a project that ends somewhere: ongoing, finished, abandoned |
+| `section` | — | — | a grouping with no end: a wiki section, a set of docs |
 
 Calendar entries feed the upcoming block on their list, the "next up" box on
-the home page and `/calendar.ics`. Only container entries can be the target of
-a *part of* relation, and they make up the timeline on the about page.
+the home page and `/calendar.ics`. Only container entries (the two
+`container_` roles and `section`) can be the target of a *part of* relation.
+The two `container_` roles make up the timeline on the about page; sections
+have no dates and stay off it.
 
 ### Page
 
@@ -253,7 +256,7 @@ stay open. In the list, *Turn on* sets *Starts* to now and clears *Ends*;
 | Home | the profile's tagline and photo, the next calendar entry, the showcases, a door per type, the five newest lines of what's new |
 | What's new (`/new/`) | published entries, newest change first, marked added or updated |
 | Type list (`/<route>/`) | its published entries, twelve a page, with its filters; calendar types split upcoming from archive |
-| About (`/about/`) | bio, links, the timeline of container entries, and friends |
+| About (`/about/`) | bio, links, the timeline of outcome and timespan containers, and friends |
 | Footer | links, the newsletter form, RSS and iCal, the contact link |
 | `/rss.xml` | what's new |
 | `/calendar.ics` | upcoming calendar entries |

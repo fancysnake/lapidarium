@@ -18,7 +18,6 @@ from lapidarium.pacts.catalogue import (
     ShowcaseBandDTO,
 )
 from lapidarium.pacts.content import (
-    CONTAINER_ROLES,
     DoorPick,
     EntryRefDTO,
     FieldKind,
@@ -55,6 +54,8 @@ if TYPE_CHECKING:
 
 type _Key = tuple[str, str]
 _BLANK = frozenset({None, ""})
+# Containers that span time; sections have no dates to place on a timeline.
+_TIMELINE_ROLES = frozenset({TypeRole.CONTAINER_OUTCOME, TypeRole.CONTAINER_TIMESPAN})
 
 
 def when(entry: EntryDTO) -> dt.date | None:
@@ -431,7 +432,7 @@ class CatalogueService(CatalogueServiceProtocol):
         containers = [
             e
             for e in catalogue.entries
-            if catalogue.types[e.type_key].role in CONTAINER_ROLES
+            if catalogue.types[e.type_key].role in _TIMELINE_ROLES
         ]
         return catalogue.cards(newest_first(containers))
 

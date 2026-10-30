@@ -20,6 +20,7 @@ class TypeRole(StrEnum):
     CONTAINER_OUTCOME = "container_outcome"
     CONTAINER_TIMESPAN = "container_timespan"
     CALENDAR = "calendar"
+    SECTION = "section"
 
 
 class Layout(StrEnum):
@@ -99,6 +100,7 @@ ROLE_BUILTINS: Mapping[TypeRole, frozenset[str]] = {
     TypeRole.CALENDAR: frozenset({"start_at", "end_at", "location", "is_online"}),
     TypeRole.CONTAINER_TIMESPAN: frozenset({"start_at", "end_at"}),
     TypeRole.CONTAINER_OUTCOME: frozenset({"outcome", "start_at", "end_at"}),
+    TypeRole.SECTION: frozenset(),
 }
 
 
@@ -107,10 +109,13 @@ ROLE_REQUIRED: Mapping[TypeRole, frozenset[str]] = {
     TypeRole.CALENDAR: frozenset({"start_at"}),
     TypeRole.CONTAINER_TIMESPAN: frozenset({"start_at"}),
     TypeRole.CONTAINER_OUTCOME: frozenset({"outcome"}),
+    TypeRole.SECTION: frozenset(),
 }
 
 
-CONTAINER_ROLES = frozenset({TypeRole.CONTAINER_OUTCOME, TypeRole.CONTAINER_TIMESPAN})
+CONTAINER_ROLES = frozenset(
+    {TypeRole.CONTAINER_OUTCOME, TypeRole.CONTAINER_TIMESPAN, TypeRole.SECTION}
+)
 
 
 # What a type or field setting is when left out, in the admin and in export files.

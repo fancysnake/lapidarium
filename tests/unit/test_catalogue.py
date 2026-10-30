@@ -567,14 +567,16 @@ def test_search_cards_keep_relations_to_entries_that_did_not_match():
     )
 
 
-def test_timeline_lists_containers_newest_first():
+def test_timeline_lists_dated_containers_newest_first():
     initiative = type_dto("initiative", role=TypeRole.CONTAINER_TIMESPAN)
+    wiki = type_dto("wiki", role=TypeRole.SECTION)
     entries = [
         entry_dto("old", "initiative", start_at=NOW - 900 * DAY),
         entry_dto("new", "project", start_at=NOW),
         entry_dto("session"),
+        entry_dto("guide", "wiki"),
     ]
-    service, _ = _service(types=[SESSION, PROJECT, initiative], entries=entries)
+    service, _ = _service(types=[SESSION, PROJECT, initiative, wiki], entries=entries)
 
     assert [c.entry.slug for c in service.timeline()] == ["new", "old"]
 

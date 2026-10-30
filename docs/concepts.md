@@ -38,7 +38,7 @@ migration.
 
 ### Containers
 
-There are two kinds of container, and the difference is what ends them:
+There are three kinds of container, and the difference is what ends them:
 
 - **Outcome** (`container_outcome`): a project bounded by its result,
   `ongoing`, `finished` or `abandoned`. An album, a campaign, a series of
@@ -46,10 +46,12 @@ There are two kinds of container, and the difference is what ends them:
 - **Timespan** (`container_timespan`): a role or activity bounded by time, with
   a start and an optional end; no end means it continues. Organising a
   convention since 2019, writing songs about games since 2021.
+- **Section** (`section`): a grouping that nothing ends, with no outcome and no
+  dates. A wiki section, a set of docs.
 
 An entry joins a container through a *part of* relation. Every level is
 optional and the links are many-to-many: a song can belong to two albums, an
-album to a timespan. Containers form the timeline on the about page.
+album to a timespan. Outcomes and timespans form the timeline on the about page.
 
 ### Relations
 

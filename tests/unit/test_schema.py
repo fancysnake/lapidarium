@@ -216,6 +216,17 @@ def test_validate_metadata_reports_every_field(schema):
             builtins(start_at=dt.datetime(2021, 1, 1, tzinfo=dt.UTC)),
             {},
         ),
+        (TypeRole.SECTION, builtins(), {}),
+        (
+            TypeRole.SECTION,
+            builtins(
+                outcome="ongoing", start_at=dt.datetime(2021, 1, 1, tzinfo=dt.UTC)
+            ),
+            {
+                "outcome": "Not used by the section role.",
+                "start_at": "Not used by the section role.",
+            },
+        ),
     ),
 )
 def test_check_builtins(schema, case):
@@ -271,6 +282,9 @@ SESSION = _type(_field("inspired_by", FieldKind.RELATION, target_type="session")
 PROJECT = _type().model_copy(
     update={"key": "project", "label": "Project", "role": TypeRole.CONTAINER_OUTCOME}
 )
+WIKI = _type().model_copy(
+    update={"key": "wiki", "label": "Wiki", "role": TypeRole.SECTION}
+)
 
 
 def _end(entry_type, status="published"):
@@ -281,6 +295,7 @@ def _end(entry_type, status="published"):
     "case",
     (
         ("part_of", _end(PROJECT), []),
+        ("part_of", _end(WIKI), []),
         ("part_of", _end(SESSION), ["Only containers can hold entries."]),
         ("related", _end(SESSION), []),
         ("inspired_by", _end(SESSION), []),
