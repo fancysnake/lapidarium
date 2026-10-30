@@ -64,5 +64,6 @@ nav:
       - export-format.md
       - themes.md
   - Project:
+      - mission.md
       - architecture.md
       - changelog.md
