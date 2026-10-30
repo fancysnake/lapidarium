@@ -138,7 +138,7 @@ a rule would refuse.
 
 Every page works without JavaScript. Filters are GET parameters; interactions
 use native elements. Videos load the platform's player only when played, so a
-page view sends nothing to Google. There is no Node: no `package.json`, no
+page view loads no third-party script. There is no Node: no `package.json`, no
 bundler, plain CSS and a few vanilla ES modules.
 
 ## Engine and instance

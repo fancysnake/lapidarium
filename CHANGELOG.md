@@ -25,8 +25,9 @@ All notable changes to this project are documented here. The format follows
   set in the same format; `setup_local` migrates, loads a demo and ensures an
   admin login, refused unless `DEBUG`.
 - Public site: home page with a door per content type, showcase bands of
-  hand-picked entries, what's new, a follow box and the next calendar entry; a list per type with filters and pages (upcoming and archive
-  for calendar types); detail pages laid out as article, media first or
+  hand-picked entries, what's new, a follow box and the next calendar entry;
+  a list per type with filters and pages (upcoming and archive for calendar
+  types); detail pages laid out as article, media first or
   gallery, with parts, metadata, containers, related entries and an author
   box; about page with a timeline of projects and a friends section of 88x31
   buttons; search; RSS and iCal feeds; a footer crediting the site owner and

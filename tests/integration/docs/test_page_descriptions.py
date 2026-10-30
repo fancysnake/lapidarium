@@ -4,6 +4,7 @@ The homepage has none of its own: it falls back to the site description.
 """
 
 import re
+import tomllib
 
 import pytest
 import yaml
@@ -45,3 +46,9 @@ def test_page_has_a_short_description(page):
 def test_homepage_falls_back_to_a_short_site_description():
     assert not _description(HOMEPAGE)
     assert 0 < len(CONFIG["site_description"]) <= LIMIT
+
+
+def test_site_description_matches_the_package_description():
+    with (REPO / "pyproject.toml").open("rb") as file:
+        project = tomllib.load(file)["project"]
+    assert CONFIG["site_description"] == project["description"]

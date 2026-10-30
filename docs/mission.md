@@ -8,8 +8,7 @@ lapidarium is a home base for multi-format creators: the one canonical place
 where a song, a session, a talk and an event each have a page and point to
 each other.
 
-It is not a CMS and not a link-in-bio page. It models a creator's whole
-output and the links between the pieces.
+It models a creator's whole output and the links between the pieces.
 
 ## What it does best
 
@@ -19,15 +18,12 @@ Each claim below is true of the engine today.
 |---|---|
 | **A new kind of work is a row, not a release** | Content types, fields, allowed parts and layouts are data in the admin. A podcast, a zine or a TTRPG campaign needs no code and no migration. |
 | **Work that knows its context** | Outcome containers (an album, a campaign), timespan containers (a role since 2019), many-to-many relations and computed backlinks build the about-page timeline. |
-| **POSSE in every entry** | A canonical address per piece, syndication links recorded per entry, RSS of what's new, iCal of upcoming events, a newsletter form in every footer. |
-| **A versioned exit door** | [Export](export-format.md) to markdown with YAML frontmatter and media; import checks the whole bundle before writing. Exported into git on a schedule, the published site outlives the engine. |
+| **[POSSE in every entry](concepts.md#publish-on-your-own-site-syndicate-elsewhere)** | A canonical address per piece, syndication links recorded per entry, RSS of what's new, iCal of upcoming events, a newsletter form in every footer. |
+| **[A versioned exit door](concepts.md#content-outlives-the-application)** | [Export](export-format.md) to markdown with YAML frontmatter and media; import checks the whole bundle before writing. Exported into git on a schedule, the published site outlives the engine. |
 | **Events are first-class** | A calendar role with start, end, location and an online flag; upcoming and archive split by date; a *Next up* box on the home page; `/calendar.ics`. |
 | **Hard to publish something broken** | Alt text on every image, type colours contrast-checked against the theme, published entries never link to drafts, containment never loops. |
-| **HTML first, nothing sent to Google** | Every page works without JavaScript. Videos load the YouTube, Vimeo or PeerTube player only on click. No bundler, no `package.json`. |
-| **Every page is a first visit** | Detail pages carry the author box, their containers, related entries and the newsletter form, because traffic from posts and videos lands there. |
-
-[How it works](concepts.md) explains the content model and principles behind
-each edge.
+| **[HTML first, no third-party scripts](concepts.md#html-first-javascript-as-an-enhancement)** | Every page works without JavaScript. Videos load the YouTube, Vimeo or PeerTube player only on click. No bundler, no `package.json`. |
+| **[Every page is a first visit](concepts.md#every-page-is-a-first-visit)** | Detail pages carry the author box, their containers, related entries and the newsletter form, because traffic from posts and videos lands there. |
 
 ## How to describe it
 
