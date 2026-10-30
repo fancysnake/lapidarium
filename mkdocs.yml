@@ -17,7 +17,7 @@ validation:
 theme:
   name: material
   custom_dir: overrides
-  logo: assets/logo-white.png
+  logo: assets/logo-black.png
   favicon: assets/logo-black.png
   palette:
     - media: "(prefers-color-scheme: light)"
