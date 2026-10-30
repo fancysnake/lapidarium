@@ -24,7 +24,7 @@ the record of the work outlives any one platform.
 
 - **Publish here, syndicate everywhere, leave anytime.** The creator's site is
   the source of truth; platforms are distribution. Every piece has a canonical
-  address and records where it is syndicated; RSS carries what's new and iCal
+  address and records where it is syndicated; RSS carries what's new, iCal
   the upcoming events. Content [exports](export-format.md) to markdown with
   YAML frontmatter and media, so no one is locked in, including by
   lapidarium.
