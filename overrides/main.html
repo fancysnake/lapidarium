@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 
-{# The 404 page renders with page unset. page.is_homepage is false for an
-   index.md inside a nav group, so test the source path. #}
-{% set is_home = page and page.file.src_uri == "index.md" %}
-{% set home_title = "lapidarium — self-hosted portfolio site engine for creators" %}
+{# The 404 page renders with page unset. Off the homepage, Material's formula. #}
+{% if page and page.meta.title %}
+  {% set title = page.meta.title ~ " - " ~ config.site_name %}
+{% elif page and page.is_homepage %}
+  {% set title = "lapidarium — self-hosted portfolio site engine for creators" %}
+{% elif page and page.title %}
+  {% set title = page.title | striptags ~ " - " ~ config.site_name %}
+{% else %}
+  {% set title = config.site_name %}
+{% endif %}
 
 {% block htmltitle %}
-  {% if is_home %}
-    <title>{{ home_title }}</title>
-  {% else %}
-    {{ super() }}
-  {% endif %}
+  <title>{{ title }}</title>
 {% endblock %}
 
 {% block extrahead %}
 {% if page %}
   {% set description = page.meta.description or config.site_description %}
-  {# Material's <title> formula off the homepage. #}
-  {% set title = home_title if is_home else page.title | striptags ~ " - " ~ config.site_name %}
   {# MkDocs ends site_url with a slash, so none here. #}
   {% set card = config.site_url ~ "assets/lapidarium-card.png" %}
   <meta property="og:type" content="website">
@@ -32,7 +32,7 @@
   <meta property="og:image:alt" content="lapidarium: self-hosted portfolio engine for creators. Cut stones on the shelves of a cyan-lit display case.">
   {# X reads og:* for title, description and image. #}
   <meta name="twitter:card" content="summary_large_image">
-  {% if is_home %}
+  {% if page.is_homepage %}
     {# Describes the software as an entity; offers at price 0 marks it free.
        tojson so a quote in a value cannot break the script. #}
     <script type="application/ld+json">

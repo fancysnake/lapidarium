@@ -7,8 +7,8 @@ on:
     branches: ["main"]
 
 concurrency:
-  group: site-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+  group: site-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -33,12 +33,6 @@ jobs:
     if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
-    # Its own group, because a deploy wants the opposite policy to a build: a
-    # publish cut off halfway leaves the site on the old commit, so two merges
-    # queue here rather than cancel each other.
-    concurrency:
-      group: pages
-      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
