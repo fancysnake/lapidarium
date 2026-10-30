@@ -1,7 +1,7 @@
 [project]
 name = "lapidarium"
 version = "0.1.0"
-description = "Self-hosted home base for multi-format creators: content types defined in the admin, every piece a linked page, markdown export. Django, PostgreSQL, zero Node."
+description = "Self-hosted home base for multi-format creators: admin-defined content types, every piece at its own address, markdown export. Django, PostgreSQL, zero Node."
 authors = [{ name = "Radosław Ganczarek", email = "radoslaw@ganczarek.in" }]
 license = { text = "MIT" }
 readme = "README.md"

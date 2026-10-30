@@ -1,6 +1,6 @@
 site_name: lapidarium
 site_url: https://lapidarium.fancysnake.dev
-site_description: "Self-hosted home base for multi-format creators: content types defined in the admin, every piece a linked page, markdown export. Django, PostgreSQL, zero Node."
+site_description: "Self-hosted home base for multi-format creators: admin-defined content types, every piece at its own address, markdown export. Django, PostgreSQL, zero Node."
 repo_url: https://github.com/fancysnake/lapidarium
 repo_name: fancysnake/lapidarium
 copyright: MIT
