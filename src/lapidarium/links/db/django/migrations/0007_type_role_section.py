@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                     ("container_outcome", "Container outcome"),
                     ("container_timespan", "Container timespan"),
                     ("calendar", "Calendar"),
-                    ("section", "Section"),
+                    ("container_section", "Container section"),
                 ],
                 default=lapidarium.pacts.content.TypeRole["THING"],
                 max_length=32,

@@ -88,13 +88,12 @@ fields they carry.
 | `calendar` | start, end, location, online | start | something that happens: events, sessions to come |
 | `container_timespan` | start, end | start | a period other entries belong to: a season, a residency |
 | `container_outcome` | outcome, start, end | outcome | a project that ends somewhere: ongoing, finished, abandoned |
-| `section` | — | — | a grouping with no end: a wiki section, a set of docs |
+| `container_section` | — | — | a grouping with no end: a wiki section, a set of docs |
 
 Calendar entries feed the upcoming block on their list, the "next up" box on
-the home page and `/calendar.ics`. Only container entries (the two
-`container_` roles and `section`) can be the target of a *part of* relation.
-The two `container_` roles make up the timeline on the about page; sections
-have no dates and stay off it.
+the home page and `/calendar.ics`. Only container entries can be the target of
+a *part of* relation. Outcomes and timespans make up the timeline on the about
+page; sections stay off it.
 
 ### Page
 

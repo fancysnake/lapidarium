@@ -46,7 +46,7 @@ There are three kinds of container, and the difference is what ends them:
 - **Timespan** (`container_timespan`): a role or activity bounded by time, with
   a start and an optional end; no end means it continues. Organising a
   convention since 2019, writing songs about games since 2021.
-- **Section** (`section`): a grouping that nothing ends, with no outcome and no
+- **Section** (`container_section`): a grouping that nothing ends, with no outcome and no
   dates. A wiki section, a set of docs.
 
 An entry joins a container through a *part of* relation. Every level is

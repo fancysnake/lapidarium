@@ -216,15 +216,15 @@ def test_validate_metadata_reports_every_field(schema):
             builtins(start_at=dt.datetime(2021, 1, 1, tzinfo=dt.UTC)),
             {},
         ),
-        (TypeRole.SECTION, builtins(), {}),
+        (TypeRole.CONTAINER_SECTION, builtins(), {}),
         (
-            TypeRole.SECTION,
+            TypeRole.CONTAINER_SECTION,
             builtins(
                 outcome="ongoing", start_at=dt.datetime(2021, 1, 1, tzinfo=dt.UTC)
             ),
             {
-                "outcome": "Not used by the section role.",
-                "start_at": "Not used by the section role.",
+                "outcome": "Not used by the container_section role.",
+                "start_at": "Not used by the container_section role.",
             },
         ),
     ),
@@ -283,7 +283,7 @@ PROJECT = _type().model_copy(
     update={"key": "project", "label": "Project", "role": TypeRole.CONTAINER_OUTCOME}
 )
 WIKI = _type().model_copy(
-    update={"key": "wiki", "label": "Wiki", "role": TypeRole.SECTION}
+    update={"key": "wiki", "label": "Wiki", "role": TypeRole.CONTAINER_SECTION}
 )
 
 

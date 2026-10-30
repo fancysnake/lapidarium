@@ -298,7 +298,7 @@ def test_read_reports_every_broken_file(bundle_dir):
         "types/song.yaml": [
             (
                 "role: Input should be 'thing', 'container_outcome',"
-                " 'container_timespan', 'calendar' or 'section'"
+                " 'container_timespan', 'calendar' or 'container_section'"
             )
         ],
         "content/session/bare.md": ["Expected YAML frontmatter between --- lines."],
