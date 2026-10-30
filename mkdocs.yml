@@ -17,8 +17,8 @@ validation:
 theme:
   name: material
   custom_dir: overrides
-  icon:
-    logo: material/bank
+  logo: assets/logo-white.png
+  favicon: assets/logo-black.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: lapidarium
