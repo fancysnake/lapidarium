@@ -167,15 +167,57 @@ def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str
     return None
 
 
+# First path segments of the fixed pages, which no type's route may take.
+_FIXED_PAGES: Mapping[str, str] = {
+    "about": "the about page",
+    "new": "the what's new page",
+    "search": "the search page",
+    "newsletter": "the newsletter page",
+    "contact": "the contact page",
+    "healthz": "the health probe",
+}
+
+
+def _first_segment(prefix: str) -> str | None:
+    """First path segment of a URL prefix; `None` when another host serves it."""
+    parts = urlsplit(prefix)
+    if parts.netloc:
+        return None
+    return parts.path.strip("/").split("/")[0] or None
+
+
 class SchemaService(SchemaServiceProtocol):
-    """Type schemas: metadata, role built-ins, parts, colours.
+    """Type schemas: metadata, role built-ins, parts, colours, routes.
 
     Type colours get a dark-scheme variant when `dark_background` is given.
+    A type's route cannot start a fixed page, nor the admin, upload or static
+    URL prefix the deployment serves.
     """
 
-    def __init__(self, background: str, *, dark_background: str | None) -> None:
+    def __init__(
+        self,
+        background: str,
+        *,
+        dark_background: str | None,
+        admin_url: str,
+        media_url: str,
+        static_url: str,
+    ) -> None:
         self._background = background
         self._dark_background = dark_background
+        served = {
+            admin_url: "the admin",
+            media_url: "uploads",
+            static_url: "static files",
+        }
+        self._taken_routes: dict[str, str] = {
+            **{
+                segment: owner
+                for prefix, owner in served.items()
+                if (segment := _first_segment(prefix))
+            },
+            **_FIXED_PAGES,
+        }
 
     @override
     def validate_metadata(
@@ -322,6 +364,12 @@ class SchemaService(SchemaServiceProtocol):
                 f"Contrast with the tint is {ratio:.2f}:1, needs {CONTRAST_FLOOR}:1."
             )
         return errors
+
+    @override
+    def check_route(self, route: str) -> list[str]:
+        if (owner := self._taken_routes.get(route)) is None:
+            return []
+        return [f"/{route}/ belongs to {owner}."]
 
     @override
     def derive_dark_colour(self, colour: str) -> str | None:
