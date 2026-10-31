@@ -158,7 +158,11 @@ def _export_service(repos):
 def _import_service(repos):
     return ContentImportService(
         schema=SchemaService(
-            background="#ffffff", dark_background=None, served_paths={}
+            background="#ffffff",
+            dark_background=None,
+            admin_url="admin/",
+            media_url="/media/",
+            static_url="/static/",
         ),
         transaction=repos.transaction,
         types=repos.types,

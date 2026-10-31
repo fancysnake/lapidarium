@@ -21,7 +21,6 @@ from lapidarium.pacts.content import (
     EntryStatus,
     EntryTypeDTO,
     FieldKind,
-    FixedPage,
     MetadataValidationError,
     PartData,
     PartKind,
@@ -168,13 +167,14 @@ def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str
     return None
 
 
-_FIXED_PAGE_NAMES: Mapping[str, str] = {
-    FixedPage.ABOUT: "the about page",
-    FixedPage.WHATS_NEW: "the what's new page",
-    FixedPage.SEARCH: "the search page",
-    FixedPage.NEWSLETTER: "the newsletter page",
-    FixedPage.CONTACT: "the contact page",
-    FixedPage.HEALTH: "the health probe",
+# First path segments of the fixed pages, which no type's route may take.
+_FIXED_PAGES: Mapping[str, str] = {
+    "about": "the about page",
+    "new": "the what's new page",
+    "search": "the search page",
+    "newsletter": "the newsletter page",
+    "contact": "the contact page",
+    "healthz": "the health probe",
 }
 
 
@@ -190,8 +190,8 @@ class SchemaService(SchemaServiceProtocol):
     """Type schemas: metadata, role built-ins, parts, colours, routes.
 
     Type colours get a dark-scheme variant when `dark_background` is given.
-    `served_paths` maps the URL prefixes the deployment serves outside the
-    fixed pages to who owns them; a type's route cannot start one.
+    A type's route cannot start a fixed page, nor the admin, upload or static
+    URL prefix the deployment serves.
     """
 
     def __init__(
@@ -199,17 +199,24 @@ class SchemaService(SchemaServiceProtocol):
         background: str,
         *,
         dark_background: str | None,
-        served_paths: Mapping[str, str],
+        admin_url: str,
+        media_url: str,
+        static_url: str,
     ) -> None:
         self._background = background
         self._dark_background = dark_background
+        served = {
+            admin_url: "the admin",
+            media_url: "uploads",
+            static_url: "static files",
+        }
         self._taken_routes: dict[str, str] = {
             **{
                 segment: owner
-                for prefix, owner in served_paths.items()
+                for prefix, owner in served.items()
                 if (segment := _first_segment(prefix))
             },
-            **_FIXED_PAGE_NAMES,
+            **_FIXED_PAGES,
         }
 
     @override

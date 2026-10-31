@@ -316,12 +316,12 @@ class EntryTypeForm(EntryTypeFormBase):
             data.get("allowed_parts", [])
         ):
             self.add_error("required_parts", _("Required parts must be allowed."))
+        schema = build_services().schema
         if colour := data.get("colour"):
-            schema = build_services().schema
             data["tint"] = data.get("tint") or schema.derive_tint(colour)
             for message in schema.check_colours(colour, data["tint"]):
                 self.add_error("colour", message)
-        for message in build_services().schema.check_route(data.get("route", "")):
+        for message in schema.check_route(data.get("route", "")):
             self.add_error("route", message)
 
 

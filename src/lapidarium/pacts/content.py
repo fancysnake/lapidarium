@@ -92,17 +92,6 @@ class ListFilter(StrEnum):
     TAG = "tag"
 
 
-class FixedPage(StrEnum):
-    """Pages at a fixed first path segment, which no type's route may take."""
-
-    ABOUT = "about"
-    WHATS_NEW = "new"
-    SEARCH = "search"
-    NEWSLETTER = "newsletter"
-    CONTACT = "contact"
-    HEALTH = "healthz"
-
-
 # Which role-dependent built-ins a type's entries carry, and which they must fill.
 # Columns outside this map (title, summary, status, cover, tags…) apply to every role.
 ROLE_BUILTINS: Mapping[TypeRole, frozenset[str]] = {

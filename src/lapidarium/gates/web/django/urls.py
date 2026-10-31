@@ -14,19 +14,18 @@ from lapidarium.gates.web.django.newsletter import newsletter
 from lapidarium.gates.web.django.search import search
 from lapidarium.gates.web.django.theme_preview import theme_preview
 from lapidarium.gates.web.django.whats_new import whats_new
-from lapidarium.pacts.content import FixedPage
 
 # Fixed pages first: every other first segment is a content type's route.
 urlpatterns = [
     path(f"{settings.ADMIN_URL}theme-preview/", theme_preview, name="theme_preview"),
     path(settings.ADMIN_URL, admin.site.urls),
-    path(f"{FixedPage.HEALTH}/", healthz, name="healthz"),
+    path("healthz/", healthz, name="healthz"),
     path("", home, name="home"),
-    path(f"{FixedPage.ABOUT}/", about, name="about"),
-    path(f"{FixedPage.WHATS_NEW}/", whats_new, name="whats_new"),
-    path(f"{FixedPage.SEARCH}/", search, name="search"),
-    path(f"{FixedPage.NEWSLETTER}/", newsletter, name="newsletter"),
-    path(f"{FixedPage.CONTACT}/", contact, name="contact"),
+    path("about/", about, name="about"),
+    path("new/", whats_new, name="whats_new"),
+    path("search/", search, name="search"),
+    path("newsletter/", newsletter, name="newsletter"),
+    path("contact/", contact, name="contact"),
     path("rss.xml", rss, name="rss"),
     path("calendar.ics", ical_feed, name="ical"),
     path("<slug:route>/", listing, name="listing"),
