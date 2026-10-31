@@ -8,6 +8,7 @@ from lapidarium.pacts.content import (
     EntryTypeDTO,
     FieldDefinitionDTO,
     FieldKind,
+    FixedPage,
     MetadataValidationError,
     PartKind,
     RelationEndDTO,
@@ -50,9 +51,18 @@ def _type(*fields, allowed=(PartKind.TEXT,), required=()):
     )
 
 
+SERVED_PATHS = {
+    "back-office/staff/": "the admin",
+    "/media/": "uploads",
+    "https://cdn.example.com/cdn/": "files elsewhere",
+}
+
+
 @pytest.fixture(name="schema")
 def schema_fixture():
-    return SchemaService(background=WHITE, dark_background=None)
+    return SchemaService(
+        background=WHITE, dark_background=None, served_paths=SERVED_PATHS
+    )
 
 
 @pytest.mark.parametrize(
@@ -361,6 +371,28 @@ def test_check_colours(schema):
     ]
 
 
+@pytest.mark.parametrize(
+    "case",
+    (
+        ("talks", []),
+        ("about", ["/about/ belongs to the about page."]),
+        ("new", ["/new/ belongs to the what's new page."]),
+        ("healthz", ["/healthz/ belongs to the health probe."]),
+        ("back-office", ["/back-office/ belongs to the admin."]),
+        ("media", ["/media/ belongs to uploads."]),
+        ("cdn", []),
+    ),
+)
+def test_check_route(schema, case):
+    route, errors = case
+    assert schema.check_route(route) == errors
+
+
+@pytest.mark.parametrize("page", FixedPage)
+def test_every_fixed_page_takes_its_route(schema, page):
+    assert schema.check_route(page) != []
+
+
 def test_without_a_dark_scheme_there_is_no_dark_colour(schema):
     assert schema.derive_dark_colour("#6b3fa0") is None
 
@@ -370,13 +402,13 @@ def test_without_a_dark_scheme_there_is_no_dark_colour(schema):
     (("#6b3fa0", "#9779bc"), ("#c9a0ff", "#c9a0ff"), ("#000000", "#878787")),
 )
 def test_derive_dark_colour_lightens_until_it_reads(colour, dark):
-    schema = SchemaService(background=WHITE, dark_background="#121212")
+    schema = SchemaService(background=WHITE, dark_background="#121212", served_paths={})
 
     assert schema.derive_dark_colour(colour) == dark
 
 
 def test_derive_dark_colour_is_white_when_nothing_reads():
     # White on #777777 is 4.48:1, under the floor.
-    schema = SchemaService(background=WHITE, dark_background="#777777")
+    schema = SchemaService(background=WHITE, dark_background="#777777", served_paths={})
 
     assert schema.derive_dark_colour("#6b3fa0") == WHITE

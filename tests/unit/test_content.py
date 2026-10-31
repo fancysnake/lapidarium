@@ -157,7 +157,9 @@ def _export_service(repos):
 
 def _import_service(repos):
     return ContentImportService(
-        schema=SchemaService(background="#ffffff", dark_background=None),
+        schema=SchemaService(
+            background="#ffffff", dark_background=None, served_paths={}
+        ),
         transaction=repos.transaction,
         types=repos.types,
         entries=repos.entries,
@@ -434,6 +436,7 @@ def test_import_rejects_entries_of_unknown_types(repos):
 def test_import_reports_every_problem_by_file(repos):
     session = type_data(
         colour="#999999",
+        route="contact",
         required_parts=[PartKind.TEXT],
         fields=[field_data("players", FieldKind.NUMBER, required=True)],
     )
@@ -478,6 +481,7 @@ def test_import_reports_every_problem_by_file(repos):
         "types/session.yaml": [
             "Contrast with the page background is 2.85:1, needs 4.5:1.",
             "Contrast with the tint is 2.57:1, needs 4.5:1.",
+            "/contact/ belongs to the contact page.",
         ],
         "content/session/moose.md": [
             "metadata.players: Expected a number.",

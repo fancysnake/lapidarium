@@ -321,13 +321,15 @@ class EntryTypeForm(EntryTypeFormBase):
             data["tint"] = data.get("tint") or schema.derive_tint(colour)
             for message in schema.check_colours(colour, data["tint"]):
                 self.add_error("colour", message)
+        for message in build_services().schema.check_route(data.get("route", "")):
+            self.add_error("route", message)
 
 
 @admin.register(EntryType)
 class EntryTypeAdmin(EntryTypeAdminBase):
     form = EntryTypeForm
     inlines = (FieldDefinitionInline,)
-    list_display = ("label_plural", "key", "route", "role", "layout", "in_menu")
+    list_display = ("label_plural", "key", "route_status", "role", "layout", "in_menu")
     list_filter = ("role", "layout", "in_menu")
     search_fields = ("label", "label_plural", "key")
     ordering_field = "order"
@@ -344,6 +346,13 @@ class EntryTypeAdmin(EntryTypeAdminBase):
         ),
     )
     readonly_fields = ("dark_colour",)
+
+    @staticmethod
+    @admin.display(description=_("route"), ordering="route")
+    def route_status(obj: EntryType) -> str:
+        if not (problems := build_services().schema.check_route(obj.route)):
+            return obj.route
+        return format_html("{} <strong>⚠ {}</strong>", obj.route, " ".join(problems))
 
     @staticmethod
     @admin.display(description=_("Dark-scheme colour"))

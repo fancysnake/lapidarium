@@ -144,6 +144,11 @@ class Services(ServicesProtocol):
         return SchemaService(
             background=self.theme.background(),
             dark_background=self.theme.dark_background(),
+            served_paths={
+                settings.ADMIN_URL: "the admin",
+                settings.MEDIA_URL: "uploads",
+                settings.STATIC_URL: "static files",
+            },
         )
 
     @cached_property
