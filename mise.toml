@@ -10,7 +10,7 @@ enter = "poetry install"
 "github:dmno-dev/varlock" = "1.23.0"
 pipx = "1.18.4"
 "pipx:poetry" = "2.5.1"
-python = "3.14.7"
+python = "3.15.1"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
