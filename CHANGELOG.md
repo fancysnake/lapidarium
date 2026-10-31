@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `container_section` role: a container with no outcome and no dates, such as a wiki
+  section or a set of docs. Sections stay off the about-page timeline. The
+  demos' wiki section and doc set are now sections.
+
 ## [0.1.0] - 2026-10-30
 
 ### Added

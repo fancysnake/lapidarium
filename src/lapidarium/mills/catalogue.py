@@ -18,7 +18,7 @@ from lapidarium.pacts.catalogue import (
     ShowcaseBandDTO,
 )
 from lapidarium.pacts.content import (
-    CONTAINER_ROLES,
+    TIMELINE_ROLES,
     DoorPick,
     EntryRefDTO,
     FieldKind,
@@ -132,8 +132,8 @@ class Catalogue:
     def of_type(self, type_key: str) -> list[EntryDTO]:
         return [e for e in self.entries if e.type_key == type_key]
 
-    def of_role(self, role: TypeRole) -> list[EntryDTO]:
-        return [e for e in self.entries if self.types[e.type_key].role == role]
+    def of_roles(self, roles: frozenset[TypeRole]) -> list[EntryDTO]:
+        return [e for e in self.entries if self.types[e.type_key].role in roles]
 
     def card(self, entry: EntryDTO) -> CardDTO:
         entry_type = self.types[entry.type_key]
@@ -287,7 +287,7 @@ class CatalogueService(CatalogueServiceProtocol):
                     pick=catalogue.card(self._pick(entry_type.door_pick, entries)),
                 )
             )
-        upcoming = self._upcoming(catalogue.of_role(TypeRole.CALENDAR))
+        upcoming = self._upcoming(catalogue.of_roles(frozenset({TypeRole.CALENDAR})))
         return HomeDTO(
             doors=tuple(doors),
             showcases=tuple(
@@ -428,14 +428,10 @@ class CatalogueService(CatalogueServiceProtocol):
     @override
     def timeline(self) -> tuple[CardDTO, ...]:
         catalogue = self._catalogue()
-        containers = [
-            e
-            for e in catalogue.entries
-            if catalogue.types[e.type_key].role in CONTAINER_ROLES
-        ]
-        return catalogue.cards(newest_first(containers))
+        return catalogue.cards(newest_first(catalogue.of_roles(TIMELINE_ROLES)))
 
     @override
     def upcoming(self) -> tuple[CardDTO, ...]:
         catalogue = self._catalogue()
-        return catalogue.cards(self._upcoming(catalogue.of_role(TypeRole.CALENDAR)))
+        calendar = catalogue.of_roles(frozenset({TypeRole.CALENDAR}))
+        return catalogue.cards(self._upcoming(calendar))
