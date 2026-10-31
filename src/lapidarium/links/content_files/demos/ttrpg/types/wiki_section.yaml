@@ -6,5 +6,5 @@ colour: '#0f6b5f'
 icon: library_books
 order: 9
 in_menu: false
-role: container_outcome
+role: container_section
 allowed_parts: [text]

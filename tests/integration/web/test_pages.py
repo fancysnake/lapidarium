@@ -30,7 +30,6 @@ def test_about_shows_profile_links_and_timeline(site):
     assert site_dto.profile.name == "Mira Kowalska"
     assert [link.label for link in site_dto.links] == ["YouTube", "itch.io"]
     assert [c.entry.slug for c in response.context["timeline"]] == [
-        "prowadzenie",
         "klatwa-strahda",
         "kampania-mothership",
         "sesje-science-fiction",

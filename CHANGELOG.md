@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `container_section` role: a container with no outcome and no dates, such as a wiki
+  section or a set of docs. Sections stay off the about-page timeline. The
+  demos' wiki section and doc set are now sections.
+
 ### Fixed
 
 - A content type can't take a route a fixed page, the admin, uploads or

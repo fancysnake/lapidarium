@@ -38,8 +38,8 @@
     <text x="44" y="344">text · long text · url</text>
     <text x="44" y="364">date · number · bool</text>
     <text x="44" y="384">choice · relation</text>
-    <text x="306" y="88">role: outcome or timespan</text>
-    <text x="306" y="106">a project, a campaign, a season</text>
+    <text x="306" y="88">outcome · timespan · section</text>
+    <text x="306" y="106">a project, a season, a wiki</text>
     <text x="306" y="210">title · slug · summary</text>
     <text x="306" y="230">status · tags · field values</text>
     <text x="584" y="88">a post elsewhere,</text>
