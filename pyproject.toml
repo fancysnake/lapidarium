@@ -36,7 +36,7 @@ gunicorn = "^26.0.0"
 httpx = "^0.28.1"
 markdown = "^3.10.2"
 nh3 = "^0.3.7"
-pillow = "^12.1.1"
+pillow = "^13.0.0"
 psycopg = { version = "^3.2.9", extras = ["binary"] }
 pydantic = "^2.13.5"
 pyyaml = "^6.0.3"
@@ -61,7 +61,7 @@ pytest-django = "^4.14.0"
 pytest-xdist = "^3.8.0"
 ruff = "^0.17.0"
 taplo = "^0.9.3"
-tingle = "^0.8.0"
+tingle = "^0.9.0"
 vulture = "^2.16"
 
 # BLACK
