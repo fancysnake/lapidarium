@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 10:55+0100\n"
+"POT-Creation-Date: 2026-11-02 00:00+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -123,8 +123,15 @@ msgstr "Części"
 msgid "Home page door"
 msgstr "Drzwi na stronie głównej"
 
+msgid "route"
+msgstr "adres"
+
 msgid "Dark-scheme colour"
 msgstr "Kolor w trybie ciemnym"
+
+#, python-brace-format
+msgid "Stored “{}” no longer fits: {}"
+msgstr "Zapisana wartość „{}” już nie pasuje: {}"
 
 msgid "Another entry of this type uses this slug."
 msgstr "Inny wpis tego rodzaju używa już tego sluga."
@@ -229,9 +236,6 @@ msgstr "etykieta"
 
 msgid "plural label"
 msgstr "etykieta w liczbie mnogiej"
-
-msgid "route"
-msgstr "adres"
 
 msgid "URL segment of the list, in the site language."
 msgstr "Fragment adresu listy, w języku strony."

@@ -554,6 +554,59 @@ def test_change_renders_every_field_kind(admin):
     }
 
 
+def test_change_blanks_values_that_no_longer_fit_their_kind(admin):
+    entry_type = EntryType.objects.create(
+        key="note", label="Note", label_plural="Notes", route="n"
+    )
+    for order, (key, kind) in enumerate(
+        (("seen", "date"), ("score", "number"), ("liked", "bool"), ("mood", "choice"))
+    ):
+        FieldDefinition.objects.create(
+            entry_type=entry_type,
+            key=key,
+            label=key,
+            kind=kind,
+            order=order,
+            choices=["calm"] if kind == "choice" else [],
+        )
+    entry = Entry.objects.create(
+        type=entry_type,
+        slug="n",
+        title="N",
+        summary="S",
+        metadata={
+            "seen": "<spring 2024>",
+            "score": 5,
+            "liked": "yes",
+            "mood": "gone",
+            "dropped": "x",
+        },
+    )
+
+    response = admin.get(f"{ENTRIES}{entry.pk}/change/")
+
+    assert response.status_code == HTTPStatus.OK
+    fields = response.context["adminform"].form.fields
+    assert {k: fields[f"meta_{k}"].initial for k in ("seen", "liked", "mood")} == {
+        "seen": None,
+        "liked": None,
+        "mood": None,
+    }
+    assert fields["meta_score"].initial == 5
+    assert fields["meta_seen"].help_text == (
+        "Stored “&lt;spring 2024&gt;” no longer fits: Expected a date (YYYY-MM-DD)."
+    )
+    assert not fields["meta_score"].help_text
+
+    response = admin.post(
+        f"{ENTRIES}{entry.pk}/change/", _entry(slug="n", meta_seen="2024-03-20")
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    entry.refresh_from_db()
+    assert entry.metadata == {"seen": "2024-03-20", "liked": False}
+
+
 @pytest.mark.usefixtures("demo")
 def test_change_clears_built_ins_the_role_does_not_use(admin):
     session = Entry.objects.get(slug="bal-w-zamku")

@@ -8,11 +8,9 @@ from lapidarium.pacts.content import (
     EntryTypeDTO,
     FieldDefinitionDTO,
     FieldKind,
-    MetadataValidationError,
     PartKind,
     RelationEndDTO,
     TypeRole,
-    UrlKind,
 )
 from tests.factories import builtins, part_data
 
@@ -60,129 +58,6 @@ URLS = {
 @pytest.fixture(name="schema")
 def schema_fixture():
     return SchemaService(background=WHITE, dark_background=None, **URLS)
-
-
-@pytest.mark.parametrize(
-    "case",
-    (
-        ("https://www.youtube.com/watch?v=x", UrlKind.YOUTUBE),
-        ("https://youtu.be/x", UrlKind.YOUTUBE),
-        ("https://itch.io/games", UrlKind.ITCH),
-        ("https://someone.itch.io/game", UrlKind.ITCH),
-        ("https://github.com/x/y", UrlKind.GITHUB),
-        ("https://example.com", UrlKind.ANY_HOST),
-    ),
-)
-def test_validate_metadata_accepts_urls_on_the_kind_host(schema, case):
-    url, kind = case
-    entry_type = _type(_field("link", FieldKind.URL, url_kind=kind))
-
-    assert schema.validate_metadata(entry_type, {"link": url}) == {"link": url}
-
-
-@pytest.mark.parametrize(
-    "case",
-    (
-        ("https://vimeo.com/1", UrlKind.YOUTUBE, "Enter a YouTube address."),
-        ("https://notitch.io/game", UrlKind.ITCH, "Enter an itch.io address."),
-        ("https://gitlab.com/x/y", UrlKind.GITHUB, "Enter a GitHub address."),
-        ("ftp://example.com", UrlKind.ANY_HOST, "Enter a full http(s) address."),
-        ("example.com", UrlKind.ANY_HOST, "Enter a full http(s) address."),
-    ),
-)
-def test_validate_metadata_rejects_urls_off_the_kind_host(schema, case):
-    url, kind, error = case
-    entry_type = _type(_field("link", FieldKind.URL, url_kind=kind))
-
-    with pytest.raises(MetadataValidationError) as caught:
-        schema.validate_metadata(entry_type, {"link": url})
-
-    assert caught.value.errors == {"link": error}
-
-
-def test_validate_metadata_cleans_every_kind(schema):
-    entry_type = _type(
-        _field("system", FieldKind.TEXT),
-        _field("notes", FieldKind.LONG_TEXT),
-        _field("recording", FieldKind.URL, url_kind=UrlKind.YOUTUBE),
-        _field("played", FieldKind.DATE),
-        _field("players", FieldKind.NUMBER),
-        _field("hours", FieldKind.NUMBER),
-        _field("online", FieldKind.BOOL),
-        _field("format", FieldKind.CHOICE, choices=("one-shot", "campaign")),
-        _field("inspired_by", FieldKind.RELATION, target_type="session"),
-    )
-
-    cleaned = schema.validate_metadata(
-        entry_type,
-        {
-            "system": " Mothership ",
-            "notes": "",
-            "recording": "https://youtu.be/x",
-            "played": dt.date(2026, 3, 14),
-            "players": 4.0,
-            "hours": 2.5,
-            "online": False,
-            "format": "one-shot",
-        },
-    )
-
-    assert cleaned == {
-        "system": "Mothership",
-        "recording": "https://youtu.be/x",
-        "played": "2026-03-14",
-        "players": 4,
-        "hours": 2.5,
-        "online": False,
-        "format": "one-shot",
-    }
-
-
-def test_validate_metadata_accepts_iso_date_strings(schema):
-    entry_type = _type(_field("played", FieldKind.DATE))
-
-    assert schema.validate_metadata(entry_type, {"played": "2026-03-14"}) == {
-        "played": "2026-03-14"
-    }
-
-
-def test_validate_metadata_reports_every_field(schema):
-    entry_type = _type(
-        _field("system", FieldKind.TEXT, required=True),
-        _field("online", FieldKind.BOOL, required=True),
-        _field("recording", FieldKind.URL, url_kind=UrlKind.YOUTUBE),
-        _field("played", FieldKind.DATE),
-        _field("players", FieldKind.NUMBER),
-        _field("count", FieldKind.NUMBER),
-        _field("live", FieldKind.BOOL),
-        _field("format", FieldKind.CHOICE, choices=("one-shot", "campaign")),
-    )
-
-    with pytest.raises(MetadataValidationError) as caught:
-        schema.validate_metadata(
-            entry_type,
-            {
-                "recording": "https://vimeo.com/1",
-                "played": "March",
-                "players": "four",
-                "count": True,
-                "live": "yes",
-                "format": "sandbox",
-                "colour": "red",
-            },
-        )
-
-    assert caught.value.errors == {
-        "colour": "Not a field of this type.",
-        "system": "This field is required.",
-        "recording": "Enter a YouTube address.",
-        "played": "Expected a date (YYYY-MM-DD).",
-        "players": "Expected a number.",
-        "count": "Expected a number.",
-        "live": "Expected yes or no.",
-        "format": "Choose one of: one-shot, campaign.",
-    }
-    assert "system: This field is required." in str(caught.value)
 
 
 @pytest.mark.parametrize(

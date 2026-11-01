@@ -18,6 +18,7 @@ from lapidarium.mills.content import (
     LocalSetupService,
 )
 from lapidarium.mills.maintenance import MaintenanceService
+from lapidarium.mills.metadata import MetadataService
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
@@ -37,6 +38,7 @@ def test_middleware_attaches_services_and_passes_the_request_on():
 def test_services_are_built_once_per_container():
     services = Services()
 
+    assert isinstance(services.metadata, MetadataService)
     assert isinstance(services.schema, SchemaService)
     assert isinstance(services.content_export, ContentExportService)
     assert isinstance(services.content_import, ContentImportService)
