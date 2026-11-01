@@ -20,7 +20,9 @@ if TYPE_CHECKING:
         EntryTypeDTO,
         LocalSetupDTO,
         Metadata,
+        MetadataFitDTO,
         MetadataInput,
+        MetadataValue,
         PartData,
         PartKind,
         RelationEndDTO,
@@ -32,12 +34,19 @@ if TYPE_CHECKING:
     from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
 
 
-class SchemaServiceProtocol(Protocol):
+class MetadataServiceProtocol(Protocol):
     def validate_metadata(
         self, entry_type: EntryTypeDTO, values: Mapping[str, MetadataInput]
     ) -> Metadata:
         """Return cleaned metadata, or raise `MetadataValidationError`."""
 
+    def fit_metadata(
+        self, entry_type: EntryTypeDTO, stored: Mapping[str, MetadataValue]
+    ) -> dict[str, MetadataFitDTO]:
+        """Run each stored, non-blank value of a metadata field through its kind."""
+
+
+class SchemaServiceProtocol(Protocol):
     def check_builtins(
         self, role: TypeRole, values: Mapping[str, object]
     ) -> dict[str, str]:
@@ -161,6 +170,9 @@ class ThemeServiceProtocol(Protocol):
 
 class ServicesProtocol(Protocol):
     """The flat service namespace a gate reaches as `request.services`."""
+
+    @property
+    def metadata(self) -> MetadataServiceProtocol: ...
 
     @property
     def schema(self) -> SchemaServiceProtocol: ...

@@ -34,6 +34,7 @@ from lapidarium.mills.content import (
     LocalSetupService,
 )
 from lapidarium.mills.maintenance import MaintenanceService
+from lapidarium.mills.metadata import MetadataService
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
@@ -138,6 +139,10 @@ class Services(ServicesProtocol):
 
     def __init__(self) -> None:
         self._repositories = Repositories()
+
+    @cached_property
+    def metadata(self) -> MetadataService:
+        return MetadataService()
 
     @cached_property
     def schema(self) -> SchemaService:

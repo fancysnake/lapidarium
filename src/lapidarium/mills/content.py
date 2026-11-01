@@ -7,6 +7,7 @@ from collections import Counter
 from functools import partial
 from typing import TYPE_CHECKING, override
 
+from lapidarium.mills.metadata import validate_metadata
 from lapidarium.mills.schema import url_errors
 from lapidarium.pacts.content import (
     BundleValidationError,
@@ -405,9 +406,7 @@ class ContentImportService(ContentImportServiceProtocol):
                 continue
             messages = []
             try:
-                metadata[key] = self._schema.validate_metadata(
-                    entry_type, entry["metadata"]
-                )
+                metadata[key] = validate_metadata(entry_type, entry["metadata"])
             except MetadataValidationError as exc:
                 messages.extend(f"metadata.{k}: {m}" for k, m in exc.errors.items())
             messages.extend(self._entry_errors(entry, entry_type, alts=alts))

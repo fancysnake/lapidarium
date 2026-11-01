@@ -53,6 +53,7 @@ from lapidarium.pacts.content import (
     ROLE_BUILTINS,
     EntryStatus,
     FieldKind,
+    MetadataFitDTO,
     MetadataValidationError,
     PartKind,
     RelationEndDTO,
@@ -70,7 +71,12 @@ if TYPE_CHECKING:
     from django.urls import URLPattern
     from django.utils.functional import _StrOrPromise
 
-    from lapidarium.pacts.content import MetadataInput, PartData
+    from lapidarium.pacts.content import (
+        FieldDefinitionDTO,
+        MetadataInput,
+        MetadataValue,
+        PartData,
+    )
     from lapidarium.pacts.services import SchemaServiceProtocol, ServicesProtocol
 
     # Unfold's admin classes are Django's, restyled; type-check against Django's.
@@ -380,22 +386,13 @@ _SCALAR_FIELDS: dict[str, tuple[type[forms.Field], type[forms.Widget]]] = {
 
 
 def _metadata_field(
-    field: FieldDefinition, entry: Entry | None, *, misfit: str | None
+    field: FieldDefinitionDTO, *, initial: MetadataValue | None, help_text: str
 ) -> forms.Field:
-    """Build the form field for one key; a misfit stored value starts blank."""
-    stored = entry.metadata.get(field.key) if entry and misfit is None else None
-    help_text = (
-        format_html(
-            gettext("Stored “{}” no longer fits: {}"), entry.metadata[field.key], misfit
-        )
-        if entry and misfit
-        else ""
-    )
     if field.kind == FieldKind.CHOICE:
         return forms.ChoiceField(
             label=field.label,
             required=field.required,
-            initial=stored,
+            initial=initial,
             choices=[("", "---------"), *((c, c) for c in field.choices)],
             widget=UnfoldAdminSelectWidget,
             help_text=help_text,
@@ -403,27 +400,15 @@ def _metadata_field(
     field_class, widget = _SCALAR_FIELDS[field.kind]
     return field_class(
         label=field.label,
-        required=field.required and FieldKind(field.kind).can_be_missing,
+        required=field.required and field.kind.can_be_missing,
         initial=(
-            dt.date.fromisoformat(str(stored))
-            if field.kind == FieldKind.DATE and stored
-            else stored
+            dt.date.fromisoformat(str(initial))
+            if field.kind == FieldKind.DATE and initial is not None
+            else initial
         ),
         widget=widget,
         help_text=help_text,
     )
-
-
-def _misfits(entry: Entry) -> dict[str, str]:
-    """Map each stored value its field's kind rejects to the reason."""
-    dto = entry_type_dto(entry.type)
-    keys = {f.key for f in dto.fields if f.kind != FieldKind.RELATION}
-    stored = {k: v for k, v in entry.metadata.items() if k in keys and str(v)}
-    try:
-        build_services().schema.validate_metadata(dto, stored)
-    except MetadataValidationError as exc:
-        return {k: message for k, message in exc.errors.items() if k in stored}
-    return {}
 
 
 def _metadata_names(entry_type: EntryType) -> tuple[str, ...]:
@@ -453,10 +438,25 @@ class EntryForm(EntryFormBase):
         super().__init__(data, files, instance=instance, initial=initial)
         if instance is None:
             self.instance.type = self.entry_type
-        misfits = _misfits(instance) if instance else {}
-        for field in self.instance.type.fields.exclude(kind=FieldKind.RELATION):
+        self._type_dto = entry_type_dto(self.instance.type)
+        stored = self.instance.metadata
+        fits = build_services().metadata.fit_metadata(self._type_dto, stored)
+        for field in self._type_dto.fields:
+            if field.kind == FieldKind.RELATION:
+                continue
+            fit = fits.get(field.key, MetadataFitDTO())
             self.fields[META_PREFIX + field.key] = _metadata_field(
-                field, instance, misfit=misfits.get(field.key)
+                field,
+                initial=fit.value,
+                help_text=(
+                    format_html(
+                        gettext("Stored “{}” no longer fits: {}"),
+                        stored[field.key],
+                        fit.misfit,
+                    )
+                    if fit.misfit
+                    else ""
+                ),
             )
 
     @override
@@ -483,14 +483,15 @@ class EntryForm(EntryFormBase):
             self.add_error(key if key in self.fields else None, message)
 
     def _check_metadata(self, services: ServicesProtocol) -> None:
-        dto = entry_type_dto(self.instance.type)
         values: dict[str, MetadataInput] = {
             field.key: self.cleaned_data.get(META_PREFIX + field.key)
-            for field in dto.fields
+            for field in self._type_dto.fields
             if field.kind != FieldKind.RELATION
         }
         try:
-            self.instance.metadata = services.schema.validate_metadata(dto, values)
+            self.instance.metadata = services.metadata.validate_metadata(
+                self._type_dto, values
+            )
         except MetadataValidationError as exc:
             for key, message in exc.errors.items():
                 if META_PREFIX + key not in self.errors:

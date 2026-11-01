@@ -368,6 +368,15 @@ class EntryTypeDTO(BaseModel):
     fields: tuple[FieldDefinitionDTO, ...]
 
 
+class MetadataFitDTO(BaseModel):
+    """A stored value run through its field's kind: the fitted value, or why not."""
+
+    model_config = ConfigDict(frozen=True)
+
+    value: MetadataValue | None = None
+    misfit: str = ""
+
+
 class MediaAssetDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
