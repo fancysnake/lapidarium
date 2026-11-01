@@ -379,8 +379,18 @@ _SCALAR_FIELDS: dict[str, tuple[type[forms.Field], type[forms.Widget]]] = {
 }
 
 
-def _metadata_field(field: FieldDefinition, entry: Entry | None) -> forms.Field:
-    stored = entry.metadata.get(field.key) if entry else None
+def _metadata_field(
+    field: FieldDefinition, entry: Entry | None, *, misfit: str | None
+) -> forms.Field:
+    """Build the form field for one key; a misfit stored value starts blank."""
+    stored = entry.metadata.get(field.key) if entry and misfit is None else None
+    help_text = (
+        format_html(
+            gettext("Stored “{}” no longer fits: {}"), entry.metadata[field.key], misfit
+        )
+        if entry and misfit
+        else ""
+    )
     if field.kind == FieldKind.CHOICE:
         return forms.ChoiceField(
             label=field.label,
@@ -388,18 +398,32 @@ def _metadata_field(field: FieldDefinition, entry: Entry | None) -> forms.Field:
             initial=stored,
             choices=[("", "---------"), *((c, c) for c in field.choices)],
             widget=UnfoldAdminSelectWidget,
+            help_text=help_text,
         )
     field_class, widget = _SCALAR_FIELDS[field.kind]
     return field_class(
         label=field.label,
         required=field.required and FieldKind(field.kind).can_be_missing,
         initial=(
-            dt.date.fromisoformat(stored)
+            dt.date.fromisoformat(str(stored))
             if field.kind == FieldKind.DATE and stored
             else stored
         ),
         widget=widget,
+        help_text=help_text,
     )
+
+
+def _misfits(entry: Entry) -> dict[str, str]:
+    """Map each stored value its field's kind rejects to the reason."""
+    dto = entry_type_dto(entry.type)
+    keys = {f.key for f in dto.fields if f.kind != FieldKind.RELATION}
+    stored = {k: v for k, v in entry.metadata.items() if k in keys and str(v)}
+    try:
+        build_services().schema.validate_metadata(dto, stored)
+    except MetadataValidationError as exc:
+        return {k: message for k, message in exc.errors.items() if k in stored}
+    return {}
 
 
 def _metadata_names(entry_type: EntryType) -> tuple[str, ...]:
@@ -429,8 +453,11 @@ class EntryForm(EntryFormBase):
         super().__init__(data, files, instance=instance, initial=initial)
         if instance is None:
             self.instance.type = self.entry_type
+        misfits = _misfits(instance) if instance else {}
         for field in self.instance.type.fields.exclude(kind=FieldKind.RELATION):
-            self.fields[META_PREFIX + field.key] = _metadata_field(field, instance)
+            self.fields[META_PREFIX + field.key] = _metadata_field(
+                field, instance, misfit=misfits.get(field.key)
+            )
 
     @override
     def clean(self) -> None:

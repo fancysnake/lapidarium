@@ -14,6 +14,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- An entry's admin page opens after its field changes kind. A stored value the
+  new kind rejects starts blank, with a note naming what was stored.
 - A content type can't take a route a fixed page, the admin, uploads or
   static files already use; the admin and `import_content` name the owner,
   and the type list flags types saved on one earlier.
