@@ -741,6 +741,37 @@ def test_changelists_render(admin, model):
     assert response.status_code == HTTPStatus.OK
 
 
+@pytest.mark.parametrize(
+    "case",
+    (
+        ("about", "/about/ belongs to the about page."),
+        ("admin", "/admin/ belongs to the admin."),
+        ("static", "/static/ belongs to static files."),
+    ),
+)
+def test_type_refuses_a_route_already_taken(admin, case):
+    route, error = case
+    response = admin.post(f"{TYPES}add/", _type(route=route))
+
+    form_errors, _ = _errors(response)
+    assert form_errors == {"route": [error]}
+    assert not EntryType.objects.filter(key="talk").exists()
+
+
+def test_type_list_flags_types_on_a_taken_route(admin):
+    EntryType.objects.create(
+        key="find", label="Find", label_plural="Finds", route="search"
+    )
+    EntryType.objects.create(
+        key="talk", label="Talk", label_plural="Talks", route="talks"
+    )
+
+    content = admin.get(TYPES).content.decode()
+
+    assert content.count("<strong>⚠") == 1
+    assert "search <strong>⚠ /search/ belongs to the search page.</strong>" in content
+
+
 def test_type_refuses_a_malformed_colour(admin):
     response = admin.post(f"{TYPES}add/", _type(colour="red"))
 

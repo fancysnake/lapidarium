@@ -387,6 +387,7 @@ class ContentImportService(ContentImportServiceProtocol):
                 messages := [
                     *_slug_errors("Key", type_key),
                     *self._schema.check_colours(schema.colour, schema.tint),
+                    *self._schema.check_route(schema.route),
                     *_filter_errors(schema),
                 ]
             )

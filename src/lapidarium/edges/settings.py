@@ -73,7 +73,7 @@ THEME_LAYERS: tuple[Path, ...] = (
 THEME_STATIC_DIRS: tuple[tuple[str, Path], ...] = tuple(
     (f"themes/{d.name}", d) for d in THEME_LAYERS
 )
-ADMIN_URL = env("ADMIN_URL")
+ADMIN_URL: str = env("ADMIN_URL")
 
 INSTALLED_APPS = [
     "unfold",
@@ -159,7 +159,7 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT")
 STATICFILES_DIRS = [BASE_DIR / "static", *THEME_STATIC_DIRS]
-MEDIA_URL = env("MEDIA_URL")
+MEDIA_URL: str = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")
 
 GS_BUCKET_NAME = env("GS_BUCKET_NAME")

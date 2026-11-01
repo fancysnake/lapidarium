@@ -12,6 +12,12 @@ All notable changes to this project are documented here. The format follows
   section or a set of docs. Sections stay off the about-page timeline. The
   demos' wiki section and doc set are now sections.
 
+### Fixed
+
+- A content type can't take a route a fixed page, the admin, uploads or
+  static files already use; the admin and `import_content` name the owner,
+  and the type list flags types saved on one earlier.
+
 ## [0.1.0] - 2026-10-30
 
 ### Added

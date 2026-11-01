@@ -79,6 +79,9 @@ class SchemaServiceProtocol(Protocol):
     def check_colours(self, colour: str, tint: str) -> list[str]:
         """Contrast errors for a type colour against the background and its tint."""
 
+    def check_route(self, route: str) -> list[str]:
+        """Errors when a fixed page or a served path already owns `route`."""
+
     def derive_dark_colour(self, colour: str) -> str | None:
         """Lighten `colour` to read in the dark scheme; `None` without one."""
 

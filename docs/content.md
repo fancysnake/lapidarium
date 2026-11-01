@@ -71,11 +71,14 @@ migration.
 |---|---|
 | Label, plural label | singular and plural names, in the site's language |
 | Key | slug, unique; prefilled from the label; the type's name in exports |
-| Route | slug, unique; prefilled from the plural; the list is at `/<route>/` |
+| Route | slug, unique, not taken; prefilled from the plural; the list is at `/<route>/` |
 | Order | position in the menu, then by label |
 
-Keep routes clear of the fixed pages: `about`, `new`, `search`, `newsletter`
-and `contact` are matched first, so a type routed there is never reached.
+A route can't be taken: the fixed pages (`about`, `new`, `search`,
+`newsletter`, `contact`, `healthz`) and the first segment of `ADMIN_URL`,
+`MEDIA_URL` and `/static/` are matched first. The admin refuses such a route
+and names its owner. A type saved on one earlier is flagged in the route
+column of the type list.
 
 ### Role
 
