@@ -582,9 +582,12 @@ class RelationFormSet(RelationFormSetBase):
         super().add_fields(form, index)
         builtin = [(role.value, role.value.replace("_", " ")) for role in RelationRole]
         fields = self.instance.type.fields.filter(kind=FieldKind.RELATION)
-        schema = [(f.key, f.label) for f in fields]
+        choices = [*builtin, *((f.key, f.label) for f in fields)]
+        if (stored := form.instance.role) and stored not in dict(choices):
+            label = _("%(role)s (no longer defined)") % {"role": stored}
+            choices.append((stored, label))
         form.fields["role"] = forms.ChoiceField(
-            label=_("role"), choices=builtin + schema, widget=UnfoldAdminSelectWidget
+            label=_("role"), choices=choices, widget=UnfoldAdminSelectWidget
         )
 
     @override
@@ -595,7 +598,7 @@ class RelationFormSet(RelationFormSetBase):
         roles: list[str] = []
         for form in self.forms:
             data = form.cleaned_data
-            if not data or data.get("DELETE") or "to_entry" not in data:
+            if data.get("DELETE") or not {"to_entry", "role"} <= data.keys():
                 continue
             roles.append(data["role"])
             for message in self._target_errors(

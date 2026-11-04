@@ -664,6 +664,74 @@ def test_change_refuses_self_links_and_container_loops(admin):
     )
 
 
+def _song_with_a_removed_role(target="ucieczka-przed-kosmicznym-losiem"):
+    song = Entry.objects.get(slug="ballada-o-losiu")
+    song.relations.update(to_entry=Entry.objects.get(slug=target))
+    FieldDefinition.objects.filter(key="inspired_by").delete()
+    return song
+
+
+def _stored_link(song, **row):
+    link = song.relations.get()
+    data = _entry(
+        title=song.title,
+        slug=song.slug,
+        summary=song.summary,
+        parts=[_part("audio", url="https://soundcloud.com/x/y")],
+        relations=[{**_relation(link.to_entry, role=link.role), "id": link.pk, **row}],
+    )
+    return data | {"relations-INITIAL_FORMS": "1"}
+
+
+@pytest.mark.usefixtures("demo")
+def test_change_shows_a_link_whose_role_is_no_longer_defined(admin):
+    song = _song_with_a_removed_role()
+
+    response = admin.get(f"{ENTRIES}{song.pk}/change/")
+
+    option = '<option value="inspired_by" selected>inspired_by (no longer defined)'
+    assert option in response.text
+
+
+@pytest.mark.parametrize(
+    "target", ("ucieczka-przed-kosmicznym-losiem", "kampania-mothership")
+)
+@pytest.mark.usefixtures("demo")
+def test_change_keeps_a_role_no_longer_defined_until_it_is_replaced(admin, target):
+    song = _song_with_a_removed_role(target)
+
+    response = admin.post(f"{ENTRIES}{song.pk}/change/", _stored_link(song))
+
+    message = "Unknown relation role 'inspired_by'."
+    assert _errors(response)[1]["relations"] == ([{"to_entry": [message]}], [])
+    assert song.relations.get().role == "inspired_by"
+
+
+@pytest.mark.parametrize(
+    "case", (({"role": "related"}, ["related"]), ({"DELETE": "on"}, []))
+)
+@pytest.mark.usefixtures("demo")
+def test_change_replaces_or_removes_a_role_no_longer_defined(admin, case):
+    row, roles = case
+    song = _song_with_a_removed_role()
+
+    response = admin.post(f"{ENTRIES}{song.pk}/change/", _stored_link(song, **row))
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert list(song.relations.values_list("role", flat=True)) == roles
+
+
+@pytest.mark.usefixtures("demo")
+def test_change_refuses_a_role_it_does_not_offer(admin):
+    song = Entry.objects.get(slug="ballada-o-losiu")
+
+    data = _stored_link(song, role="sequel_of")
+    response = admin.post(f"{ENTRIES}{song.pk}/change/", data)
+
+    assert list(_errors(response)[1]["relations"][0][0]) == ["role"]
+    assert song.relations.get().role == "inspired_by"
+
+
 @pytest.mark.usefixtures("demo")
 def test_unpublishing_refuses_entries_published_ones_link_to(admin):
     project = Entry.objects.get(slug="klatwa-strahda")

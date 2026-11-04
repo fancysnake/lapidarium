@@ -14,6 +14,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Saving an entry no longer turns a link into "part of" after its relation field
+  is gone. The link shows its old role as no longer defined, and the entry saves
+  once an editor picks another role or removes the link.
 - An entry's admin page opens after its field changes kind. A stored value the
   new kind rejects starts blank, with a note naming what was stored.
 - A content type can't take a route a fixed page, the admin, uploads or
