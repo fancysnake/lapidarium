@@ -54,7 +54,7 @@ def test_maintenance_turns_off_and_back_on_from_the_list(admin):
     assert [str(m) for m in response.context["messages"]] == ["The site is live."]
     maintenance.refresh_from_db()
     assert maintenance.ends_at is not None
-    assert maintenance.ends_at > since
+    assert since < maintenance.ends_at <= timezone.now()
 
     response = admin.post(MAINTENANCE, {"action": "turn_on", **selected}, follow=True)
 
@@ -62,7 +62,7 @@ def test_maintenance_turns_off_and_back_on_from_the_list(admin):
         "Visitors now see the maintenance page."
     ]
     maintenance.refresh_from_db()
-    assert maintenance.starts_at > since
+    assert since < maintenance.starts_at <= timezone.now()
     assert maintenance.ends_at is None
 
 
