@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from functools import cached_property
 from typing import TYPE_CHECKING, ClassVar, NotRequired, TypedDict, cast, override
 
 from django import forms
@@ -59,6 +60,7 @@ from lapidarium.pacts.content import (
     RelationEndDTO,
     RelationRole,
     TypeRole,
+    role_label,
 )
 
 if TYPE_CHECKING:
@@ -577,53 +579,55 @@ def _relation_end(entry: Entry) -> RelationEndDTO:
 class RelationFormSet(RelationFormSetBase):
     """Built-in roles plus the relation fields of the entry's type."""
 
+    @cached_property
+    def _schema(self) -> SchemaServiceProtocol:
+        return build_services().schema
+
+    @cached_property
+    def _roles(self) -> dict[str, str]:
+        return self._schema.relation_roles(entry_type_dto(self.instance.type))
+
     @override
     def add_fields(self, form: forms.ModelForm[Relation], index: int | None) -> None:
         super().add_fields(form, index)
-        builtin = [(role.value, role.value.replace("_", " ")) for role in RelationRole]
-        fields = self.instance.type.fields.filter(kind=FieldKind.RELATION)
-        choices = [*builtin, *((f.key, f.label) for f in fields)]
-        if (stored := form.instance.role) and stored not in dict(choices):
-            label = _("%(role)s (no longer defined)") % {"role": stored}
-            choices.append((stored, label))
+        choices = self._roles
+        if (stored := form.instance.role) and stored not in choices:
+            gone = _("%(role)s (no longer defined)") % {"role": role_label(stored)}
+            choices = {**choices, stored: gone}
         form.fields["role"] = forms.ChoiceField(
-            label=_("role"), choices=choices, widget=UnfoldAdminSelectWidget
+            label=_("role"),
+            choices=list(choices.items()),
+            widget=UnfoldAdminSelectWidget,
         )
 
     @override
     def clean(self) -> None:
         super().clean()
-        schema = build_services().schema
+        if any(self.errors):
+            return
         source = _relation_end(self.instance)
         roles: list[str] = []
         for form in self.forms:
             data = form.cleaned_data
-            if data.get("DELETE") or not {"to_entry", "role"} <= data.keys():
+            if not data or data.get("DELETE"):
                 continue
-            roles.append(data["role"])
-            for message in self._target_errors(
-                data["role"], data["to_entry"], schema=schema, source=source
-            ):
-                form.add_error("to_entry", message)
-        if errors := schema.check_relation_roles(source.entry_type, roles):
+            role = data["role"]
+            roles.append(role)
+            field = "to_entry" if role in self._roles else "role"
+            for message in self._target_errors(role, data["to_entry"], source=source):
+                form.add_error(field, message)
+        if errors := self._schema.check_relation_roles(source.entry_type, roles):
             raise forms.ValidationError(errors)
 
     def _target_errors(
-        self,
-        role: str,
-        target: Entry,
-        *,
-        schema: SchemaServiceProtocol,
-        source: RelationEndDTO,
+        self, role: str, target: Entry, *, source: RelationEndDTO
     ) -> list[str]:
         entry = self.instance
-        if entry.pk and target.pk == entry.pk:
-            return []  # the relation_not_to_self constraint reports it
-        errors = schema.check_relation(
+        errors = self._schema.check_relation(
             role, source=source, target=_relation_end(target)
         )
         if entry.pk:
-            errors += schema.check_loop(
+            errors += self._schema.check_loop(
                 role, entry=entry.pk, target=target.pk, containers=_containers
             )
         return errors
@@ -774,7 +778,7 @@ class EntryAdmin(EntryAdminBase):
                             "admin:lapidarium_db_entry_change", args=[r.from_entry_id]
                         ),
                         r.from_entry.title,
-                        r.role.replace("_", " "),
+                        role_label(r.role),
                     )
                     for r in links
                 ),

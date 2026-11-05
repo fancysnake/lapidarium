@@ -1,19 +1,15 @@
 """Admin for content types and entries: dynamic forms, inlines, graph integrity."""
 
-import datetime as dt
 from http import HTTPStatus
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 from lapidarium import inits
 from lapidarium.links.db.django.models import (
     Entry,
     EntryType,
     FieldDefinition,
-    Maintenance,
-    Profile,
     Relation,
     Showcase,
 )
@@ -21,17 +17,8 @@ from lapidarium.links.db.django.models import (
 TYPES = "/admin/lapidarium_db/entrytype/"
 ENTRIES = "/admin/lapidarium_db/entry/"
 SHOWCASES = "/admin/lapidarium_db/showcase/"
-MAINTENANCE = "/admin/lapidarium_db/maintenance/"
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
-
-
-@pytest.fixture(name="admin")
-def admin_fixture(client):
-    user = get_user_model().objects.create_superuser("curator", password="pw")
-    client.defaults["HTTP_ACCEPT_LANGUAGE"] = "en"
-    client.force_login(user)
-    return client
 
 
 def _inline(prefix, rows=()):
@@ -427,8 +414,7 @@ def test_published_entries_link_to_published_containers_only(admin):
             relations=[
                 _relation(draft_project),
                 _relation(session, order=1),
-                {"to_entry": "", "role": "related", "order": "2"},
-                _relation(draft_project, role="inspired_by", order=3),
+                _relation(draft_project, role="inspired_by", order=2),
             ],
         ),
     )
@@ -438,7 +424,6 @@ def test_published_entries_link_to_published_containers_only(admin):
         [
             {"to_entry": ["A published entry cannot link to a draft."]},
             {"to_entry": ["Only containers can hold entries."]},
-            {"to_entry": ["This field is required."]},
             {
                 "to_entry": [
                     "Zainspirowana przez cannot link to a Projekt.",
@@ -464,6 +449,22 @@ def test_required_relation_fields_need_a_link(admin):
         [],
         ["Link at least one entry as: Zainspirowana przez."],
     )
+
+
+@pytest.mark.usefixtures("demo")
+def test_a_broken_link_is_not_reported_as_a_missing_role(admin):
+    FieldDefinition.objects.filter(key="inspired_by").update(required=True)
+
+    response = admin.post(
+        f"{ENTRIES}add/?type=song",
+        _entry(
+            parts=[_part("audio", url="https://soundcloud.com/x/y")],
+            relations=[{"to_entry": "", "role": "inspired_by", "order": "0"}],
+        ),
+    )
+
+    _, inlines = _errors(response)
+    assert inlines["relations"] == ([{"to_entry": ["This field is required."]}], [])
 
 
 # Changing entries
@@ -635,31 +636,47 @@ def test_change_clears_built_ins_the_role_does_not_use(admin):
     ]
 
 
+def _saga_form(saga, *relations):
+    return _entry(
+        title=saga.title,
+        slug=saga.slug,
+        outcome="finished",
+        start_at_0="2026-01-10",
+        start_at_1="19:00",
+        relations=relations,
+    )
+
+
 @pytest.mark.usefixtures("demo")
-def test_change_refuses_self_links_and_container_loops(admin):
+def test_change_refuses_self_links(admin):
+    saga = Entry.objects.get(slug="kampania-mothership")
+    Relation.objects.filter(from_entry=saga).delete()
+
+    response = admin.post(
+        f"{ENTRIES}{saga.pk}/change/", _saga_form(saga, _relation(saga))
+    )
+
+    _, inlines = _errors(response)
+    assert inlines["relations"] == (
+        [{"__all__": ["An entry cannot link to itself."]}],
+        [],
+    )
+
+
+@pytest.mark.usefixtures("demo")
+def test_change_refuses_container_loops(admin):
     saga = Entry.objects.get(slug="kampania-mothership")
     initiative = Entry.objects.get(slug="sesje-science-fiction")
     Relation.objects.filter(from_entry=saga).delete()
     Relation.objects.create(from_entry=initiative, to_entry=saga, role="part_of")
 
     response = admin.post(
-        f"{ENTRIES}{saga.pk}/change/",
-        _entry(
-            title=saga.title,
-            slug=saga.slug,
-            outcome="finished",
-            start_at_0="2026-01-10",
-            start_at_1="19:00",
-            relations=[_relation(saga), _relation(initiative, order=1)],
-        ),
+        f"{ENTRIES}{saga.pk}/change/", _saga_form(saga, _relation(initiative))
     )
 
     _, inlines = _errors(response)
     assert inlines["relations"] == (
-        [
-            {"__all__": ["An entry cannot link to itself."]},
-            {"to_entry": ["That makes a loop of containers."]},
-        ],
+        [{"to_entry": ["That makes a loop of containers."]}],
         [],
     )
 
@@ -689,7 +706,7 @@ def test_change_shows_a_link_whose_role_is_no_longer_defined(admin):
 
     response = admin.get(f"{ENTRIES}{song.pk}/change/")
 
-    option = '<option value="inspired_by" selected>inspired_by (no longer defined)'
+    option = '<option value="inspired_by" selected>inspired by (no longer defined)'
     assert option in response.text
 
 
@@ -703,7 +720,7 @@ def test_change_keeps_a_role_no_longer_defined_until_it_is_replaced(admin, targe
     response = admin.post(f"{ENTRIES}{song.pk}/change/", _stored_link(song))
 
     message = "Unknown relation role 'inspired_by'."
-    assert _errors(response)[1]["relations"] == ([{"to_entry": [message]}], [])
+    assert _errors(response)[1]["relations"] == ([{"role": [message]}], [])
     assert song.relations.get().role == "inspired_by"
 
 
@@ -811,55 +828,7 @@ def test_feature_and_unfeature(admin):
     assert Entry.objects.filter(pk__in=entries, featured=True).count() == 2
 
 
-# Site records
-
-
-@pytest.mark.usefixtures("demo")
-def test_profile_is_a_singleton(admin):
-    response = admin.get("/admin/lapidarium_db/profile/add/")
-
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    Profile.objects.all().delete()
-    assert admin.get("/admin/lapidarium_db/profile/add/").status_code == HTTPStatus.OK
-
-
-def test_maintenance_is_a_singleton(admin):
-    assert admin.get(f"{MAINTENANCE}add/").status_code == HTTPStatus.OK
-    Maintenance.objects.create()
-    assert admin.get(f"{MAINTENANCE}add/").status_code == HTTPStatus.FORBIDDEN
-
-
-def test_maintenance_turns_off_and_back_on_from_the_list(admin):
-    since = timezone.now() - dt.timedelta(days=1)
-    maintenance = Maintenance.objects.create(starts_at=since)
-    selected = {"_selected_action": [maintenance.pk]}
-
-    response = admin.post(MAINTENANCE, {"action": "turn_off", **selected}, follow=True)
-
-    assert [str(m) for m in response.context["messages"]] == ["The site is live."]
-    maintenance.refresh_from_db()
-    assert maintenance.ends_at is not None
-    assert maintenance.ends_at > since
-
-    response = admin.post(MAINTENANCE, {"action": "turn_on", **selected}, follow=True)
-
-    assert [str(m) for m in response.context["messages"]] == [
-        "Visitors now see the maintenance page."
-    ]
-    maintenance.refresh_from_db()
-    assert maintenance.starts_at > since
-    assert maintenance.ends_at is None
-
-
-@pytest.mark.usefixtures("demo")
-@pytest.mark.parametrize(
-    "model",
-    ("mediaasset", "tag", "link", "externalitem", "entrytype", "entry", "maintenance"),
-)
-def test_changelists_render(admin, model):
-    response = admin.get(f"/admin/lapidarium_db/{model}/")
-
-    assert response.status_code == HTTPStatus.OK
+# Form rules
 
 
 @pytest.mark.parametrize(

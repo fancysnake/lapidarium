@@ -26,6 +26,7 @@ from lapidarium.pacts.content import (
     RelationEndDTO,
     RelationRole,
     TypeRole,
+    role_label,
 )
 from lapidarium.pacts.services import SchemaServiceProtocol
 from lapidarium.specs import CONTRAST_FLOOR
@@ -72,7 +73,7 @@ def url_errors(url: str) -> list[str]:
 
 
 def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str | None:
-    """Why entries of `source` cannot link to `target` as `role`, if they cannot."""
+    """Why entries of `source` cannot link to `target` as `role`, a role it knows."""
     if role == RelationRole.PART_OF:
         if target.role in CONTAINER_ROLES:
             return None
@@ -80,8 +81,7 @@ def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str
     if role in RelationRole:
         return None
     fields = (f for f in source.fields if f.kind == FieldKind.RELATION)
-    if (field := next((f for f in fields if f.key == role), None)) is None:
-        return f"Unknown relation role {role!r}."
+    field = next(f for f in fields if f.key == role)
     if target.key != field.target_type:
         return f"{field.label} cannot link to a {target.label}."
     return None
@@ -199,9 +199,17 @@ class SchemaService(SchemaServiceProtocol):
         return errors
 
     @override
+    def relation_roles(self, entry_type: EntryTypeDTO) -> dict[str, str]:
+        builtin = {role.value: role_label(role) for role in RelationRole}
+        fields = (f for f in entry_type.fields if f.kind == FieldKind.RELATION)
+        return builtin | {f.key: f.label for f in fields}
+
+    @override
     def check_relation(
         self, role: str, *, source: RelationEndDTO, target: RelationEndDTO
     ) -> list[str]:
+        if role not in self.relation_roles(source.entry_type):
+            return [f"Unknown relation role {role!r}."]
         errors: list[str] = []
         if error := _role_error(
             role, source=source.entry_type, target=target.entry_type
