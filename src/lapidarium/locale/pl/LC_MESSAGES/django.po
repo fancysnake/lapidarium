@@ -139,6 +139,10 @@ msgstr "Inny wpis tego rodzaju używa już tego sluga."
 msgid "Published entries link here; unlink them first."
 msgstr "Opublikowane wpisy tu linkują; najpierw usuń te powiązania."
 
+#, python-format
+msgid "%(role)s (no longer defined)"
+msgstr "%(role)s (już niezdefiniowana)"
+
 msgid "role"
 msgstr "rola"
 

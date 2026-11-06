@@ -183,6 +183,7 @@ def _end(entry_type, status="published"):
         ("inspired_by", _end(SESSION), []),
         ("inspired_by", _end(PROJECT), ["Inspired_By cannot link to a Project."]),
         ("sequel_of", _end(SESSION), ["Unknown relation role 'sequel_of'."]),
+        ("sequel_of", _end(SESSION, "draft"), ["Unknown relation role 'sequel_of'."]),
         (
             "related",
             _end(SESSION, "draft"),
@@ -194,6 +195,19 @@ def test_check_relation(schema, case):
     role, target, errors = case
 
     assert schema.check_relation(role, source=_end(SESSION), target=target) == errors
+
+
+def test_relation_roles_are_the_built_ins_then_the_relation_fields(schema):
+    entry_type = _type(
+        _field("inspired_by", FieldKind.RELATION, target_type="session"),
+        _field("system", FieldKind.TEXT),
+    )
+
+    assert list(schema.relation_roles(entry_type).items()) == [
+        ("part_of", "part of"),
+        ("related", "related"),
+        ("inspired_by", "Inspired_By"),
+    ]
 
 
 def test_check_relation_lets_drafts_link_anywhere(schema):
