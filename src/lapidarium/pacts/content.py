@@ -86,6 +86,11 @@ class RelationRole(StrEnum):
     RELATED = "related"
 
 
+def role_label(role: str) -> str:
+    """Readable form of a built-in role, or of a role no field defines any more."""
+    return role.replace("_", " ")
+
+
 class ListFilter(StrEnum):
     """Built-in list filters; the others are keys of the type's fields."""
 

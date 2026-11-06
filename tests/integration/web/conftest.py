@@ -2,6 +2,7 @@ import datetime as dt
 from collections import UserString
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import timezone
 
@@ -19,6 +20,14 @@ class _StrictUndefined(UserString):
     def __mod__(self, name):
         msg = f"Undefined template variable {name!r}"
         raise AssertionError(msg)
+
+
+@pytest.fixture(name="admin")
+def admin_fixture(client):
+    user = get_user_model().objects.create_superuser("curator", password="pw")
+    client.defaults["HTTP_ACCEPT_LANGUAGE"] = "en"
+    client.force_login(user)
+    return client
 
 
 @pytest.fixture(name="browser")

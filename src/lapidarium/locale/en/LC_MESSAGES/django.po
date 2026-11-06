@@ -139,6 +139,10 @@ msgstr ""
 msgid "Published entries link here; unlink them first."
 msgstr ""
 
+#, python-format
+msgid "%(role)s (no longer defined)"
+msgstr ""
+
 msgid "role"
 msgstr ""
 

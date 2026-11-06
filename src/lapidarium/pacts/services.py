@@ -60,6 +60,9 @@ class SchemaServiceProtocol(Protocol):
         self, entry_type: EntryTypeDTO, kinds: Sequence[PartKind]
     ) -> list[str]: ...
 
+    def relation_roles(self, entry_type: EntryTypeDTO) -> dict[str, str]:
+        """Roles the type's links can take, each with its label."""
+
     def check_relation(
         self, role: str, *, source: RelationEndDTO, target: RelationEndDTO
     ) -> list[str]:
