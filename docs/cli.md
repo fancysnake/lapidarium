@@ -28,9 +28,10 @@ mise run dj first_boot
 Runs on every start of the production container, after `migrate`. On a database
 with no account, in one transaction, it loads the demo named by `DEMO_CONTENT`,
 unless content types already exist, and creates the superuser from
-`ADMIN_USERNAME` and `ADMIN_PASSWORD`, if a password is set. Once any account
-exists it does nothing, so it never changes a password. See
-[Configuration](configuration.md#first-boot).
+`ADMIN_USERNAME` and `ADMIN_PASSWORD`, if a password is set. If storage fails
+while the demo's files are written, nothing is kept and the next start tries
+again. Once any account exists it does nothing, so it never changes a password.
+See [Configuration](configuration.md#first-boot).
 
 ## `load_demo`
 

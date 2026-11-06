@@ -110,6 +110,9 @@ class ContentImportServiceProtocol(Protocol):
 
     def load_demo(self, name: str) -> ContentSummaryDTO: ...
 
+    def seed_demo(self, name: str) -> ContentSummaryDTO:
+        """`load_demo` that writes files in the transaction: failure keeps no rows."""
+
 
 class LocalSetupServiceProtocol(Protocol):
     def set_up(self, demo: str, *, username: str, password: str) -> LocalSetupDTO: ...

@@ -8,6 +8,7 @@ from django.core.management.base import CommandError
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
 from lapidarium.links.db.django.models import Entry, EntryType
+from lapidarium.links.db.django.repositories import MediaAssetRepository
 from lapidarium.pacts.content import BundleValidationError
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
@@ -112,3 +113,33 @@ def test_broken_demo_stops_in_one_line_and_creates_no_admin(monkeypatch):
     with pytest.raises(CommandError, match=r"types/session\.yaml: Broken\."):
         _run()
     assert not User.objects.exists()
+
+
+def test_stale_demo_name_does_not_stop_a_restart(configured):
+    _run()
+    configured.DEMO_CONTENT = "photography"
+
+    assert _run() == NO_DEMO + NO_ADMIN
+
+
+@pytest.mark.usefixtures("configured")
+def test_demo_files_are_stored_when_the_command_ends(media_root):
+    _run()
+
+    assert sum(path.is_file() for path in media_root.rglob("*")) == 2
+
+
+@pytest.mark.usefixtures("configured")
+def test_storage_failure_rolls_back_so_the_next_start_retries(monkeypatch):
+    def failing(_repository, _path, *, content):
+        msg = f"Disk full at {len(content)} bytes."
+        raise OSError(msg)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(MediaAssetRepository, "write", failing)
+        with pytest.raises(OSError, match="Disk full"):
+            _run()
+
+    assert not User.objects.exists()
+    assert not EntryType.objects.exists()
+    assert _run().startswith("Loaded 6 types, 8 entries, 2 assets.\n")

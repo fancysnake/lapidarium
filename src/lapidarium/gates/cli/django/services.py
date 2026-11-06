@@ -8,6 +8,7 @@ from django.utils.module_loading import import_string
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from lapidarium.pacts.content import ContentSummaryDTO
     from lapidarium.pacts.services import ServicesProtocol
 
 
@@ -15,3 +16,7 @@ def build_services() -> ServicesProtocol:
     """Services for a command; nothing dispatches here to attach them."""
     factory: Callable[[], ServicesProtocol] = import_string(settings.SERVICES_FACTORY)
     return factory()
+
+
+def counts(summary: ContentSummaryDTO) -> str:
+    return f"{summary.types} types, {summary.entries} entries, {summary.assets} assets"

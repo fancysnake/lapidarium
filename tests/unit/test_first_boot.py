@@ -8,7 +8,7 @@ SUMMARY = ContentSummaryDTO(types=1, entries=2, assets=3)
 
 def _service(*, accounts_exist=False, types=()):
     content_import = MagicMock()
-    content_import.load_demo.return_value = SUMMARY
+    content_import.seed_demo.return_value = SUMMARY
     accounts = MagicMock()
     accounts.any_exist.return_value = accounts_exist
     entry_types = MagicMock()
@@ -29,7 +29,7 @@ def test_fresh_database_gets_the_demo_and_the_admin_in_one_transaction():
     result = service.run("dev", username="owner", password="secret")
 
     assert result == FirstBootDTO(content=SUMMARY, superuser_created=True)
-    content_import.load_demo.assert_called_once_with("dev")
+    content_import.seed_demo.assert_called_once_with("dev")
     accounts.ensure_superuser.assert_called_once_with("owner", password="secret")
     transaction.atomic.assert_called_once_with()
 
@@ -40,7 +40,7 @@ def test_an_existing_account_keeps_its_password_and_blocks_the_demo():
     result = service.run("dev", username="owner", password="secret")
 
     assert result == FirstBootDTO(content=None, superuser_created=False)
-    content_import.load_demo.assert_not_called()
+    content_import.seed_demo.assert_not_called()
     accounts.ensure_superuser.assert_not_called()
 
 
@@ -50,7 +50,7 @@ def test_existing_types_block_the_demo_but_not_the_admin():
     result = service.run("dev", username="owner", password="secret")
 
     assert result == FirstBootDTO(content=None, superuser_created=True)
-    content_import.load_demo.assert_not_called()
+    content_import.seed_demo.assert_not_called()
     accounts.ensure_superuser.assert_called_once_with("owner", password="secret")
 
 
@@ -69,4 +69,4 @@ def test_no_demo_named_loads_nothing():
     result = service.run("", username="owner", password="secret")
 
     assert result == FirstBootDTO(content=None, superuser_created=True)
-    content_import.load_demo.assert_not_called()
+    content_import.seed_demo.assert_not_called()

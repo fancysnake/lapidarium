@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
-from lapidarium.gates.cli.django.services import build_services
+from lapidarium.gates.cli.django.services import build_services, counts
 from lapidarium.pacts.content import BundleValidationError
 
 if TYPE_CHECKING:
@@ -37,12 +37,10 @@ class Command(BaseCommand):
             )
         except BundleValidationError as exc:
             raise CommandError(str(exc)) from exc
-        content = result.content
         verb = "Created" if result.superuser_created else "Reset"
         self.stdout.write(
             self.style.SUCCESS(
-                f"Loaded {content.types} types, {content.entries} entries,"
-                f" {content.assets} assets. {verb} superuser"
+                f"Loaded {counts(result.content)}. {verb} superuser"
                 f" {options['username']!r}."
             )
         )

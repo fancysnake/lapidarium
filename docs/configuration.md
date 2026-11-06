@@ -89,7 +89,7 @@ its address; `0` ignores the header.
 |---|---|---|
 | `ADMIN_USERNAME` | `admin` | Login created on first boot |
 | `ADMIN_PASSWORD` | empty | Password of that login; empty creates none |
-| `DEMO_CONTENT` | empty | Bundled demo to load on first boot, `ttrpg` or `dev`; a name the engine does not ship stops the start |
+| `DEMO_CONTENT` | empty | Bundled demo to load on first boot, `ttrpg` or `dev`; a name the engine does not ship stops the first start |
 
 First boot means no account exists yet. Once one does, these variables change
 nothing: a restart never resets a password or reloads a demo, so the password
