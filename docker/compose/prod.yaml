@@ -18,6 +18,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:?}
       SITE_NAME: ${SITE_NAME:-lapidarium}
       ADMIN_URL: ${ADMIN_URL:-admin/}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      DEMO_CONTENT: ${DEMO_CONTENT:-}
       # The key file path points at a service-account JSON mounted into the
       # container (a Coolify file mount); leave it empty on GCP, where the
       # attached account is used.

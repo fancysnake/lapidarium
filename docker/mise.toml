@@ -16,11 +16,14 @@ _.python.venv = { path = ".venv", create = true }
 [tasks.dj]
 run = "django-admin"
 
-# Coolify runs a single web container, so migrations and collectstatic happen
-# at start. Move migrate to a pre-deploy command if replicas ever appear.
+# Coolify runs a single web container, so migrations, first boot and
+# collectstatic happen at start. Move them to a pre-deploy command if replicas
+# ever appear.
 [tasks.prod-start]
 run = [
+    "python -m lapidarium.edges.preflight",
     "django-admin migrate --noinput",
+    "django-admin first_boot",
     "django-admin collectstatic --noinput --clear",
     "mise run gunicorn",
 ]

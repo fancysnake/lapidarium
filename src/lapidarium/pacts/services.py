@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts.content import (
         ContentSummaryDTO,
         EntryTypeDTO,
+        FirstBootDTO,
         LocalSetupDTO,
         Metadata,
         MetadataFitDTO,
@@ -111,6 +112,10 @@ class LocalSetupServiceProtocol(Protocol):
     def set_up(self, demo: str, *, username: str, password: str) -> LocalSetupDTO: ...
 
 
+class FirstBootServiceProtocol(Protocol):
+    def run(self, demo: str, *, username: str, password: str) -> FirstBootDTO: ...
+
+
 class SiteServiceProtocol(Protocol):
     def chrome(self) -> SiteDTO: ...
 
@@ -185,6 +190,9 @@ class ServicesProtocol(Protocol):
 
     @property
     def local_setup(self) -> LocalSetupServiceProtocol: ...
+
+    @property
+    def first_boot(self) -> FirstBootServiceProtocol: ...
 
     @property
     def site(self) -> SiteServiceProtocol: ...

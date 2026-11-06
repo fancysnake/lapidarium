@@ -37,5 +37,6 @@ RUN find src -name django.po -execdir msgfmt --check -o django.mo django.po \;
 
 EXPOSE 8000
 
-# prod-start runs migrate + collectstatic, then gunicorn (docker/mise.toml).
+# prod-start checks the config, runs migrate, first_boot and collectstatic,
+# then gunicorn (docker/mise.toml).
 CMD ["mise", "run", "prod-start"]

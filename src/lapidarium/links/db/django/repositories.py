@@ -508,6 +508,10 @@ class MaintenanceRepository(MaintenanceRepositoryProtocol):
 
 class AccountRepository(AccountRepositoryProtocol):
     @override
+    def any_exist(self) -> bool:
+        return get_user_model().objects.exists()
+
+    @override
     def ensure_superuser(self, username: str, *, password: str) -> bool:
         user, created = get_user_model().objects.update_or_create(
             username=username,

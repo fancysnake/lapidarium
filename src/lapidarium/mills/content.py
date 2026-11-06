@@ -1,4 +1,4 @@
-"""Content as export format v1: export, import, local setup."""
+"""Content as export format v1: export, import, local setup, first boot."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from lapidarium.pacts.content import (
     EntryStatus,
     EntryTypeData,
     EntryTypeDTO,
+    FirstBootDTO,
     ListFilter,
     LocalSetupDTO,
     MetadataValidationError,
@@ -29,6 +30,7 @@ from lapidarium.pacts.content import (
 from lapidarium.pacts.services import (
     ContentExportServiceProtocol,
     ContentImportServiceProtocol,
+    FirstBootServiceProtocol,
     LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
@@ -505,3 +507,35 @@ class LocalSetupService(LocalSetupServiceProtocol):
             content = self._content_import.load_demo(demo)
             created = self._accounts.ensure_superuser(username, password=password)
         return LocalSetupDTO(content=content, superuser_created=created)
+
+
+class FirstBootService(FirstBootServiceProtocol):
+    """Set up a database nobody has used; leave a used one alone.
+
+    Any account marks the database as used, so a restart never touches a login
+    and a demo the owner deleted stays deleted.
+    """
+
+    def __init__(
+        self,
+        *,
+        content_import: ContentImportServiceProtocol,
+        transaction: TransactionProtocol,
+        accounts: AccountRepositoryProtocol,
+        types: EntryTypeRepositoryProtocol,
+    ) -> None:
+        self._content_import = content_import
+        self._transaction = transaction
+        self._accounts = accounts
+        self._types = types
+
+    @override
+    def run(self, demo: str, *, username: str, password: str) -> FirstBootDTO:
+        with self._transaction.atomic():
+            unused = not self._accounts.any_exist()
+            content = None
+            if demo and unused and not self._types.list_all():
+                content = self._content_import.load_demo(demo)
+            if created := unused and bool(password):
+                self._accounts.ensure_superuser(username, password=password)
+        return FirstBootDTO(content=content, superuser_created=created)
