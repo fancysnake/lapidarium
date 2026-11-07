@@ -253,6 +253,34 @@ def _readonly(response, name):
     )
 
 
+@pytest.mark.usefixtures("demo")
+def test_type_with_entries_keeps_its_role(admin):
+    event = EntryType.objects.get(key="event")
+    url = f"{TYPES}{event.pk}/change/"
+
+    page = admin.get(url)
+    response = admin.post(
+        url, _type(label="Event", key="event", route=event.route, role="thing")
+    )
+
+    assert "role" not in page.context["adminform"].form.fields
+    assert "role is fixed once it has entries." in page.content.decode()
+    assert response.status_code == HTTPStatus.FOUND
+    event.refresh_from_db()
+    assert (event.label, event.role) == ("Event", "calendar")
+
+
+def test_type_without_entries_changes_its_role(admin):
+    admin.post(f"{TYPES}add/", _type())
+    talk = EntryType.objects.get(key="talk")
+
+    response = admin.post(f"{TYPES}{talk.pk}/change/", _type(role="calendar"))
+
+    assert response.status_code == HTTPStatus.FOUND
+    talk.refresh_from_db()
+    assert talk.role == "calendar"
+
+
 # Adding entries
 
 

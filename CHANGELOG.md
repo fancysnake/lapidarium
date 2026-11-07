@@ -18,6 +18,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- A type's role locks once it has entries, so changing it can no longer wipe
+  built-in fields on the next save or leave entries that won't save. The admin
+  shows the role read-only, and `import_content` and `load_demo` refuse a bundle
+  that changes it.
 - Saving an entry no longer turns a link into "part of" after its relation field
   is gone. The link shows its old role as no longer defined, and the entry saves
   once an editor picks another role or removes the link.

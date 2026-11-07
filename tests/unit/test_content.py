@@ -133,6 +133,7 @@ def repos_fixture():
         FriendDTO(name="Bo", url="https://bo.example.org", button=None),
     ]
     repos.types.list_all.return_value = [_type_dto()]
+    repos.types.roles_in_use.return_value = {}
     repos.entries.list_published.return_value = [_entry_dto()]
     repos.entries.list_showcases.return_value = [
         showcase_dto(
@@ -358,6 +359,30 @@ def test_import_saves_everything_in_one_transaction(repos):
     )
     repos.profile.replace_friends.assert_called_once_with(friends)
     repos.entries.replace_showcases.assert_called_once_with(showcases)
+
+
+def test_import_refuses_a_role_change_on_a_type_with_entries(repos):
+    repos.types.roles_in_use.return_value = {"session": TypeRole.CALENDAR}
+    repos.store.read.return_value = _bundle()
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "types/session.yaml": [
+            "Role cannot change from calendar to thing: the type has entries."
+        ]
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
+def test_import_keeps_the_role_of_a_type_with_entries(repos):
+    repos.types.roles_in_use.return_value = {"session": TypeRole.THING}
+    repos.store.read.return_value = _bundle()
+
+    _import_service(repos).import_from(ROOT)
+
+    repos.types.save_all.assert_called_once()
 
 
 def test_import_refuses_showcase_entries_missing_from_the_bundle(repos):

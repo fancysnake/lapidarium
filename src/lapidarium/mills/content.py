@@ -26,6 +26,7 @@ from lapidarium.pacts.content import (
     RelationRole,
     ShowcaseData,
     ShowcaseDTO,
+    TypeRole,
 )
 from lapidarium.pacts.services import (
     ContentExportServiceProtocol,
@@ -222,6 +223,14 @@ def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:
     ]
 
 
+def _role_errors(entry_type: EntryTypeDTO, locked: Mapping[str, TypeRole]) -> list[str]:
+    if (role := locked.get(entry_type.key, entry_type.role)) == entry_type.role:
+        return []
+    return [
+        f"Role cannot change from {role} to {entry_type.role}: the type has entries."
+    ]
+
+
 def _draft_links(entry: EntryDTO) -> list[str]:
     """Links the relation rules forbid; only data written around them has any."""
     return [
@@ -393,6 +402,7 @@ class ContentImportService(ContentImportServiceProtocol):
         self, schemas: Mapping[str, EntryTypeDTO], bundle: ContentBundle
     ) -> dict[_EntryKey, Metadata]:
         """Each entry's cleaned metadata; `BundleValidationError` on any problem."""
+        locked = self._types.roles_in_use()
         errors = {
             f"types/{type_key}.yaml": messages
             for type_key, schema in schemas.items()
@@ -402,6 +412,7 @@ class ContentImportService(ContentImportServiceProtocol):
                     *self._schema.check_colours(schema.colour, schema.tint),
                     *self._schema.check_route(schema.route),
                     *_filter_errors(schema),
+                    *_role_errors(schema, locked),
                 ]
             )
         }

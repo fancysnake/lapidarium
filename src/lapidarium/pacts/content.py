@@ -497,6 +497,9 @@ class FirstBootDTO(BaseModel):
 class EntryTypeRepositoryProtocol(Protocol):
     def list_all(self) -> list[EntryTypeDTO]: ...
 
+    def roles_in_use(self) -> dict[str, TypeRole]:
+        """Role of each type that has entries, by key."""
+
     def save_all(self, types: Sequence[EntryTypeData]) -> None:
         """Create or update each by key; field lists are replaced."""
 

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 00:00+0100\n"
+"POT-Creation-Date: 2026-11-07 09:17+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -113,6 +113,9 @@ msgstr "Wymagane części muszą być dozwolone."
 
 msgid "Behaviour"
 msgstr "Zachowanie"
+
+msgid "A type's role is fixed once it has entries."
+msgstr "Roli typu nie można zmienić, gdy ma wpisy."
 
 msgid "Look"
 msgstr "Wygląd"
