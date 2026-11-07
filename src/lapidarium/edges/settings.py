@@ -13,11 +13,14 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
+    ADMIN_PASSWORD=(str, ""),
     ADMIN_URL=(str, "admin/"),
+    ADMIN_USERNAME=(str, "admin"),
     ALLOWED_HOSTS=(list, ["localhost"]),
     CACHE_URL=(str, "locmemcache://"),
     DATABASE_URL=str,
     DEFAULT_FROM_EMAIL=(str, "webmaster@localhost"),
+    DEMO_CONTENT=(str, ""),
     EMAIL_URL=(str, "consolemail://"),
     GS_BUCKET_NAME=(str, ""),
     GS_LOCATION=(str, ""),
@@ -38,6 +41,12 @@ env = environ.Env(
     STATIC_ROOT=(str, "staticfiles"),
     TIME_ZONE=(str, "Europe/Warsaw"),
 )
+
+# env() lets an empty value through; it would fail far from here, or not at all.
+for _required in ("SECRET_KEY", "DATABASE_URL"):
+    if not env(_required):
+        _missing = f"Set the {_required} environment variable"
+        raise ImproperlyConfigured(_missing)
 
 ENV = env("ENV")
 IS_PRODUCTION = ENV == "production"
@@ -74,6 +83,9 @@ THEME_STATIC_DIRS: tuple[tuple[str, Path], ...] = tuple(
     (f"themes/{d.name}", d) for d in THEME_LAYERS
 )
 ADMIN_URL: str = env("ADMIN_URL")
+ADMIN_USERNAME: str = env("ADMIN_USERNAME")
+ADMIN_PASSWORD: str = env("ADMIN_PASSWORD")
+DEMO_CONTENT: str = env("DEMO_CONTENT")
 
 INSTALLED_APPS = [
     "unfold",

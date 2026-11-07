@@ -59,6 +59,8 @@ jobs:
           SITE_THEME: ${{ vars.SITE_THEME }}
           SITE_THEME_DIRS: ${{ vars.SITE_THEME_DIRS }}
           ADMIN_URL: ${{ vars.ADMIN_URL }}
+          ADMIN_USERNAME: ${{ vars.ADMIN_USERNAME }}
+          DEMO_CONTENT: ${{ vars.DEMO_CONTENT }}
           LANGUAGE_CODE: ${{ vars.LANGUAGE_CODE }}
           TIME_ZONE: ${{ vars.TIME_ZONE }}
           STATIC_ROOT: ${{ vars.STATIC_ROOT }}
@@ -74,6 +76,7 @@ jobs:
           TRUSTED_PROXY_HOPS: ${{ vars.TRUSTED_PROXY_HOPS }}
           # Sensitive config: GitHub Environment secrets.
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           CACHE_URL: ${{ secrets.CACHE_URL }}
           PAGE_CACHE_URL: ${{ secrets.PAGE_CACHE_URL }}

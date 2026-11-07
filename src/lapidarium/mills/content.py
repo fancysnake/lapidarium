@@ -1,4 +1,4 @@
-"""Content as export format v1: export, import, local setup."""
+"""Content as export format v1: export, import, local setup, first boot."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from lapidarium.pacts.content import (
     EntryStatus,
     EntryTypeData,
     EntryTypeDTO,
+    FirstBootDTO,
     ListFilter,
     LocalSetupDTO,
     MetadataValidationError,
@@ -29,6 +30,7 @@ from lapidarium.pacts.content import (
 from lapidarium.pacts.services import (
     ContentExportServiceProtocol,
     ContentImportServiceProtocol,
+    FirstBootServiceProtocol,
     LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
@@ -346,17 +348,27 @@ class ContentImportService(ContentImportServiceProtocol):
     def load_demo(self, name: str) -> ContentSummaryDTO:
         return self._load(self._store.read_demo(name))
 
-    def _load(self, bundle: ContentBundle) -> ContentSummaryDTO:
+    @override
+    def seed_demo(self, name: str) -> ContentSummaryDTO:
+        return self._load(self._store.read_demo(name), defer_files=False)
+
+    def _load(
+        self, bundle: ContentBundle, *, defer_files: bool = True
+    ) -> ContentSummaryDTO:
         types = [self._with_tint(t) for t in bundle["types"]]
         schemas = {t["key"]: EntryTypeDTO.model_validate(t) for t in types}
         metadata = self._check(schemas, bundle)
         with self._transaction.atomic():
             for asset in bundle["assets"]:
                 self._assets.save(asset)
-                # Storage is not transactional: files change only once rows commit.
-                self._transaction.on_commit(
-                    partial(self._assets.write, asset["path"], content=asset["content"])
+                write = partial(
+                    self._assets.write, asset["path"], content=asset["content"]
                 )
+                if defer_files:
+                    # Storage is not transactional: files change only once rows commit.
+                    self._transaction.on_commit(write)
+                else:
+                    write()
             self._types.save_all(types)
             for entry in bundle["entries"]:
                 key = (entry["type"], entry["slug"])
@@ -505,3 +517,40 @@ class LocalSetupService(LocalSetupServiceProtocol):
             content = self._content_import.load_demo(demo)
             created = self._accounts.ensure_superuser(username, password=password)
         return LocalSetupDTO(content=content, superuser_created=created)
+
+
+class FirstBootService(FirstBootServiceProtocol):
+    """Set up a database nobody has used; leave a used one alone.
+
+    Any account marks the database as used, so a restart never touches a login
+    and a demo the owner deleted stays deleted. Existing types block the demo
+    too: an instance with no admin password never gets an account, and would
+    reload the demo on every restart.
+    """
+
+    def __init__(
+        self,
+        *,
+        content_import: ContentImportServiceProtocol,
+        transaction: TransactionProtocol,
+        accounts: AccountRepositoryProtocol,
+        types: EntryTypeRepositoryProtocol,
+    ) -> None:
+        self._content_import = content_import
+        self._transaction = transaction
+        self._accounts = accounts
+        self._types = types
+
+    @override
+    def run(self, demo: str, *, username: str, password: str) -> FirstBootDTO:
+        with self._transaction.atomic():
+            if self._accounts.any_exist():
+                return FirstBootDTO(content=None, superuser_created=False)
+            content = (
+                self._content_import.seed_demo(demo)
+                if demo and not self._types.list_all()
+                else None
+            )
+            if password:
+                self._accounts.ensure_superuser(username, password=password)
+        return FirstBootDTO(content=content, superuser_created=bool(password))

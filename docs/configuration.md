@@ -83,6 +83,19 @@ Set it to the number of proxies that append to the header: `1` behind one
 reverse proxy, `2` behind a CDN and a proxy. Too high and a client can forge
 its address; `0` ignores the header.
 
+## First boot
+
+| Variable | Default | What it sets |
+|---|---|---|
+| `ADMIN_USERNAME` | `admin` | Login created on first boot |
+| `ADMIN_PASSWORD` | empty | Password of that login; empty creates none |
+| `DEMO_CONTENT` | empty | Bundled demo to load on first boot, `ttrpg` or `dev`; a name the engine does not ship stops the first start |
+
+First boot means no account exists yet. Once one does, these variables change
+nothing: a restart never resets a password or reloads a demo, so the password
+can leave the environment after the first login. See
+[`first_boot`](cli.md#first_boot).
+
 ## Themes
 
 | Variable | Default | What it sets |

@@ -15,6 +15,7 @@ from lapidarium.mills.catalogue import CatalogueService
 from lapidarium.mills.content import (
     ContentExportService,
     ContentImportService,
+    FirstBootService,
     LocalSetupService,
 )
 from lapidarium.mills.maintenance import MaintenanceService
@@ -43,6 +44,7 @@ def test_services_are_built_once_per_container():
     assert isinstance(services.content_export, ContentExportService)
     assert isinstance(services.content_import, ContentImportService)
     assert isinstance(services.local_setup, LocalSetupService)
+    assert isinstance(services.first_boot, FirstBootService)
     first = services.content_import
     assert services.content_import is first
     assert isinstance(services.site, SiteService)

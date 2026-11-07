@@ -614,3 +614,15 @@ def test_demos_come_from_the_store(repos):
     assert service.load_demo("dev") == ContentSummaryDTO(types=0, entries=0, assets=0)
     repos.store.read_demo.assert_called_once_with("dev")
     repos.profile.save.assert_not_called()
+
+
+def test_seeding_a_demo_writes_files_inside_the_transaction(repos):
+    asset = {"path": "assets/me.png", "alt": "Me", "content": b"png"}
+    repos.store.read_demo.return_value = _bundle(types=[], entries=[], assets=[asset])
+
+    summary = _import_service(repos).seed_demo("dev")
+
+    assert summary == ContentSummaryDTO(types=0, entries=0, assets=1)
+    repos.store.read_demo.assert_called_once_with("dev")
+    repos.assets.write.assert_called_once_with("assets/me.png", content=b"png")
+    repos.transaction.on_commit.assert_not_called()

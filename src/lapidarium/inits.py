@@ -31,6 +31,7 @@ from lapidarium.mills.catalogue import CatalogueService
 from lapidarium.mills.content import (
     ContentExportService,
     ContentImportService,
+    FirstBootService,
     LocalSetupService,
 )
 from lapidarium.mills.maintenance import MaintenanceService
@@ -184,6 +185,16 @@ class Services(ServicesProtocol):
             content_import=self.content_import,
             transaction=DjangoTransaction(),
             accounts=self._repositories.accounts,
+        )
+
+    @cached_property
+    def first_boot(self) -> FirstBootService:
+        repos = self._repositories
+        return FirstBootService(
+            content_import=self.content_import,
+            transaction=DjangoTransaction(),
+            accounts=repos.accounts,
+            types=repos.entry_types,
         )
 
     @cached_property

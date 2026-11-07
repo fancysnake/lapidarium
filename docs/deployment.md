@@ -36,10 +36,12 @@ content is [Content](content.md).
 Pin `sha-<commit>` or a version in production, so that a restart never
 upgrades the site behind your back.
 
-On start the container runs `migrate`, `collectstatic`, then gunicorn on port
-8000 with three workers of two threads. `/healthz/` answers `ok` without
-touching the database; use it for the health check. Because migrations run on
-start, run one web container: two starting at once would migrate at once.
+On start the container checks its configuration, stopping with one line if a
+required variable is missing, then runs `migrate`, `first_boot`,
+`collectstatic` and gunicorn on port 8000 with three workers of two threads.
+`/healthz/` answers `ok` without touching the database; use it for the health
+check. Because migrations run on start, run one web container: two starting at
+once would migrate at once.
 
 ## Compose
 
@@ -56,6 +58,8 @@ DB_PASSWORD=<a database password>
 DATABASE_URL=postgres://lapidarium:<the same password>@db:5432/lapidarium
 SITE_NAME=Example
 ADMIN_URL=<a path of your own>/
+ADMIN_USERNAME=<your login>
+ADMIN_PASSWORD=<a password for the first login>
 GS_BUCKET_NAME=<bucket>
 GS_LOCATION=media
 GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcs.json
@@ -123,7 +127,9 @@ error stops the start, so read the log after a theme change. See
 
 ## First login
 
-Create the admin account inside the running container:
+The first start creates the admin from `ADMIN_USERNAME` and `ADMIN_PASSWORD`.
+Later starts leave accounts alone, so change the password in the admin, not in
+`.env`. Without `ADMIN_PASSWORD`, create the admin yourself:
 
 ```bash
 docker compose -f prod.yaml exec web mise run dj createsuperuser
@@ -131,7 +137,9 @@ docker compose -f prod.yaml exec web mise run dj createsuperuser
 
 Log in at `https://<your domain>/<ADMIN_URL>`. The site is empty until it has
 content types and entries; [Content](content.md) sets them up, or imports a
-bundle exported from another instance.
+bundle exported from another instance. To start from a demo instead, set
+`DEMO_CONTENT` before the first start (see
+[Configuration](configuration.md#first-boot)).
 
 ## Backups
 

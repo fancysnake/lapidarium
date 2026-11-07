@@ -487,6 +487,13 @@ class LocalSetupDTO(BaseModel):
     superuser_created: bool
 
 
+class FirstBootDTO(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    content: ContentSummaryDTO | None
+    superuser_created: bool
+
+
 class EntryTypeRepositoryProtocol(Protocol):
     def list_all(self) -> list[EntryTypeDTO]: ...
 
@@ -525,6 +532,8 @@ class MediaAssetRepositoryProtocol(Protocol):
 
 
 class AccountRepositoryProtocol(Protocol):
+    def any_exist(self) -> bool: ...
+
     def ensure_superuser(self, username: str, *, password: str) -> bool:
         """Create the superuser or reset it to `password`; True when created."""
 
