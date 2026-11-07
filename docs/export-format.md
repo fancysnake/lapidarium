@@ -110,6 +110,7 @@ reports every problem by file:
 - the format version is one it reads;
 - keys and slugs are `[-a-zA-Z0-9_]+`;
 - type colours pass the contrast check against the active theme;
+- a type that already has entries keeps its role;
 - `list_filters` name `year`, `tag` or a field of the type;
 - metadata keys are fields of the type and their values fit the field kind;
 - built-in fields are only those the type's role uses, with `end_at` on or

@@ -241,6 +241,11 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
         return [entry_type_dto(t) for t in types]
 
     @override
+    def roles_in_use(self) -> dict[str, TypeRole]:
+        types = EntryType.objects.filter(entries__isnull=False).distinct()
+        return {key: TypeRole(role) for key, role in types.values_list("key", "role")}
+
+    @override
     def save_all(self, types: Sequence[EntryTypeData]) -> None:
         # Every type exists before any field points at one as its target.
         saved = {

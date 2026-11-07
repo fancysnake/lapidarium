@@ -98,6 +98,9 @@ the home page and `/calendar.ics`. Only container entries can be the target of
 a *part of* relation. Outcomes and timespans make up the timeline on the about
 page; sections stay off it.
 
+A type's role locks with its first entry: the admin shows it read-only, and an
+import that changes it fails. For a different role, create a new type.
+
 ### Page
 
 | Field | Choices |

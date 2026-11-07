@@ -232,6 +232,15 @@ def test_entry_types_read_back_every_column_they_save():
     assert saved.model_dump() == EntryTypeDTO(**data).model_dump()
 
 
+def test_roles_in_use_lists_only_types_with_entries():
+    EntryTypeRepository().save_all(
+        [type_data(), type_data("event", role=TypeRole.CALENDAR)]
+    )
+    EntryRepository().save(entry_data())
+
+    assert EntryTypeRepository().roles_in_use() == {"session": TypeRole.THING}
+
+
 def test_entries_read_back_every_column_they_save():
     EntryTypeRepository().save_all([type_data()])
     MediaAssetRepository().save({"path": "assets/los.png", "alt": "", "content": b""})

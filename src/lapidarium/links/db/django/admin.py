@@ -345,7 +345,13 @@ class EntryTypeAdmin(EntryTypeAdminBase):
     prepopulated_fields: ClassVar = {"key": ("label",), "route": ("label_plural",)}
     fieldsets = (
         (None, {"fields": ("label", "label_plural", "key", "route", "order")}),
-        (_("Behaviour"), {"fields": ("role", "layout", "has_detail_page")}),
+        (
+            _("Behaviour"),
+            {
+                "fields": ("role", "layout", "has_detail_page"),
+                "description": _("A type's role is fixed once it has entries."),
+            },
+        ),
         (_("Look"), {"fields": ("colour", "tint", "dark_colour", "icon", "in_menu")}),
         (_("Parts"), {"fields": ("allowed_parts", "required_parts", "list_filters")}),
         (
@@ -354,6 +360,13 @@ class EntryTypeAdmin(EntryTypeAdminBase):
         ),
     )
     readonly_fields = ("dark_colour",)
+
+    @override
+    def get_readonly_fields(
+        self, request: HttpRequest, obj: EntryType | None = None
+    ) -> tuple[str, ...]:
+        locked = ("role",) if obj and obj.entries.exists() else ()
+        return (*super().get_readonly_fields(request, obj), *locked)
 
     @staticmethod
     @admin.display(description=_("route"), ordering="route")

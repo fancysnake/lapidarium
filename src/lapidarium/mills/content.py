@@ -26,6 +26,7 @@ from lapidarium.pacts.content import (
     RelationRole,
     ShowcaseData,
     ShowcaseDTO,
+    TypeRole,
 )
 from lapidarium.pacts.services import (
     ContentExportServiceProtocol,
@@ -222,6 +223,18 @@ def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:
     ]
 
 
+def _role_errors(entry_type: EntryTypeDTO, locked: Mapping[str, TypeRole]) -> list[str]:
+    locked_role = locked.get(entry_type.key)
+    if locked_role is None or locked_role == entry_type.role:
+        return []
+    return [
+        (
+            f"Role cannot change from {locked_role} to {entry_type.role}: "
+            "the type has entries."
+        )
+    ]
+
+
 def _draft_links(entry: EntryDTO) -> list[str]:
     """Links the relation rules forbid; only data written around them has any."""
     return [
@@ -315,7 +328,7 @@ def _summary(bundle: ContentBundle) -> ContentSummaryDTO:
 
 
 class ContentImportService(ContentImportServiceProtocol):
-    """Validate an export bundle against its own types, then upsert it whole."""
+    """Check a bundle against its types and stored role locks, then upsert it whole."""
 
     def __init__(
         self,
@@ -357,7 +370,7 @@ class ContentImportService(ContentImportServiceProtocol):
     ) -> ContentSummaryDTO:
         types = [self._with_tint(t) for t in bundle["types"]]
         schemas = {t["key"]: EntryTypeDTO.model_validate(t) for t in types}
-        metadata = self._check(schemas, bundle)
+        metadata = self._check(schemas, bundle, locked=self._types.roles_in_use())
         with self._transaction.atomic():
             for asset in bundle["assets"]:
                 self._assets.save(asset)
@@ -390,7 +403,11 @@ class ContentImportService(ContentImportServiceProtocol):
         return {**entry_type, "tint": self._schema.derive_tint(entry_type["colour"])}
 
     def _check(
-        self, schemas: Mapping[str, EntryTypeDTO], bundle: ContentBundle
+        self,
+        schemas: Mapping[str, EntryTypeDTO],
+        bundle: ContentBundle,
+        *,
+        locked: Mapping[str, TypeRole],
     ) -> dict[_EntryKey, Metadata]:
         """Each entry's cleaned metadata; `BundleValidationError` on any problem."""
         errors = {
@@ -402,6 +419,7 @@ class ContentImportService(ContentImportServiceProtocol):
                     *self._schema.check_colours(schema.colour, schema.tint),
                     *self._schema.check_route(schema.route),
                     *_filter_errors(schema),
+                    *_role_errors(schema, locked),
                 ]
             )
         }
