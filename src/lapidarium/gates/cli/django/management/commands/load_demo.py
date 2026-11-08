@@ -16,13 +16,13 @@ class Command(BaseCommand):
 
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:
-        names = build_services().content_import.demo_names()
+        names = build_services().content.importer.demo_names()
         parser.add_argument("name", choices=names)
 
     @override
     def handle(self, *_args: str, **options: str) -> None:
         try:
-            summary = build_services().content_import.load_demo(options["name"])
+            summary = build_services().content.importer.load_demo(options["name"])
         except BundleValidationError as exc:
             raise CommandError(str(exc)) from exc
         self.stdout.write(self.style.SUCCESS(f"Loaded {counts(summary)}."))

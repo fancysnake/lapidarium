@@ -22,7 +22,7 @@ class Command(BaseCommand):
     @override
     def handle(self, *_args: str, **options: Path) -> None:
         try:
-            summary = build_services().content_export.export(options["destination"])
+            summary = build_services().content.exporter.export(options["destination"])
         except BundleValidationError as exc:
             raise CommandError(str(exc)) from exc
         self.stdout.write(self.style.SUCCESS(f"Exported {counts(summary)}."))

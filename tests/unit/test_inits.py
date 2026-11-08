@@ -9,6 +9,7 @@ from lapidarium.inits import (
     Services,
     build_newsletter,
 )
+from lapidarium.links.db.django.probe import DjangoDatabaseProbe
 from lapidarium.links.newsletter.log import LogNewsletter
 from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
 from lapidarium.mills.catalogue import CatalogueService
@@ -39,14 +40,15 @@ def test_middleware_attaches_services_and_passes_the_request_on():
 def test_services_are_built_once_per_container():
     services = Services()
 
+    assert isinstance(services.database, DjangoDatabaseProbe)
     assert isinstance(services.metadata, MetadataService)
     assert isinstance(services.schema, SchemaService)
-    assert isinstance(services.content_export, ContentExportService)
-    assert isinstance(services.content_import, ContentImportService)
-    assert isinstance(services.local_setup, LocalSetupService)
-    assert isinstance(services.first_boot, FirstBootService)
-    first = services.content_import
-    assert services.content_import is first
+    assert isinstance(services.content.exporter, ContentExportService)
+    assert isinstance(services.content.importer, ContentImportService)
+    assert isinstance(services.content.local_setup, LocalSetupService)
+    assert isinstance(services.content.first_boot, FirstBootService)
+    first = services.content.importer
+    assert services.content.importer is first
     assert isinstance(services.site, SiteService)
     assert isinstance(services.maintenance, MaintenanceService)
     assert isinstance(services.catalogue, CatalogueService)

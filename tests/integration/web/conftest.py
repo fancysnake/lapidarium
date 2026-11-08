@@ -47,7 +47,7 @@ def browser_fixture(*, client, settings, monkeypatch):
 def load_fixture(browser, django_capture_on_commit_callbacks):
     def load(name):
         with django_capture_on_commit_callbacks(execute=True):
-            Services().content_import.load_demo(name)
+            Services().content.importer.load_demo(name)
         return browser
 
     return load
