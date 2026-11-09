@@ -39,9 +39,10 @@ upgrades the site behind your back.
 On start the container checks its configuration, stopping with one line if a
 required variable is missing, then runs `migrate`, `first_boot`,
 `collectstatic` and gunicorn on port 8000 with three workers of two threads.
-`/healthz/` answers `ok` without touching the database; use it for the health
-check. Because migrations run on start, run one web container: two starting at
-once would migrate at once.
+`/healthz/` answers `ok` while the database answers a query and `503` while it
+does not; the image runs it as its own health check every 30 seconds. Because
+migrations run on start, run one web container: two starting at once would
+migrate at once.
 
 ## Compose
 

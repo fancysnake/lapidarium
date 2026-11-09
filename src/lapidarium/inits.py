@@ -12,6 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 
 from lapidarium.links.content_files.markdown import ContentFilesStore
+from lapidarium.links.db.django.probe import DjangoDatabaseProbe
 from lapidarium.links.db.django.repositories import (
     AccountRepository,
     EntryRepository,
@@ -41,7 +42,7 @@ from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
 from lapidarium.mills.theme import ThemeService
 from lapidarium.pacts.outreach import NewsletterBackend
-from lapidarium.pacts.services import ServicesProtocol
+from lapidarium.pacts.services import ContentServicesProtocol, ServicesProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -135,11 +136,68 @@ class Repositories:
         return ExternalItemRepository()
 
 
+class ContentServices(ContentServicesProtocol):
+    """The content bucket of `Services`, sharing its repositories and schema."""
+
+    def __init__(self, *, repositories: Repositories, schema: SchemaService) -> None:
+        self._repositories = repositories
+        self._schema = schema
+
+    @cached_property
+    def exporter(self) -> ContentExportService:
+        repos = self._repositories
+        return ContentExportService(
+            types=repos.entry_types,
+            entries=repos.entries,
+            assets=repos.media_assets,
+            profile=repos.profile,
+            store=repos.content_files,
+        )
+
+    @cached_property
+    def importer(self) -> ContentImportService:
+        repos = self._repositories
+        return ContentImportService(
+            schema=self._schema,
+            transaction=DjangoTransaction(),
+            types=repos.entry_types,
+            entries=repos.entries,
+            assets=repos.media_assets,
+            profile=repos.profile,
+            store=repos.content_files,
+        )
+
+    @cached_property
+    def local_setup(self) -> LocalSetupService:
+        return LocalSetupService(
+            content_import=self.importer,
+            transaction=DjangoTransaction(),
+            accounts=self._repositories.accounts,
+        )
+
+    @cached_property
+    def first_boot(self) -> FirstBootService:
+        repos = self._repositories
+        return FirstBootService(
+            content_import=self.importer,
+            transaction=DjangoTransaction(),
+            accounts=repos.accounts,
+            types=repos.entry_types,
+        )
+
+
 class Services(ServicesProtocol):
-    """Flat service namespace, one `cached_property` per service, built per request."""
+    """Top-level services plus the `content` group, built per request.
+
+    One `cached_property` per service.
+    """
 
     def __init__(self) -> None:
         self._repositories = Repositories()
+
+    @cached_property
+    def database(self) -> DjangoDatabaseProbe:
+        return DjangoDatabaseProbe()
 
     @cached_property
     def metadata(self) -> MetadataService:
@@ -156,46 +214,8 @@ class Services(ServicesProtocol):
         )
 
     @cached_property
-    def content_export(self) -> ContentExportService:
-        repos = self._repositories
-        return ContentExportService(
-            types=repos.entry_types,
-            entries=repos.entries,
-            assets=repos.media_assets,
-            profile=repos.profile,
-            store=repos.content_files,
-        )
-
-    @cached_property
-    def content_import(self) -> ContentImportService:
-        repos = self._repositories
-        return ContentImportService(
-            schema=self.schema,
-            transaction=DjangoTransaction(),
-            types=repos.entry_types,
-            entries=repos.entries,
-            assets=repos.media_assets,
-            profile=repos.profile,
-            store=repos.content_files,
-        )
-
-    @cached_property
-    def local_setup(self) -> LocalSetupService:
-        return LocalSetupService(
-            content_import=self.content_import,
-            transaction=DjangoTransaction(),
-            accounts=self._repositories.accounts,
-        )
-
-    @cached_property
-    def first_boot(self) -> FirstBootService:
-        repos = self._repositories
-        return FirstBootService(
-            content_import=self.content_import,
-            transaction=DjangoTransaction(),
-            accounts=repos.accounts,
-            types=repos.entry_types,
-        )
+    def content(self) -> ContentServices:
+        return ContentServices(repositories=self._repositories, schema=self.schema)
 
     @cached_property
     def site(self) -> SiteService:

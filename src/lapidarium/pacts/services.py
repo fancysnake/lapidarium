@@ -29,6 +29,7 @@ if TYPE_CHECKING:
         RelationEndDTO,
         TypeRole,
     )
+    from lapidarium.pacts.db import DatabaseProbeProtocol
     from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
     from lapidarium.pacts.outreach import ContactData
     from lapidarium.pacts.site import FriendDTO, SiteDTO
@@ -122,6 +123,22 @@ class FirstBootServiceProtocol(Protocol):
     def run(self, demo: str, *, username: str, password: str) -> FirstBootDTO: ...
 
 
+class ContentServicesProtocol(Protocol):
+    """Moving content in and out, and seeding a fresh site with it."""
+
+    @property
+    def exporter(self) -> ContentExportServiceProtocol: ...
+
+    @property
+    def importer(self) -> ContentImportServiceProtocol: ...
+
+    @property
+    def local_setup(self) -> LocalSetupServiceProtocol: ...
+
+    @property
+    def first_boot(self) -> FirstBootServiceProtocol: ...
+
+
 class SiteServiceProtocol(Protocol):
     def chrome(self) -> SiteDTO: ...
 
@@ -180,7 +197,10 @@ class ThemeServiceProtocol(Protocol):
 
 
 class ServicesProtocol(Protocol):
-    """The flat service namespace a gate reaches as `request.services`."""
+    """Top-level services plus the `content` group, as `request.services`."""
+
+    @property
+    def database(self) -> DatabaseProbeProtocol: ...
 
     @property
     def metadata(self) -> MetadataServiceProtocol: ...
@@ -189,16 +209,7 @@ class ServicesProtocol(Protocol):
     def schema(self) -> SchemaServiceProtocol: ...
 
     @property
-    def content_export(self) -> ContentExportServiceProtocol: ...
-
-    @property
-    def content_import(self) -> ContentImportServiceProtocol: ...
-
-    @property
-    def local_setup(self) -> LocalSetupServiceProtocol: ...
-
-    @property
-    def first_boot(self) -> FirstBootServiceProtocol: ...
+    def content(self) -> ContentServicesProtocol: ...
 
     @property
     def site(self) -> SiteServiceProtocol: ...

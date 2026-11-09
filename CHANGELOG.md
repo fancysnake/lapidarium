@@ -18,6 +18,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- `/healthz/` answers `503` while the database is unreachable, so a container
+  that lost its database reports unhealthy. The image runs the check itself;
+  compose files no longer wire their own.
 - A type's role locks once it has entries, so changing it can no longer wipe
   built-in fields on the next save or leave entries that won't save. The admin
   shows the role read-only, and `import_content` and `load_demo` refuse a bundle

@@ -32,9 +32,9 @@ def test_demo_exports_as_it_was_written(
 ):
     services = Services()
     with django_capture_on_commit_callbacks(execute=True):
-        services.content_import.load_demo(name)
+        services.content.importer.load_demo(name)
 
-    summary = services.content_export.export(tmp_path)
+    summary = services.content.exporter.export(tmp_path)
 
     demo = ContentFilesStore().read_demo(name)
     exported = ContentFilesStore().read(tmp_path)
@@ -53,12 +53,12 @@ def test_export_imports_back_to_identical_files(
 ):
     services = Services()
     with django_capture_on_commit_callbacks(execute=True):
-        services.content_import.load_demo(name)
-    services.content_export.export(tmp_path / "first")
+        services.content.importer.load_demo(name)
+    services.content.exporter.export(tmp_path / "first")
 
     with django_capture_on_commit_callbacks(execute=True):
-        services.content_import.import_from(tmp_path / "first")
-    services.content_export.export(tmp_path / "second")
+        services.content.importer.import_from(tmp_path / "first")
+    services.content.exporter.export(tmp_path / "second")
 
     comparison = filecmp.dircmp(tmp_path / "first", tmp_path / "second")
     assert _differences(comparison) == []

@@ -40,6 +40,6 @@ def test_failed_import_leaves_media_as_it_was(
         django_capture_on_commit_callbacks(execute=True),
         pytest.raises(IntegrityError),
     ):
-        Services().content_import.load_demo("ttrpg")
+        Services().content.importer.load_demo("ttrpg")
 
     assert _snapshot(demo) == before

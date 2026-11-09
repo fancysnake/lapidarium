@@ -17,13 +17,13 @@ class Command(BaseCommand):
         services = build_services()
         demo = settings.DEMO_CONTENT
         try:
-            result = services.first_boot.run(
+            result = services.content.first_boot.run(
                 demo, username=settings.ADMIN_USERNAME, password=settings.ADMIN_PASSWORD
             )
         except BundleValidationError as exc:
             raise CommandError(str(exc)) from exc
         except NotFoundError as exc:
-            names = ", ".join(services.content_import.demo_names())
+            names = ", ".join(services.content.importer.demo_names())
             msg = f"DEMO_CONTENT {demo!r}: not one of {names}."
             raise CommandError(msg) from exc
         if content := result.content:

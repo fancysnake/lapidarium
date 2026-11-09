@@ -14,3 +14,8 @@ class TransactionProtocol(Protocol):
 
     def on_commit(self, callback: Callable[[], None]) -> None:
         """Run `callback` once the outermost transaction commits; never on rollback."""
+
+
+class DatabaseProbeProtocol(Protocol):
+    def reachable(self) -> bool:
+        """Whether the database answers a query now."""

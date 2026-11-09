@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:
-        names = build_services().content_import.demo_names()
+        names = build_services().content.importer.demo_names()
         parser.add_argument("--demo", choices=names, default="ttrpg")
         parser.add_argument("--username", default="admin")
         parser.add_argument("--password", default="admin")
@@ -30,7 +30,7 @@ class Command(BaseCommand):
             raise CommandError(msg)
         call_command("migrate", verbosity=0)
         try:
-            result = build_services().local_setup.set_up(
+            result = build_services().content.local_setup.set_up(
                 options["demo"],
                 username=options["username"],
                 password=options["password"],

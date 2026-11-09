@@ -30,12 +30,6 @@ services:
     ports:
       - '127.0.0.1:${WEB_PORT:-8000}:8000'
     restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/')\""]
-      interval: 30s
-      timeout: 10s
-      start_period: 40s
-      retries: 3
     cap_drop:
       - ALL
     security_opt:

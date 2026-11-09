@@ -22,7 +22,7 @@ class Command(BaseCommand):
     @override
     def handle(self, *_args: str, **options: Path) -> None:
         try:
-            summary = build_services().content_import.import_from(options["source"])
+            summary = build_services().content.importer.import_from(options["source"])
         except BundleValidationError as exc:
             raise CommandError(str(exc)) from exc
         self.stdout.write(self.style.SUCCESS(f"Imported {counts(summary)}."))
