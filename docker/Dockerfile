@@ -37,9 +37,9 @@ RUN find src -name django.po -execdir msgfmt --check -o django.mo django.po \;
 
 EXPOSE 8000
 
-# No curl in the image; urlopen raises on a 503, so a lost database fails it.
+# No curl in the image; the probe sends a Host from ALLOWED_HOSTS.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD ["python", "-c","import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/')"]
+    CMD ["mise", "exec", "--", "python", "-m", "lapidarium.edges.healthcheck"]
 
 # prod-start checks the config, runs migrate, first_boot and collectstatic,
 # then gunicorn (docker/mise.toml).

@@ -197,7 +197,7 @@ class ThemeServiceProtocol(Protocol):
 
 
 class ServicesProtocol(Protocol):
-    """The flat service namespace a gate reaches as `request.services`."""
+    """Top-level services plus the `content` group, as `request.services`."""
 
     @property
     def database(self) -> DatabaseProbeProtocol: ...

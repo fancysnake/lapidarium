@@ -187,7 +187,10 @@ class ContentServices(ContentServicesProtocol):
 
 
 class Services(ServicesProtocol):
-    """Flat service namespace, one `cached_property` per service, built per request."""
+    """Top-level services plus the `content` group, built per request.
+
+    One `cached_property` per service.
+    """
 
     def __init__(self) -> None:
         self._repositories = Repositories()
