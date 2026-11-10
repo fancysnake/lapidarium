@@ -1,7 +1,7 @@
 # Self-hosting on one machine: the prebuilt image, PostgreSQL and Caddy, which
 # issues the TLS certificate for DOMAIN and serves uploads from a volume.
-# Copy this file, Caddyfile and .env.example (as .env) into one directory, fill
-# in .env and run `docker compose -f vps.yaml up -d`.
+# Copy this file, Caddyfile and vps.env.example (as .env) into one directory,
+# fill in .env and run `docker compose -f vps.yaml up -d`.
 name: lapidarium
 
 services:
