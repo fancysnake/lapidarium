@@ -1,0 +1,20 @@
+# A public domain gets a Let's Encrypt certificate; localhost gets one from
+# Caddy's internal CA. Uploads come straight from the shared volume.
+{$DOMAIN} {
+	encode zstd gzip
+
+	handle_path /media/* {
+		root * /srv/media
+		# Uploads share the site's origin: an SVG or HTML file opened directly
+		# must not run script with the admin's session.
+		header {
+			X-Content-Type-Options nosniff
+			Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+		}
+		file_server
+	}
+
+	handle {
+		reverse_proxy web:8000
+	}
+}

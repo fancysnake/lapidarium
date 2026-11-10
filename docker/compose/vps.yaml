@@ -1,0 +1,73 @@
+# Self-hosting on one machine: the prebuilt image, PostgreSQL and Caddy, which
+# issues the TLS certificate for DOMAIN and serves uploads from a volume.
+# Copy this file, Caddyfile and vps.env.example (as .env) into one directory,
+# fill in .env and run `docker compose -f vps.yaml up -d`.
+name: lapidarium
+
+services:
+  web:
+    image: ghcr.io/fancysnake/lapidarium:${IMAGE_TAG:-latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    # Wired to the services below; .env cannot change them.
+    environment:
+      ENV: production
+      DEBUG: 'false'
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-${DOMAIN:?}}
+      DATABASE_URL: postgres://${DB_USER:-lapidarium}:${DB_PASSWORD:?}@db:5432/${DB_NAME:-lapidarium}
+      MEDIA_ROOT: /app/media
+      MEDIA_URL: /media/
+    volumes:
+      - media:/app/media
+    restart: always
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-lapidarium}
+      POSTGRES_USER: ${DB_USER:-lapidarium}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER:-lapidarium} -d ${DB_NAME:-lapidarium}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2.10-alpine
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:?}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: always
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres_data:
+  media:
+  caddy_data:
+  caddy_config:

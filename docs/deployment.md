@@ -11,14 +11,9 @@ content is [Content](content.md).
 
 ## What you need
 
-- A host that runs containers: plain Docker Compose, or a platform such as
-  Coolify that runs a compose file.
-- PostgreSQL 16. The compose file below brings its own.
-- A domain, and a reverse proxy that terminates TLS and forwards
-  `X-Forwarded-Proto` and `X-Forwarded-Host`. Production redirects every
-  plain HTTP request to HTTPS.
-- Somewhere for uploads: a Google Cloud Storage bucket with public read, or a
-  volume your proxy serves (see [Uploads](#uploads)).
+- A machine with Docker and Compose and ports 80 and 443 open, or a platform
+  such as Coolify that runs a compose file.
+- A domain whose DNS points at that machine; `localhost` to try it out.
 - Optional: an SMTP account for the contact form, a Mailchimp audience for the
   newsletter.
 
@@ -46,58 +41,77 @@ migrate at once.
 
 ## Compose
 
-`docker/compose/prod.yaml` is the production shape: the image, PostgreSQL with a
-named volume, a health check, and the web port bound to `127.0.0.1` for a proxy
-on the same host. Copy it to the host and put the values in a `.env` next to
-it:
-
-```dotenv
-IMAGE_TAG=sha-<commit>
-SECRET_KEY=<a long random string>
-ALLOWED_HOSTS=example.com,www.example.com
-DB_PASSWORD=<a database password>
-DATABASE_URL=postgres://lapidarium:<the same password>@db:5432/lapidarium
-SITE_NAME=Example
-ADMIN_URL=<a path of your own>/
-ADMIN_USERNAME=<your login>
-ADMIN_PASSWORD=<a password for the first login>
-GS_BUCKET_NAME=<bucket>
-GS_LOCATION=media
-GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcs.json
-```
-
-Generate the secret key once and keep it; changing it logs everyone out:
+`docker/compose/vps.yaml` runs the whole instance on one machine: the image,
+PostgreSQL, and Caddy in front. Caddy gets and renews a Let's Encrypt
+certificate for the domain and serves uploads from a volume. Put three files
+in one directory on the machine:
 
 ```bash
-openssl rand -base64 48
+mkdir lapidarium && cd lapidarium
+base=https://raw.githubusercontent.com/fancysnake/lapidarium/main/docker/compose
+curl -fsSLO "$base/vps.yaml"
+curl -fsSLO "$base/Caddyfile"
+curl -fsSL "$base/vps.env.example" -o .env
+```
+
+Fill in the first block of `.env`: the domain, a secret key, a database
+password and the first login. Generate both secrets once and keep them; a new
+secret key logs everyone out:
+
+```bash
+openssl rand -base64 48   # SECRET_KEY
+openssl rand -hex 32      # DB_PASSWORD
 ```
 
 Then start it:
 
 ```bash
-docker compose -f prod.yaml up -d
-docker compose -f prod.yaml logs -f web
+docker compose -f vps.yaml up -d
+docker compose -f vps.yaml logs -f web
 ```
 
-The compose file passes only the variables it names. To set others from
-[Configuration](configuration.md), such as `EMAIL_URL`, `LANGUAGE_CODE` or
-`SITE_THEME`, add them under `web.environment`.
+The site answers on `https://<DOMAIN>` once the web container is healthy,
+usually within a minute. Any variable from [Configuration](configuration.md)
+goes in `.env` as well; the example lists each one, commented out at its
+default. The compose file sets `ENV`, `DEBUG`, `DATABASE_URL`, `MEDIA_ROOT`
+and `MEDIA_URL` itself, and reads these on its own:
 
-On Coolify, create a Docker Compose resource from the same file, set the values
-as environment variables in Coolify, and mount the service-account key as a
-file. Coolify's proxy is one hop, which is the production default of
-`TRUSTED_PROXY_HOPS`.
+| Variable | Default | What it sets |
+|---|---|---|
+| `DOMAIN` | required | Domain Caddy gets a certificate for; also `ALLOWED_HOSTS` unless that is set |
+| `DB_PASSWORD` | required | Database password; it goes into a URL, so letters and digits only |
+| `DB_NAME` | `lapidarium` | Database name; fixed once the database volume exists |
+| `DB_USER` | `lapidarium` | Database user; fixed once the database volume exists |
+| `IMAGE_TAG` | `latest` | Image tag to run |
+
+With `DOMAIN=localhost`, Caddy signs the certificate with its own authority,
+so the browser warns about it. To serve a second name, such as `www.`, add it
+to `ALLOWED_HOSTS` and after `{$DOMAIN}` in the `Caddyfile`, comma-separated.
+
+Data lives in named volumes: `postgres_data`, `media`, and Caddy's
+certificates in `caddy_data`. `docker compose down` keeps them; `down -v`
+deletes them.
+
+### Coolify
+
+`docker/compose/prod.yaml` is the same instance without Caddy, for a platform
+that brings its own proxy. Create a Docker Compose resource from it and set
+the values as environment variables in Coolify. It passes only the variables
+it names; add others from [Configuration](configuration.md) under
+`web.environment`. Coolify's proxy is one hop, which is the production default
+of `TRUSTED_PROXY_HOPS`.
 
 ## Uploads
 
-`prod.yaml` requires a bucket. Create a Google Cloud Storage bucket, allow
-public read on its objects, and give a service account write access. Mount the
-account's key into the container and point `GOOGLE_APPLICATION_CREDENTIALS` at
-it; on GCP with an attached account, leave it empty.
+`vps.yaml` keeps uploads in the `media` volume, and Caddy serves them at
+`/media/`.
 
-Without a bucket, uploads go to `MEDIA_ROOT` inside the container. Django does
-not serve them in production, so mount a volume there, have your proxy serve it
-at `MEDIA_URL`, and drop `GS_*` from the compose file.
+To keep them in Google Cloud Storage instead, create a bucket, allow public
+read on its objects, and give a service account write access. Set
+`GS_BUCKET_NAME` and `GS_LOCATION`, mount the account's key into the web
+container, and point `GOOGLE_APPLICATION_CREDENTIALS` at it; on GCP with an
+attached account, leave it empty. `prod.yaml` requires a bucket, because
+nothing behind Coolify's proxy serves a volume.
 
 ## Mail and newsletter
 
@@ -133,7 +147,7 @@ Later starts leave accounts alone, so change the password in the admin, not in
 `.env`. Without `ADMIN_PASSWORD`, create the admin yourself:
 
 ```bash
-docker compose -f prod.yaml exec web mise run dj createsuperuser
+docker compose -f vps.yaml exec web mise run dj createsuperuser
 ```
 
 Log in at `https://<your domain>/<ADMIN_URL>`. The site is empty until it has
@@ -147,11 +161,11 @@ bundle exported from another instance. To start from a demo instead, set
 Two things hold an instance: the database and the uploads. Back up both:
 
 - `pg_dump` of the database, on the database's own schedule.
-- The bucket, or the `MEDIA_ROOT` volume.
+- The `media` volume, or the bucket.
 
 `export_content` also writes every published entry, type, the profile and
 the assets they use as plain files (see [Export format](export-format.md)).
-It does not run by itself; schedule it from the host. `prod.yaml` mounts
+It does not run by itself; schedule it from the host. `vps.yaml` mounts
 nothing at `/app/export`, so without a volume there the export is lost when
 the container is recreated. Add one under `web`:
 
@@ -162,10 +176,10 @@ the container is recreated. Add one under `web`:
 
 The container runs as an unprivileged user, so create `export/` on the host
 first and give it to that user's UID, which
-`docker compose -f prod.yaml exec web id -u` prints. Then run it:
+`docker compose -f vps.yaml exec web id -u` prints. Then run it:
 
 ```bash
-docker compose -f prod.yaml exec -T web mise run dj export_content /app/export
+docker compose -f vps.yaml exec -T web mise run dj export_content /app/export
 ```
 
 The export holds published content only: drafts, users and sign-ups live in
@@ -176,7 +190,7 @@ the database dump alone.
 Change `IMAGE_TAG` and recreate the container:
 
 ```bash
-docker compose -f prod.yaml up -d
+docker compose -f vps.yaml up -d
 ```
 
 Migrations run on start. Read the [changelog](changelog.md) first: a theme
