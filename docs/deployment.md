@@ -225,11 +225,14 @@ the database dump alone.
 
 ## Upgrades
 
-Change `IMAGE_TAG` and recreate the container:
+On a VPS, change `IMAGE_TAG` and recreate the container:
 
 ```bash
 docker compose -f vps.yaml up -d
 ```
+
+On Coolify, change `IMAGE_TAG` under the resource's environment variables,
+then redeploy.
 
 Migrations run on start. Read the [changelog](changelog.md) first: a theme
 built for an older engine release raises warning `lapidarium.W002`, and a
