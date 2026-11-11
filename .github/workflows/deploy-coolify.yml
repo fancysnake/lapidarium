@@ -3,7 +3,7 @@ name: Deploy to Coolify
 
 # Shared body of every deploy-<instance>.yml. `vars` and `secrets` resolve
 # against the GitHub Environment named by `inputs.environment`, declared on
-# this job, so one config block serves every instance.
+# the deploy job, so one config block serves every instance.
 
 on:
   workflow_call:
@@ -16,14 +16,20 @@ on:
         description: Deployed site, shown on the job.
         required: true
         type: string
-      sha:
-        description: Commit to build, deploy and pin the image tag to.
-        required: true
-        type: string
 
 jobs:
+  # Runs before the environment's reviewers approve: the image is pushed
+  # either way, only the deploy job waits.
+  build:
+    name: Build image
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-image.yml
+
   deploy:
-    name: Build image and deploy to Coolify
+    name: Deploy to Coolify
+    needs: build
     runs-on: ubuntu-latest
     # Backstop for a hung Coolify API: callers serialize on a concurrency
     # group, and GitHub's default ceiling is 6 hours, long enough to block a
@@ -31,7 +37,6 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
-      packages: write
     environment:
       name: ${{ inputs.environment }}
       url: ${{ inputs.environment_url }}
@@ -39,7 +44,6 @@ jobs:
       - name: Checkout (provides env/schema.env for varlock validation)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ inputs.sha }}
           persist-credentials: false
 
       - uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
@@ -105,36 +109,12 @@ jobs:
                       is_preview: false, is_literal: true}]' \
             > "$RUNNER_TEMP/envs.json"
 
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # build-image.yml already pushes this tag for main commits. Building here
-      # anyway removes the race against that workflow and allows deploying a
-      # non-main commit; the shared GHA cache makes it near-free either way.
-      - name: Build and push image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        with:
-          context: .
-          file: docker/Dockerfile
-          target: prod
-          push: true
-          # sha- prefix matches build-image.yml's metadata-action tags.
-          tags: ghcr.io/${{ github.repository }}:sha-${{ inputs.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Sync env, pin image tag, deploy on Coolify and wait
         env:
           COOLIFY_URL: ${{ vars.COOLIFY_URL }}
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
           APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
-          TARGET_SHA: ${{ inputs.sha }}
+          IMAGE_TAG: ${{ needs.build.outputs.tag }}
         run: |
           set -euo pipefail
           # Every call retries: one dropped response after the image push
@@ -153,9 +133,9 @@ jobs:
           # Output is discarded so values never reach the run log.
           jq '{data: .}' "$RUNNER_TEMP/envs.json" \
             | coolify -X PATCH --data @- "$api/applications/$APP_UUID/envs/bulk" > /dev/null
-          # Pinning the exact sha tag (not `latest`) makes rollback a
-          # re-dispatch of the calling workflow on an older commit.
-          jq -n --arg tag "sha-$TARGET_SHA" '{docker_registry_image_tag: $tag}' \
+          # Pinning the commit's own tag (not `latest`) makes rollback a
+          # re-run of the calling workflow on an older commit.
+          jq -n --arg tag "$IMAGE_TAG" '{docker_registry_image_tag: $tag}' \
             | coolify -X PATCH --data @- "$api/applications/$APP_UUID" > /dev/null
           deployment_uuid="$(coolify -X POST "$api/deploy?uuid=$APP_UUID" \
             | jq -re '.deployments[0].deployment_uuid')"
