@@ -254,16 +254,16 @@ def test_containment_pairs_types_joined_by_part_of_only():
     EntryTypeRepository().save_all([type_data(), saga])
     for entry in (entry_data(), entry_data("elk"), entry_data("wars", "saga")):
         EntryRepository().save(entry)
-    for slug, role in (("moose", "part_of"), ("elk", "part_of"), ("wars", "related")):
-        target = "saga" if role == "part_of" else "session"
-        target_slug = "wars" if role == "part_of" else "moose"
-        EntryRepository().set_relations(
-            "saga" if slug == "wars" else "session",
-            slug,
-            relations=[
-                {"role": role, "target_type": target, "target_slug": target_slug}
-            ],
-        )
+    part_of_wars = {"role": "part_of", "target_type": "saga", "target_slug": "wars"}
+    EntryRepository().set_relations("session", "moose", relations=[part_of_wars])
+    EntryRepository().set_relations("session", "elk", relations=[part_of_wars])
+    EntryRepository().set_relations(
+        "saga",
+        "wars",
+        relations=[
+            {"role": "related", "target_type": "session", "target_slug": "moose"}
+        ],
+    )
 
     assert EntryTypeRepository().containment() == {("session", "saga")}
 

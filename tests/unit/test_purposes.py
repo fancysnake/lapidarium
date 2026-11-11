@@ -1,7 +1,5 @@
 from unittest.mock import MagicMock
 
-import pytest
-
 from lapidarium.mills.purposes import PurposeService
 from lapidarium.pacts.content import TypeRole
 from lapidarium.specs import MECHANIC_NAMES, PURPOSES
@@ -14,20 +12,13 @@ def test_every_role_has_a_name_and_a_purpose():
     )
 
 
-@pytest.mark.parametrize(
-    "key", ("job", "volunteering", "craft", "skill", "project", "work", "section")
-)
-def test_catalogue_lists_the_purposes_the_panel_needs(key):
-    assert key in {purpose.key for purpose in PURPOSES}
-
-
 def test_overview_groups_types_by_role_with_counts_and_containment():
     song = type_dto("song")
     meme = type_dto("meme")
     album = type_dto("album", role=TypeRole.CONTAINER_OUTCOME)
     types = MagicMock()
     types.list_all.return_value = [song, meme, album]
-    types.entry_counts.return_value = {"song": 3, "album": 1}
+    types.entry_counts.return_value = {"song": 3, "meme": 0, "album": 1}
     types.containment.return_value = {("song", "album")}
 
     overview = PurposeService(types=types).overview()

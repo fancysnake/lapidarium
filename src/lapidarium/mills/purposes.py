@@ -22,7 +22,7 @@ class PurposeService(PurposeServiceProtocol):
         uses = [
             TypeUseDTO(
                 entry_type=entry_type,
-                entries=counts.get(entry_type.key, 0),
+                entries=counts[entry_type.key],
                 containers=tuple(t for t in types if (entry_type.key, t.key) in links),
                 contents=tuple(t for t in types if (t.key, entry_type.key) in links),
             )

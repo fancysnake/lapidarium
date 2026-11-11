@@ -53,7 +53,7 @@
                     {% endfor %}
                   </p>
                 {% endif %}
-                <a href="{{ types_admin }}?q={{ use.entry_type.key|urlencode }}">{% translate "Open in the admin" %}</a>
+                <a href="{{ types_admin }}?key={{ use.entry_type.key|urlencode }}">{% translate "Open in the admin" %}</a>
               </li>
             {% endfor %}
           </ul>

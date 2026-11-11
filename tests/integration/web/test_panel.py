@@ -5,6 +5,8 @@ from http import HTTPStatus
 import pytest
 from django.contrib.auth import get_user_model
 
+from lapidarium.links.db.django.models import EntryType
+
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
 
@@ -48,8 +50,18 @@ def test_the_panel_groups_the_demo_types_by_purpose(site):
         "Activities": [("initiative", 1, [], ["project"])],
         "Sections": [("wiki_section", 1, [], ["article"])],
     }
-    assert "/admin/lapidarium_db/entrytype/?q=song" in response.text
+    assert "/admin/lapidarium_db/entrytype/?key=song" in response.text
     assert "Paid work for an employer" in response.text
+
+
+def test_the_admin_link_of_a_type_lists_that_type_only(admin):
+    for key in ("song", "songbook"):
+        EntryType.objects.create(key=key, label=key, route=key)
+
+    response = admin.get("/admin/lapidarium_db/entrytype/?key=song")
+
+    assert response.status_code == HTTPStatus.OK
+    assert [t.key for t in response.context["cl"].result_list] == ["song"]
 
 
 def test_the_panel_of_an_empty_site_names_every_purpose(browser):

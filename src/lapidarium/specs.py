@@ -42,25 +42,29 @@ OUTREACH_LIMIT = 5
 OUTREACH_WINDOW = dt.timedelta(hours=1)
 
 
-def _(text: str) -> str:
-    """Mark `text` for the translation catalogue; templates translate it."""
+def gettext_noop(text: str) -> str:
+    """Mark `text` for the translation catalogue without translating it.
+
+    makemessages extracts the call; every consumer must translate the value,
+    as templates do with `{% translate value %}`.
+    """
     return text
 
 
 # What the owner calls each type role.
 MECHANIC_NAMES: Mapping[TypeRole, str] = {
-    TypeRole.THING: _("Pieces of work"),
-    TypeRole.CALENDAR: _("Events"),
-    TypeRole.CONTAINER_OUTCOME: _("Projects"),
-    TypeRole.CONTAINER_TIMESPAN: _("Activities"),
-    TypeRole.CONTAINER_SECTION: _("Sections"),
+    TypeRole.THING: gettext_noop("Pieces of work"),
+    TypeRole.CALENDAR: gettext_noop("Events"),
+    TypeRole.CONTAINER_OUTCOME: gettext_noop("Projects"),
+    TypeRole.CONTAINER_TIMESPAN: gettext_noop("Activities"),
+    TypeRole.CONTAINER_SECTION: gettext_noop("Sections"),
 }
 
 PURPOSES: tuple[PurposeDTO, ...] = (
     PurposeDTO(
         key="work",
-        name=_("Piece of work"),
-        description=_("Something you made: a song, an article, a game."),
+        name=gettext_noop("Piece of work"),
+        description=gettext_noop("Something you made: a song, an article, a game."),
         role=TypeRole.THING,
         label="Work",
         label_plural="Works",
@@ -68,8 +72,10 @@ PURPOSES: tuple[PurposeDTO, ...] = (
     ),
     PurposeDTO(
         key="event",
-        name=_("Event"),
-        description=_("Something that happens on a date: a concert, a convention."),
+        name=gettext_noop("Event"),
+        description=gettext_noop(
+            "Something that happens on a date: a concert, a convention."
+        ),
         role=TypeRole.CALENDAR,
         label="Event",
         label_plural="Events",
@@ -77,8 +83,8 @@ PURPOSES: tuple[PurposeDTO, ...] = (
     ),
     PurposeDTO(
         key="project",
-        name=_("Project"),
-        description=_(
+        name=gettext_noop("Project"),
+        description=gettext_noop(
             "Work towards a result, holding its pieces: an album, a campaign."
         ),
         role=TypeRole.CONTAINER_OUTCOME,
@@ -88,8 +94,8 @@ PURPOSES: tuple[PurposeDTO, ...] = (
     ),
     PurposeDTO(
         key="job",
-        name=_("Job"),
-        description=_("Paid work for an employer, from a start date."),
+        name=gettext_noop("Job"),
+        description=gettext_noop("Paid work for an employer, from a start date."),
         role=TypeRole.CONTAINER_TIMESPAN,
         label="Job",
         label_plural="Jobs",
@@ -101,8 +107,8 @@ PURPOSES: tuple[PurposeDTO, ...] = (
     ),
     PurposeDTO(
         key="volunteering",
-        name=_("Volunteering"),
-        description=_("Unpaid work for an organisation or a community."),
+        name=gettext_noop("Volunteering"),
+        description=gettext_noop("Unpaid work for an organisation or a community."),
         role=TypeRole.CONTAINER_TIMESPAN,
         label="Volunteering",
         label_plural="Volunteering",
@@ -114,8 +120,10 @@ PURPOSES: tuple[PurposeDTO, ...] = (
     ),
     PurposeDTO(
         key="craft",
-        name=_("Craft"),
-        description=_("Something you keep making: songwriting, game design."),
+        name=gettext_noop("Craft"),
+        description=gettext_noop(
+            "Something you keep making: songwriting, game design."
+        ),
         role=TypeRole.CONTAINER_TIMESPAN,
         label="Craft",
         label_plural="Crafts",
@@ -123,8 +131,10 @@ PURPOSES: tuple[PurposeDTO, ...] = (
     ),
     PurposeDTO(
         key="skill",
-        name=_("Skill"),
-        description=_("Something you keep practising: a language, an instrument."),
+        name=gettext_noop("Skill"),
+        description=gettext_noop(
+            "Something you keep practising: a language, an instrument."
+        ),
         role=TypeRole.CONTAINER_TIMESPAN,
         label="Skill",
         label_plural="Skills",
@@ -132,8 +142,10 @@ PURPOSES: tuple[PurposeDTO, ...] = (
     ),
     PurposeDTO(
         key="section",
-        name=_("Section"),
-        description=_("A part of the site that groups pages: a wiki, a set of docs."),
+        name=gettext_noop("Section"),
+        description=gettext_noop(
+            "A part of the site that groups pages: a wiki, a set of docs."
+        ),
         role=TypeRole.CONTAINER_SECTION,
         label="Section",
         label_plural="Sections",
