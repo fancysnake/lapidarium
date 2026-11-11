@@ -21,6 +21,10 @@ All notable changes to this project are documented here. The format follows
 - `container_section` role: a container with no outcome and no dates, such as a wiki
   section or a set of docs. Sections stay off the about-page timeline. The
   demos' wiki section and doc set are now sections.
+- Content panel at `<ADMIN_URL>panel/`, linked from the admin sidebar: staff see
+  the types grouped as pieces of work, events, projects, activities and
+  sections, each with its entry count, the types its entries are part of and
+  the types it holds. The panel only shows; types are still edited in the admin.
 
 ### Fixed
 

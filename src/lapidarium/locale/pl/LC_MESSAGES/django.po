@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 09:17+0100\n"
+"POT-Creation-Date: 2026-11-11 16:07+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -68,6 +68,9 @@ msgstr "Przyjaciele"
 
 msgid "Showcases"
 msgstr "Wyróżnienia"
+
+msgid "Content panel"
+msgstr "Panel treści"
 
 msgid "Theme preview"
 msgstr "Podgląd motywu"
@@ -535,6 +538,69 @@ msgstr "pozycja z zewnątrz"
 msgid "external items"
 msgstr "pozycje z zewnątrz"
 
+msgid "Pieces of work"
+msgstr "Prace"
+
+msgid "Events"
+msgstr "Wydarzenia"
+
+msgid "Projects"
+msgstr "Projekty"
+
+msgid "Activities"
+msgstr "Aktywności"
+
+msgid "Sections"
+msgstr "Sekcje"
+
+msgid "Piece of work"
+msgstr "Praca"
+
+msgid "Something you made: a song, an article, a game."
+msgstr "Coś, co stworzyłeś: piosenka, artykuł, gra."
+
+msgid "Event"
+msgstr "Wydarzenie"
+
+msgid "Something that happens on a date: a concert, a convention."
+msgstr "Coś, co dzieje się w określonym dniu: koncert, konwent."
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "Work towards a result, holding its pieces: an album, a campaign."
+msgstr "Praca nad rezultatem, zbierająca jego części: album, kampania."
+
+msgid "Job"
+msgstr "Praca zawodowa"
+
+msgid "Paid work for an employer, from a start date."
+msgstr "Płatna praca u pracodawcy, od dnia rozpoczęcia."
+
+msgid "Volunteering"
+msgstr "Wolontariat"
+
+msgid "Unpaid work for an organisation or a community."
+msgstr "Nieodpłatna praca dla organizacji lub społeczności."
+
+msgid "Craft"
+msgstr "Rzemiosło"
+
+msgid "Something you keep making: songwriting, game design."
+msgstr "Coś, co stale tworzysz: pisanie piosenek, projektowanie gier."
+
+msgid "Skill"
+msgstr "Umiejętność"
+
+msgid "Something you keep practising: a language, an instrument."
+msgstr "Coś, co stale ćwiczysz: język, instrument."
+
+msgid "Section"
+msgstr "Sekcja"
+
+msgid "A part of the site that groups pages: a wiki, a set of docs."
+msgstr "Część strony grupująca podstrony: wiki, zestaw dokumentacji."
+
 msgid "Not found"
 msgstr "Nie znaleziono"
 
@@ -739,6 +805,32 @@ msgstr "powrót do"
 
 msgid "Almost there: check your inbox and confirm the subscription."
 msgstr "Prawie gotowe: sprawdź skrzynkę i potwierdź zapis."
+
+msgid "What this site is made of, by what each type is for."
+msgstr "Z czego składa się ta strona, według tego, do czego służy każdy rodzaj."
+
+msgid "Create and change types in the admin"
+msgstr "Twórz i zmieniaj rodzaje w panelu administracyjnym"
+
+#, python-format
+msgid "%(counter)s entry"
+msgid_plural "%(counter)s entries"
+msgstr[0] "%(counter)s wpis"
+msgstr[1] "%(counter)s wpisy"
+msgstr[2] "%(counter)s wpisów"
+msgstr[3] "%(counter)s wpisu"
+
+msgid "Part of:"
+msgstr "Część:"
+
+msgid "Holds:"
+msgstr "Zawiera:"
+
+msgid "Open in the admin"
+msgstr "Otwórz w panelu administracyjnym"
+
+msgid "No types yet."
+msgstr "Nie ma jeszcze rodzajów."
 
 msgid "Search for"
 msgstr "Szukaj"

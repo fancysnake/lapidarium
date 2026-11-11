@@ -1,0 +1,66 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Content panel" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="container page">
+    <div>
+      <h1 class="page__title">{% translate "Content panel" %}</h1>
+      <p class="page__lead">
+        {% translate "What this site is made of, by what each type is for." %}
+        <a href="{{ types_admin }}">{% translate "Create and change types in the admin" %}</a>
+      </p>
+    </div>
+    {% for mechanic in mechanics %}
+      <section aria-labelledby="mechanic-{{ mechanic.role }}">
+        <h2 class="section-title" id="mechanic-{{ mechanic.role }}">{% translate mechanic.name %}</h2>
+        <ul>
+          {% for purpose in mechanic.purposes %}
+            <li>
+              <strong>{% translate purpose.name %}</strong>: {% translate purpose.description %}
+            </li>
+          {% endfor %}
+        </ul>
+        {% if mechanic.types %}
+          <ul class="cards">
+            {% for use in mechanic.types %}
+              <li class="card" data-type="{{ use.entry_type.key }}">
+                {% include "lapidarium/components/type-label.html" with entry_type=use.entry_type %}
+                <h3 class="card__title">
+                  <a href="{% url 'listing' route=use.entry_type.route %}">{{ use.entry_type.label_plural }}</a>
+                </h3>
+                <p class="card__meta">
+                  {% blocktranslate count counter=use.entries trimmed %}
+                    {{ counter }} entry
+                  {% plural %}
+                    {{ counter }} entries
+                  {% endblocktranslate %}
+                </p>
+                {% if use.containers %}
+                  <p class="card__meta">
+                    {% translate "Part of:" %}
+                    {% for container in use.containers %}
+                      {{ container.label_plural }}
+                      {% if not forloop.last %}·{% endif %}
+                    {% endfor %}
+                  </p>
+                {% endif %}
+                {% if use.contents %}
+                  <p class="card__meta">
+                    {% translate "Holds:" %}
+                    {% for held in use.contents %}
+                      {{ held.label_plural }}
+                      {% if not forloop.last %}·{% endif %}
+                    {% endfor %}
+                  </p>
+                {% endif %}
+                <a href="{{ types_admin }}?key={{ use.entry_type.key|urlencode }}">{% translate "Open in the admin" %}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty">{% translate "No types yet." %}</p>
+        {% endif %}
+      </section>
+    {% endfor %}
+  </main>
+{% endblock main %}

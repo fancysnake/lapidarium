@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 09:17+0100\n"
+"POT-Creation-Date: 2026-11-11 16:07+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -67,6 +67,9 @@ msgid "Friends"
 msgstr ""
 
 msgid "Showcases"
+msgstr ""
+
+msgid "Content panel"
 msgstr ""
 
 msgid "Theme preview"
@@ -531,6 +534,69 @@ msgstr ""
 msgid "external items"
 msgstr ""
 
+msgid "Pieces of work"
+msgstr ""
+
+msgid "Events"
+msgstr ""
+
+msgid "Projects"
+msgstr ""
+
+msgid "Activities"
+msgstr ""
+
+msgid "Sections"
+msgstr ""
+
+msgid "Piece of work"
+msgstr ""
+
+msgid "Something you made: a song, an article, a game."
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Something that happens on a date: a concert, a convention."
+msgstr ""
+
+msgid "Project"
+msgstr ""
+
+msgid "Work towards a result, holding its pieces: an album, a campaign."
+msgstr ""
+
+msgid "Job"
+msgstr ""
+
+msgid "Paid work for an employer, from a start date."
+msgstr ""
+
+msgid "Volunteering"
+msgstr ""
+
+msgid "Unpaid work for an organisation or a community."
+msgstr ""
+
+msgid "Craft"
+msgstr ""
+
+msgid "Something you keep making: songwriting, game design."
+msgstr ""
+
+msgid "Skill"
+msgstr ""
+
+msgid "Something you keep practising: a language, an instrument."
+msgstr ""
+
+msgid "Section"
+msgstr ""
+
+msgid "A part of the site that groups pages: a wiki, a set of docs."
+msgstr ""
+
 msgid "Not found"
 msgstr ""
 
@@ -734,6 +800,30 @@ msgid "back by"
 msgstr ""
 
 msgid "Almost there: check your inbox and confirm the subscription."
+msgstr ""
+
+msgid "What this site is made of, by what each type is for."
+msgstr ""
+
+msgid "Create and change types in the admin"
+msgstr ""
+
+#, python-format
+msgid "%(counter)s entry"
+msgid_plural "%(counter)s entries"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Part of:"
+msgstr ""
+
+msgid "Holds:"
+msgstr ""
+
+msgid "Open in the admin"
+msgstr ""
+
+msgid "No types yet."
 msgstr ""
 
 msgid "Search for"

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, override
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.db.models import Prefetch, QuerySet
+from django.db.models import Count, Prefetch, QuerySet
 
 from lapidarium.links.db.django.models import (
     Entry,
@@ -46,6 +46,7 @@ from lapidarium.pacts.content import (
     PartDTO,
     PartKind,
     RelationDTO,
+    RelationRole,
     ShowcaseDTO,
     SyndicationLinkDTO,
     TypeRole,
@@ -244,6 +245,16 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
     def roles_in_use(self) -> dict[str, TypeRole]:
         types = EntryType.objects.filter(entries__isnull=False).distinct()
         return {key: TypeRole(role) for key, role in types.values_list("key", "role")}
+
+    @override
+    def entry_counts(self) -> dict[str, int]:
+        counted = EntryType.objects.annotate(entry_count=Count("entries"))
+        return dict(counted.values_list("key", "entry_count"))
+
+    @override
+    def containment(self) -> set[tuple[str, str]]:
+        links = Relation.objects.filter(role=RelationRole.PART_OF)
+        return set(links.values_list("from_entry__type__key", "to_entry__type__key"))
 
     @override
     def save_all(self, types: Sequence[EntryTypeData]) -> None:

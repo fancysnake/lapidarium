@@ -38,6 +38,7 @@ from lapidarium.mills.content import (
 from lapidarium.mills.maintenance import MaintenanceService
 from lapidarium.mills.metadata import MetadataService
 from lapidarium.mills.outreach import OutreachService
+from lapidarium.mills.purposes import PurposeService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
 from lapidarium.mills.theme import ThemeService
@@ -249,6 +250,10 @@ class Services(ServicesProtocol):
     @cached_property
     def theme(self) -> ThemeService:
         return PROCESS.theme
+
+    @cached_property
+    def purposes(self) -> PurposeService:
+        return PurposeService(types=self._repositories.entry_types)
 
     @cached_property
     def outreach(self) -> OutreachService:

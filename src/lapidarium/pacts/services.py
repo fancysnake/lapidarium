@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts.db import DatabaseProbeProtocol
     from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
     from lapidarium.pacts.outreach import ContactData
+    from lapidarium.pacts.purposes import MechanicDTO
     from lapidarium.pacts.site import FriendDTO, SiteDTO
     from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
 
@@ -196,6 +197,11 @@ class ThemeServiceProtocol(Protocol):
         """Return the dark-scheme page background; `None` without dark tokens."""
 
 
+class PurposeServiceProtocol(Protocol):
+    def overview(self) -> tuple[MechanicDTO, ...]:
+        """Every type role, each with the site's types of that role."""
+
+
 class ServicesProtocol(Protocol):
     """Top-level services plus the `content` group, as `request.services`."""
 
@@ -225,6 +231,9 @@ class ServicesProtocol(Protocol):
 
     @property
     def theme(self) -> ThemeServiceProtocol: ...
+
+    @property
+    def purposes(self) -> PurposeServiceProtocol: ...
 
 
 class RootRequestProtocol(Protocol):

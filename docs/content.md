@@ -65,6 +65,11 @@ a repository. Each gets its own list page, its own colour, and a section in
 the admin sidebar. Types are data, so adding one needs no code and no
 migration.
 
+**Admin → Content panel** (`<ADMIN_URL>panel/`) shows the types by what they
+are for: pieces of work, events, projects, activities and sections. Each type
+lists its entry count, the types its entries are part of, and the types it
+holds. The panel only shows; types are created and changed in the admin.
+
 ### Names and address
 
 | Field | Rule |

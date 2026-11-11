@@ -20,7 +20,7 @@ an empty string or list. Lists are comma-separated.
 | `SECRET_KEY` | required | Django's signing key; a long random string, never shared between instances |
 | `ALLOWED_HOSTS` | `localhost` | Host names the site answers to; a leading dot matches every subdomain |
 | `DATABASE_URL` | required | Database, e.g. `postgres://user:password@host:5432/name`; `sqlite:///db.sqlite3` for development |
-| `ADMIN_URL` | `admin/` | Path of the admin, with a trailing slash; the theme preview lives under it |
+| `ADMIN_URL` | `admin/` | Path of the admin, with a trailing slash; the content panel and the theme preview live under it |
 | `SITE_NAME` | `lapidarium` | Site title until the profile has a name; the admin header always |
 | `LANGUAGE_CODE` | `pl` | Default interface language, `pl` or `en`; a browser asking for the other gets it |
 | `TIME_ZONE` | `Europe/Warsaw` | Time zone for calendar entries and feeds |
