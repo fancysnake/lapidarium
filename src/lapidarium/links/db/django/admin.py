@@ -199,6 +199,11 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
                 _item(gettext("Friends"), icon="diversity_3", model="friend"),
                 _item(gettext("Showcases"), icon="star", model="showcase"),
                 {
+                    "title": gettext("Content panel"),
+                    "icon": "account_tree",
+                    "link": reverse("panel"),
+                },
+                {
                     "title": gettext("Theme preview"),
                     "icon": "palette",
                     "link": reverse("theme_preview"),

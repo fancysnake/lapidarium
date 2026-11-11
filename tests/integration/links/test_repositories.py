@@ -241,6 +241,33 @@ def test_roles_in_use_lists_only_types_with_entries():
     assert EntryTypeRepository().roles_in_use() == {"session": TypeRole.THING}
 
 
+def test_entry_counts_include_drafts_and_types_without_entries():
+    EntryTypeRepository().save_all([type_data(), type_data("event")])
+    EntryRepository().save(entry_data())
+    EntryRepository().save(entry_data("draft", status=EntryStatus.DRAFT))
+
+    assert EntryTypeRepository().entry_counts() == {"session": 2, "event": 0}
+
+
+def test_containment_pairs_types_joined_by_part_of_only():
+    saga = type_data("saga", role=TypeRole.CONTAINER_OUTCOME)
+    EntryTypeRepository().save_all([type_data(), saga])
+    for entry in (entry_data(), entry_data("elk"), entry_data("wars", "saga")):
+        EntryRepository().save(entry)
+    for slug, role in (("moose", "part_of"), ("elk", "part_of"), ("wars", "related")):
+        target = "saga" if role == "part_of" else "session"
+        target_slug = "wars" if role == "part_of" else "moose"
+        EntryRepository().set_relations(
+            "saga" if slug == "wars" else "session",
+            slug,
+            relations=[
+                {"role": role, "target_type": target, "target_slug": target_slug}
+            ],
+        )
+
+    assert EntryTypeRepository().containment() == {("session", "saga")}
+
+
 def test_entries_read_back_every_column_they_save():
     EntryTypeRepository().save_all([type_data()])
     MediaAssetRepository().save({"path": "assets/los.png", "alt": "", "content": b""})

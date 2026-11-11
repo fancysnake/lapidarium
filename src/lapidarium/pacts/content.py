@@ -500,6 +500,12 @@ class EntryTypeRepositoryProtocol(Protocol):
     def roles_in_use(self) -> dict[str, TypeRole]:
         """Role of each type that has entries, by key."""
 
+    def entry_counts(self) -> dict[str, int]:
+        """Entries of each type, drafts included, by key."""
+
+    def containment(self) -> set[tuple[str, str]]:
+        """Key pairs (type, container type) of types whose entries a part-of joins."""
+
     def save_all(self, types: Sequence[EntryTypeData]) -> None:
         """Create or update each by key; field lists are replaced."""
 

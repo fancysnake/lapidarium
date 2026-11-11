@@ -23,6 +23,7 @@ from lapidarium.pacts.content import (
     TypeRole,
 )
 from lapidarium.pacts.site import FriendDTO, LinkDTO
+from lapidarium.specs import PURPOSES
 from tests.factories import (
     entry_data,
     field_data,
@@ -628,6 +629,29 @@ def test_import_refuses_list_filters_the_type_cannot_offer(repos):
         ]
     }
     repos.transaction.atomic.assert_not_called()
+
+
+def test_import_accepts_the_types_the_purposes_suggest(repos):
+    suggested = [
+        type_data(
+            purpose.key,
+            label=purpose.label,
+            label_plural=purpose.label_plural,
+            route=purpose.route,
+            role=purpose.role,
+            fields=[field_data(f.key, f.kind, label=f.label) for f in purpose.fields],
+        )
+        for purpose in PURPOSES
+    ]
+    repos.store.read.return_value = _bundle(types=suggested, entries=[])
+
+    _import_service(repos).import_from(ROOT)
+
+    saved = repos.types.save_all.call_args.args[0]
+    assert [(t["key"], t["role"]) for t in saved] == [
+        (purpose.key, purpose.role) for purpose in PURPOSES
+    ]
+    assert len({t["route"] for t in saved}) == len(PURPOSES)
 
 
 def test_demos_come_from_the_store(repos):

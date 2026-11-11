@@ -11,6 +11,7 @@ from lapidarium.gates.web.django.health import healthz
 from lapidarium.gates.web.django.home import home
 from lapidarium.gates.web.django.lists import listing
 from lapidarium.gates.web.django.newsletter import newsletter
+from lapidarium.gates.web.django.panel import panel
 from lapidarium.gates.web.django.search import search
 from lapidarium.gates.web.django.theme_preview import theme_preview
 from lapidarium.gates.web.django.whats_new import whats_new
@@ -18,6 +19,7 @@ from lapidarium.gates.web.django.whats_new import whats_new
 # Fixed pages first: every other first segment is a content type's route.
 urlpatterns = [
     path(f"{settings.ADMIN_URL}theme-preview/", theme_preview, name="theme_preview"),
+    path(f"{settings.ADMIN_URL}panel/", panel, name="panel"),
     path(settings.ADMIN_URL, admin.site.urls),
     path("healthz/", healthz, name="healthz"),
     path("", home, name="home"),
