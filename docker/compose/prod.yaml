@@ -1,6 +1,6 @@
 ---
-# Production shape for Coolify: the prebuilt image plus PostgreSQL. Media goes
-# to a GCS bucket, so no media volume. Set the runtime env in Coolify
+# Bring your own bucket, no Caddy: the prebuilt image plus PostgreSQL, for
+# Coolify. Media goes to a GCS bucket, so no media volume. Set the runtime env in Coolify
 # (SECRET_KEY, ALLOWED_HOSTS, DATABASE_URL, GS_*, SITE_NAME, ADMIN_URL).
 name: lapidarium
 

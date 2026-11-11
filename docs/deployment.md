@@ -129,12 +129,14 @@ another one from [Configuration](configuration.md), add it under
 `web.environment` in the resource's compose file.
 
 Coolify's proxy routes the domain to Caddy, which serves uploads from the
-`media` volume and passes everything else to the web container. That makes
-two proxies, so the template sets `TRUSTED_PROXY_HOPS` to `2`. The database
-and the uploads live in named volumes, which a redeploy keeps.
+`media` volume and passes everything else to the web container. Caddy keeps
+the `X-Forwarded-For` and `X-Forwarded-Proto` headers of Coolify's proxy and
+appends to the first. That makes two proxies, so the template sets
+`TRUSTED_PROXY_HOPS` to `2`. The database and the uploads live in named
+volumes, which a redeploy keeps.
 
-`docker/compose/prod.yaml` is the older shape without Caddy: every value is
-set by hand, and uploads need a bucket. The
+`docker/compose/prod.yaml` is the shape for your own bucket, without Caddy:
+every value is set by hand, and uploads need a bucket. The
 `deploy-coolify.yml` workflow deploys to a resource made from it.
 
 ## Uploads
@@ -146,8 +148,8 @@ To keep them in Google Cloud Storage instead, create a bucket, allow public
 read on its objects, and give a service account write access. Set
 `GS_BUCKET_NAME` and `GS_LOCATION`, mount the account's key into the web
 container, and point `GOOGLE_APPLICATION_CREDENTIALS` at it; on GCP with an
-attached account, leave it empty. `prod.yaml` requires a bucket, because
-nothing behind Coolify's proxy serves a volume.
+attached account, leave it empty. `prod.yaml` requires a bucket, because it
+has no Caddy, so nothing serves the `media` volume.
 
 ## Mail and newsletter
 

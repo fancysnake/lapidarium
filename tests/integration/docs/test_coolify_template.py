@@ -9,49 +9,37 @@ import re
 import yaml
 
 from lapidarium.edges import settings
-from tests.env_docs import EXTERNAL, default
+from tests.env_docs import EXTERNAL, mismatched_defaults, table_rows
 from tests.paths import REPO
 
 COMPOSE = REPO / "docker" / "compose"
-SERVICES = yaml.safe_load((COMPOSE / "coolify.yaml").read_text(encoding="utf-8"))[
-    "services"
-]
+TEMPLATE = (COMPOSE / "coolify.yaml").read_text(encoding="utf-8")
+SERVICES = yaml.safe_load(TEMPLATE)["services"]
 WEB: dict[str, str] = SERVICES["web"]["environment"]
-VPS_WEB = yaml.safe_load((COMPOSE / "vps.yaml").read_text(encoding="utf-8"))[
-    "services"
-]["web"]["environment"]
-DEPLOYMENT = REPO / "docs" / "deployment.md"
-ROW = re.compile(r"^\| `([A-Z_]+)` \|", re.MULTILINE)
-# A variable the operator may set: `${NAME:-default}` or `${NAME:?}`.
-ASKED = re.compile(r"^\$\{([A-Z_]+):(?:-(.*)|\?)\}$")
-GENERATED = "SERVICE_"
+VPS_WEB: dict[str, str] = yaml.safe_load(
+    (COMPOSE / "vps.yaml").read_text(encoding="utf-8")
+)["services"]["web"]["environment"]
+# The operator may set `${NAME:-default}` and must set `${NAME:?}`; Coolify
+# fills a bare `${NAME}`. `$${NAME}` is left for the container's shell.
+ASKED = re.compile(r"(?<!\$)\$\{([A-Z_]+):(?:-([^}]*)|\?[^}]*)\}")
 
 
 def _asked() -> dict[str, str | None]:
-    matches = (ASKED.match(value) for value in WEB.values())
-    return {match[1]: match[2] for match in matches if match}
+    """Map each variable the template asks for to its default; None if required."""
+    return {match[1]: match[2] for match in ASKED.finditer(TEMPLATE)}
 
 
 def test_template_passes_settings_with_their_defaults():
-    scheme = {
-        name: spec
-        for name, spec in settings.env.scheme.items()
-        if _asked().get(name) is not None
-    }
+    defaults = {name: value for name, value in _asked().items() if value is not None}
 
     assert WEB.keys() <= settings.env.scheme.keys() | EXTERNAL
-    assert {
-        name: default(_asked()[name] or "empty", cast)
-        for name, (cast, _) in scheme.items()
-    } == {name: default for name, (_, default) in scheme.items()}
+    assert not mismatched_defaults(defaults)
 
 
 def test_template_wires_the_container_like_the_vps_setup():
-    fixed = ("ENV", "DEBUG", "MEDIA_ROOT", "MEDIA_URL")
+    wired = {name: value for name, value in VPS_WEB.items() if "${" not in value}
 
-    assert {name: WEB[name] for name in fixed} == {
-        name: VPS_WEB[name] for name in fixed
-    }
+    assert {name: WEB.get(name) for name in wired} == wired
 
 
 def test_template_carries_the_caddyfile_of_the_vps_setup():
@@ -67,15 +55,4 @@ def test_template_carries_the_caddyfile_of_the_vps_setup():
 
 
 def test_deployment_page_lists_what_the_template_asks_for():
-    _, section = DEPLOYMENT.read_text(encoding="utf-8").split("\n## Coolify\n")
-    referenced = set(
-        re.findall(
-            # `$${NAME}` is left for the container's shell.
-            r"(?<!\$)\$\{([A-Z_]+)",
-            (COMPOSE / "coolify.yaml").read_text(encoding="utf-8"),
-        )
-    )
-
-    assert set(ROW.findall(section.split("\n## ", 1)[0])) == {
-        name for name in referenced if not name.startswith(GENERATED)
-    }
+    assert table_rows("Coolify") == set(_asked())

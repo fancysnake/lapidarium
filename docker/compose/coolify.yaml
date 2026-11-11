@@ -65,6 +65,9 @@ services:
       - SERVICE_FQDN_CADDY_80
       # Plain HTTP on every host name: Coolify's proxy holds the certificate.
       - DOMAIN=:80
+      # Coolify's proxy reaches Caddy over a Docker network at a changing
+      # address; Caddy publishes no port, so nothing else reaches it from outside.
+      - TRUSTED_PROXIES=private_ranges
     volumes:
       - media:/srv/media:ro
       # The Caddyfile of the VPS setup, which Coolify writes from here.
@@ -73,6 +76,13 @@ services:
         target: /etc/caddy/Caddyfile
         read_only: true
         content: |
+          {
+          	servers {
+          		# Proxies whose X-Forwarded-* headers Caddy passes on; empty trusts none.
+          		trusted_proxies static {$TRUSTED_PROXIES}
+          	}
+          }
+
           {$DOMAIN} {
           	encode zstd gzip
 
