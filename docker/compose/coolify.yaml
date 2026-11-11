@@ -1,0 +1,113 @@
+# documentation: https://lapidarium.fancysnake.dev/deployment/#coolify
+# slogan: A home base for multi-format creators, where every piece of work has its own address.
+# category: cms
+# tags: portfolio,cms,blog,django,creators
+# logo: svgs/lapidarium.svg
+# port: 80
+
+# Coolify service template: the prebuilt image, PostgreSQL and Caddy. Coolify
+# generates the secrets and assigns the domain; its proxy terminates TLS and
+# routes to Caddy, which serves uploads from a volume, so no bucket is needed.
+services:
+  web:
+    image: ghcr.io/fancysnake/lapidarium:${IMAGE_TAG:-latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    # Coolify passes a container only the variables named here.
+    environment:
+      ENV: production
+      DEBUG: 'false'
+      SECRET_KEY: ${SERVICE_BASE64_64_SECRETKEY}
+      ALLOWED_HOSTS: ${SERVICE_FQDN_CADDY}
+      DATABASE_URL: postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@db:5432/lapidarium
+      MEDIA_ROOT: /app/media
+      MEDIA_URL: /media/
+      # Coolify's proxy and Caddy both append to X-Forwarded-For.
+      TRUSTED_PROXY_HOPS: '2'
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?}
+      ADMIN_URL: ${ADMIN_URL:-admin/}
+      SITE_NAME: ${SITE_NAME:-lapidarium}
+      LANGUAGE_CODE: ${LANGUAGE_CODE:-pl}
+      TIME_ZONE: ${TIME_ZONE:-Europe/Warsaw}
+      DEMO_CONTENT: ${DEMO_CONTENT:-}
+      EMAIL_URL: ${EMAIL_URL:-consolemail://}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-webmaster@localhost}
+    volumes:
+      - media:/app/media
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: lapidarium
+      POSTGRES_USER: ${SERVICE_USER_POSTGRES}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2.10-alpine
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      # The assigned domain routes to port 80 of this container.
+      - SERVICE_FQDN_CADDY_80
+      # Plain HTTP on every host name: Coolify's proxy holds the certificate.
+      - DOMAIN=:80
+      # Coolify's proxy reaches Caddy over a Docker network at a changing
+      # address; Caddy publishes no port, so nothing else reaches it from outside.
+      - TRUSTED_PROXIES=private_ranges
+    volumes:
+      - media:/srv/media:ro
+      # The Caddyfile of the VPS setup, which Coolify writes from here.
+      - type: bind
+        source: ./Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+        content: |
+          {
+          	servers {
+          		# Proxies whose X-Forwarded-* headers Caddy passes on; empty trusts none.
+          		trusted_proxies static {$TRUSTED_PROXIES}
+          	}
+          }
+
+          {$DOMAIN} {
+          	encode zstd gzip
+
+          	handle_path /media/* {
+          		root * /srv/media
+          		# Uploads share the site's origin: an SVG or HTML file opened directly
+          		# must not run script with the admin's session.
+          		header {
+          			X-Content-Type-Options nosniff
+          			Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+          		}
+          		file_server
+          	}
+
+          	handle {
+          		reverse_proxy web:8000
+          	}
+          }
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres_data:
+  media:

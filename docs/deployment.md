@@ -92,26 +92,64 @@ Data lives in named volumes: `postgres_data`, `media`, and Caddy's
 certificates in `caddy_data`. `docker compose down` keeps them; `down -v`
 deletes them.
 
-### Coolify
+## Coolify
 
-`docker/compose/prod.yaml` is the same instance without Caddy, for a platform
-that brings its own proxy. Create a Docker Compose resource from it and set
-the values as environment variables in Coolify. It passes only the variables
-it names; add others from [Configuration](configuration.md) under
-`web.environment`. Coolify's proxy is one hop, which is the production default
-of `TRUSTED_PROXY_HOPS`.
+`docker/compose/coolify.yaml` is a Coolify service template for the same
+instance. Coolify generates the secret key and the database password, assigns
+the domain and gets its certificate; you choose only the first login.
+
+1. In a Coolify project, add a resource of the kind **Docker Compose Empty**
+   and paste in the
+   [template](https://raw.githubusercontent.com/fancysnake/lapidarium/main/docker/compose/coolify.yaml).
+2. To use a domain of your own, set it on the `caddy` service, as
+   `https://example.com`, with its DNS pointing at the Coolify server.
+   Otherwise Coolify generates one.
+3. Under the environment variables, set `ADMIN_PASSWORD`; Coolify refuses to
+   deploy without it.
+4. Deploy. The site answers on the domain once the web container is healthy,
+   usually within a minute.
+
+The template asks for these; all but the password have a default:
+
+| Variable | Default | What it sets |
+|---|---|---|
+| `ADMIN_PASSWORD` | required | Password of the login created on the first start |
+| `ADMIN_USERNAME` | `admin` | Login created on the first start |
+| `ADMIN_URL` | `admin/` | Path of the admin, with a trailing slash; pick one of your own |
+| `SITE_NAME` | `lapidarium` | Site title until the profile has a name |
+| `LANGUAGE_CODE` | `pl` | Interface language, `pl` or `en` |
+| `TIME_ZONE` | `Europe/Warsaw` | Time zone for calendar entries and feeds |
+| `DEMO_CONTENT` | empty | Bundled demo loaded on the first start, `ttrpg` or `dev` |
+| `EMAIL_URL` | `consolemail://` | Mail backend for the contact form |
+| `DEFAULT_FROM_EMAIL` | `webmaster@localhost` | Sender of contact form mail |
+| `IMAGE_TAG` | `latest` | Image tag to run |
+
+Coolify passes a container only the variables the template names. To set
+another one from [Configuration](configuration.md), add it under
+`web.environment` in the resource's compose file.
+
+Coolify's proxy routes the domain to Caddy, which serves uploads from the
+`media` volume and passes everything else to the web container. Caddy keeps
+the `X-Forwarded-For` and `X-Forwarded-Proto` headers of Coolify's proxy and
+appends to the first. That makes two proxies, so the template sets
+`TRUSTED_PROXY_HOPS` to `2`. The database and the uploads live in named
+volumes, which a redeploy keeps.
+
+`docker/compose/prod.yaml` is the shape for your own bucket, without Caddy:
+every value is set by hand, and uploads need a bucket. The
+`deploy-coolify.yml` workflow deploys to a resource made from it.
 
 ## Uploads
 
-`vps.yaml` keeps uploads in the `media` volume, and Caddy serves them at
-`/media/`.
+`vps.yaml` and `coolify.yaml` keep uploads in the `media` volume, and Caddy
+serves them at `/media/`.
 
 To keep them in Google Cloud Storage instead, create a bucket, allow public
 read on its objects, and give a service account write access. Set
 `GS_BUCKET_NAME` and `GS_LOCATION`, mount the account's key into the web
 container, and point `GOOGLE_APPLICATION_CREDENTIALS` at it; on GCP with an
-attached account, leave it empty. `prod.yaml` requires a bucket, because
-nothing behind Coolify's proxy serves a volume.
+attached account, leave it empty. `prod.yaml` requires a bucket, because it
+has no Caddy, so nothing serves the `media` volume.
 
 ## Mail and newsletter
 
@@ -187,11 +225,14 @@ the database dump alone.
 
 ## Upgrades
 
-Change `IMAGE_TAG` and recreate the container:
+On a VPS, change `IMAGE_TAG` and recreate the container:
 
 ```bash
 docker compose -f vps.yaml up -d
 ```
+
+On Coolify, change `IMAGE_TAG` under the resource's environment variables,
+then redeploy.
 
 Migrations run on start. Read the [changelog](changelog.md) first: a theme
 built for an older engine release raises warning `lapidarium.W002`, and a

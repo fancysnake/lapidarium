@@ -15,6 +15,9 @@ All notable changes to this project are documented here. The format follows
 - `docker/compose/vps.yaml` self-hosts on one machine: the app, PostgreSQL and
   Caddy, which gets the TLS certificate for `DOMAIN` and serves uploads from a
   volume, so no bucket is needed. `vps.env.example` lists every variable.
+- `docker/compose/coolify.yaml` is a Coolify service template: Coolify
+  generates the secrets and assigns the domain, uploads stay in a volume, and
+  only `ADMIN_PASSWORD` must be set.
 - `container_section` role: a container with no outcome and no dates, such as a wiki
   section or a set of docs. Sections stay off the about-page timeline. The
   demos' wiki section and doc set are now sections.
