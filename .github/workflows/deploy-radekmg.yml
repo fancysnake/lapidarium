@@ -20,5 +20,4 @@ jobs:
     with:
       environment: radekmg.pl
       environment_url: https://radekmg.pl
-      sha: ${{ github.sha }}
     secrets: inherit
