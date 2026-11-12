@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import io
 from typing import TYPE_CHECKING, Protocol, TypedDict
 
-from PIL import Image
 from pydantic import BaseModel, ConfigDict
 
 from lapidarium.pacts.content import EntryTypeDTO, MediaAssetDTO
@@ -16,16 +14,6 @@ if TYPE_CHECKING:
 
 # Width and height of a web button, the old-web badge one site links another with.
 BUTTON_SIZE = (88, 31)
-
-
-def is_button(content: bytes) -> bool:
-    """Whether the bytes are an image of exactly `BUTTON_SIZE`."""
-    try:
-        image = Image.open(io.BytesIO(content))
-    except OSError, Image.DecompressionBombError:
-        return False
-    with image:
-        return image.size == BUTTON_SIZE
 
 
 class ProfileData(TypedDict):

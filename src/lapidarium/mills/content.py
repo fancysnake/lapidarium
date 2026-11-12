@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import io
 import re
 from collections import Counter
 from functools import partial
 from typing import TYPE_CHECKING, override
+
+from PIL import Image
 
 from lapidarium.mills.metadata import validate_metadata
 from lapidarium.mills.schema import url_errors
@@ -35,7 +38,7 @@ from lapidarium.pacts.services import (
     LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
-from lapidarium.pacts.site import BUTTON_SIZE, is_button
+from lapidarium.pacts.site import BUTTON_SIZE
 from lapidarium.specs import SLUG_PATTERN
 
 if TYPE_CHECKING:
@@ -44,6 +47,7 @@ if TYPE_CHECKING:
 
     from lapidarium.pacts.content import (
         AccountRepositoryProtocol,
+        AssetData,
         ContentStoreProtocol,
         EntryRepositoryProtocol,
         EntryTypeRepositoryProtocol,
@@ -245,6 +249,16 @@ def _draft_links(entry: EntryDTO) -> list[str]:
     ]
 
 
+def _is_button(content: bytes) -> bool:
+    """Whether the bytes are an image of exactly `BUTTON_SIZE`."""
+    try:
+        image = Image.open(io.BytesIO(content))
+    except OSError, ValueError, Image.DecompressionBombError:
+        return False
+    with image:
+        return image.size == BUTTON_SIZE
+
+
 def _profile_buttons(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
     """Each button path profile.yaml refers to, labelled; blank when unset."""
     if profile := bundle["profile"]:
@@ -268,19 +282,20 @@ def _profile_urls(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
         yield f"Friend {friend['name']!r}", friend["url"]
 
 
-def _profile_errors(bundle: ContentBundle) -> list[str]:
-    contents = {a["path"]: a["content"] for a in bundle["assets"]}
+def _profile_errors(
+    bundle: ContentBundle, *, assets: Mapping[str, AssetData]
+) -> list[str]:
     width, height = BUTTON_SIZE
     return [
         *(
             f"{label} is not among the assets."
             for label, path in _profile_assets(bundle)
-            if path and path not in contents
+            if path and path not in assets
         ),
         *(
             f"{label} is not an {width}x{height} image."
             for label, path in _profile_buttons(bundle)
-            if path in contents and not is_button(contents[path])
+            if path in assets and not _is_button(assets[path]["content"])
         ),
         *(
             f"{label}: {message}"
@@ -437,7 +452,7 @@ class ContentImportService(ContentImportServiceProtocol):
                 ]
             )
         }
-        alts = {a["path"]: a["alt"] for a in bundle["assets"]}
+        assets = {a["path"]: a for a in bundle["assets"]}
         entries = {
             (e["type"], e["slug"]): e for e in bundle["entries"] if e["type"] in schemas
         }
@@ -453,13 +468,13 @@ class ContentImportService(ContentImportServiceProtocol):
                 metadata[key] = validate_metadata(entry_type, entry["metadata"])
             except MetadataValidationError as exc:
                 messages.extend(f"metadata.{k}: {m}" for k, m in exc.errors.items())
-            messages.extend(self._entry_errors(entry, entry_type, alts=alts))
+            messages.extend(self._entry_errors(entry, entry_type, assets=assets))
             messages.extend(
                 self._relation_errors(key, schemas=schemas, entries=entries)
             )
             if messages:
                 errors[where] = messages
-        if messages := _profile_errors(bundle):
+        if messages := _profile_errors(bundle, assets=assets):
             errors["profile.yaml"] = messages
         if messages := _showcase_errors(bundle, entries=entries.keys()):
             errors["showcases.yaml"] = messages
@@ -511,18 +526,22 @@ class ContentImportService(ContentImportServiceProtocol):
         return messages
 
     def _entry_errors(
-        self, entry: EntryData, entry_type: EntryTypeDTO, *, alts: Mapping[str, str]
+        self,
+        entry: EntryData,
+        entry_type: EntryTypeDTO,
+        *,
+        assets: Mapping[str, AssetData],
     ) -> list[str]:
         messages = _slug_errors("Slug", entry["slug"])
         builtins = self._schema.check_builtins(entry_type.role, entry)
         messages.extend(f"{k}: {m}" for k, m in builtins.items())
-        if entry["cover"] and entry["cover"] not in alts:
+        if entry["cover"] and entry["cover"] not in assets:
             messages.append(f"Cover {entry['cover']!r} is not among the assets.")
         for part in entry["parts"]:
-            if part["asset"] and part["asset"] not in alts:
+            if part["asset"] and part["asset"] not in assets:
                 messages.append(f"Asset {part['asset']!r} is not among the assets.")
                 continue
-            alt = alts[part["asset"]] if part["asset"] else None
+            alt = assets[part["asset"]]["alt"] if part["asset"] else None
             messages.extend(self._schema.check_part(part, alt))
         kinds = [part["kind"] for part in entry["parts"]]
         messages.extend(self._schema.check_part_kinds(entry_type, kinds))

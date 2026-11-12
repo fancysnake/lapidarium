@@ -441,11 +441,13 @@ def test_import_refuses_buttons_that_are_not_88_by_31(repos):
     friends = [
         {"name": "Ada", "url": "https://ada.example.org", "button": "assets/a.svg"},
         {"name": "Bo", "url": "https://bo.example.org", "button": "assets/bo.png"},
+        {"name": "Cy", "url": "https://cy.example.org", "button": "assets/cy.ppm"},
     ]
     assets = [
         {"path": "assets/me.png", "alt": "", "content": png((100, 40))},
         {"path": "assets/a.svg", "alt": "", "content": b"<svg/>"},
         {"path": "assets/bo.png", "alt": "", "content": png(BUTTON_SIZE)},
+        {"path": "assets/cy.ppm", "alt": "", "content": b"P6\n88 31\n0\n"},
     ]
     repos.store.read.return_value = _bundle(
         profile=profile_data(button="assets/me.png"), friends=friends, assets=assets
@@ -458,6 +460,7 @@ def test_import_refuses_buttons_that_are_not_88_by_31(repos):
         "profile.yaml": [
             "Button is not an 88x31 image.",
             "Button of 'Ada' is not an 88x31 image.",
+            "Button of 'Cy' is not an 88x31 image.",
         ]
     }
     repos.transaction.atomic.assert_not_called()

@@ -431,7 +431,12 @@ def test_a_button_of_88_by_31_is_valid():
 
 @pytest.mark.parametrize(
     ("content", "missing"),
-    ((png((88, 32)), False), (b"<svg/>", False), (png(BUTTON_SIZE), True)),
+    (
+        (png((88, 32)), False),
+        (b"<svg/>", False),
+        (b"P6\n88 31\n0\n", False),
+        (png(BUTTON_SIZE), True),
+    ),
 )
 def test_a_button_must_be_an_88_by_31_image(content, *, missing):
     asset = MediaAsset.objects.create(file=ContentFile(content, name="b.png"))
