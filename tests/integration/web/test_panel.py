@@ -114,6 +114,19 @@ def test_the_new_type_form_is_for_staff(browser):
     assert response["Location"].startswith("/admin/login/")
 
 
+def test_the_new_type_form_needs_the_right_to_add_types(browser):
+    browser.force_login(
+        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
+    )
+
+    response = browser.post(
+        "/admin/panel/new/volunteering/", {**_VOLUNTEERING, "create": "1"}
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert not EntryType.objects.exists()
+
+
 def test_the_new_type_form_opens_on_what_the_purpose_suggests(browser):
     browser.force_login(get_user_model().objects.create_superuser("c", password="pw"))
 

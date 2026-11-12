@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -28,6 +29,7 @@ def panel(request: RootRequest) -> HttpResponse:
 
 
 @staff_member_required
+@permission_required("lapidarium_db.add_entrytype", raise_exception=True)
 @require_http_methods(["GET", "POST"])
 def panel_new(request: RootRequest, purpose: str) -> HttpResponse:
     """One form: "Preview" shows the type it would make, "Create" saves it."""
