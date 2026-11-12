@@ -1,0 +1,98 @@
+{% extends "lapidarium/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Change type" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="container page">
+    <div>
+      <h1 class="page__title">
+        {% translate "Change type:" %} {{ entry_type.label_plural }}
+      </h1>
+      <p class="page__lead">
+        {% translate "Preview shows what a change does to the entries before anything is saved." %}
+        <a href="{% url 'panel' %}">{% translate "Back to the content panel" %}</a>
+      </p>
+    </div>
+    {% if change %}
+      {% include "lapidarium/components/type-preview.html" with preview=change.entry_type %}
+    {% endif %}
+    <form class="form" method="post">
+      {% csrf_token %}
+      {% include "lapidarium/components/form-errors.html" with errors=form.non_field_errors %}
+      {% include "lapidarium/components/form-field.html" with field=form.label %}
+      {% include "lapidarium/components/form-field.html" with field=form.label_plural %}
+      {% include "lapidarium/components/form-field.html" with field=form.route %}
+      {% include "lapidarium/components/form-field.html" with field=form.colour %}
+      <fieldset class="form">
+        <legend class="label">{% translate "Fields" %}</legend>
+        {% if form.field_labels %}
+          <p>{% translate "Rename a field here. Remove one, or change its kind, in the admin." %}</p>
+          {% for field in form.field_labels %}
+            {% include "lapidarium/components/form-field.html" %}
+          {% endfor %}
+        {% endif %}
+        {% include "lapidarium/components/form-field.html" with field=form.new_field_label %}
+        {% include "lapidarium/components/form-field.html" with field=form.new_field_kind %}
+      </fieldset>
+      <details {% if form.allowed_parts.errors or form.required_parts.errors %}open{% endif %}>
+        <summary>{% translate "Advanced" %}</summary>
+        <div class="form">
+          {% include "lapidarium/components/form-choices.html" with field=form.allowed_parts %}
+          {% include "lapidarium/components/form-choices.html" with field=form.required_parts %}
+          <label>{{ form.in_menu }} {{ form.in_menu.label }}</label>
+          <label>{{ form.has_detail_page }} {{ form.has_detail_page.label }}</label>
+          <label>{{ form.door_enabled }} {{ form.door_enabled.label }}</label>
+        </div>
+      </details>
+      {% if change.effects %}
+        <section class="notice" role="alert" aria-labelledby="effects-title">
+          <h2 class="section-title" id="effects-title">{% translate "What this does to the entries" %}</h2>
+          <ul>
+            {% for effect in change.effects %}
+              <li>
+                {% if effect.kind == "moved" %}
+                  {% blocktranslate count counter=effect.entries trimmed %}
+                    {{ counter }} entry moves to a new address
+                  {% plural %}
+                    {{ counter }} entries move to a new address
+                  {% endblocktranslate %}
+                {% elif effect.kind == "page_lost" %}
+                  {% blocktranslate count counter=effect.entries trimmed %}
+                    {{ counter }} entry loses its own page
+                  {% plural %}
+                    {{ counter }} entries lose their own pages
+                  {% endblocktranslate %}
+                {% elif effect.kind == "page_gained" %}
+                  {% blocktranslate count counter=effect.entries trimmed %}
+                    {{ counter }} entry gets its own page
+                  {% plural %}
+                    {{ counter }} entries get their own pages
+                  {% endblocktranslate %}
+                {% elif effect.kind == "part_refused" %}
+                  {% blocktranslate count counter=effect.entries with part=effect.part trimmed %}
+                    {{ counter }} entry holds a {{ part }} part and cannot be saved until the part is removed
+                  {% plural %}
+                    {{ counter }} entries hold a {{ part }} part and cannot be saved until the part is removed
+                  {% endblocktranslate %}
+                {% else %}
+                  {% blocktranslate count counter=effect.entries with part=effect.part trimmed %}
+                    {{ counter }} entry has no {{ part }} part and cannot be saved until it gets one
+                  {% plural %}
+                    {{ counter }} entries have no {{ part }} part and cannot be saved until they get one
+                  {% endblocktranslate %}
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+          <label>
+            <input type="checkbox" name="agree" value="{{ change.consent }}">
+            {% translate "I agree to these effects" %}
+          </label>
+        </section>
+      {% endif %}
+      <div>
+        <button class="btn" type="submit" name="preview" value="1">{% translate "Preview" %}</button>
+        <button class="btn btn--primary" type="submit" name="save" value="1">{% translate "Save" %}</button>
+      </div>
+    </form>
+  </main>
+{% endblock main %}

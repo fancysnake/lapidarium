@@ -1,5 +1,6 @@
 """Purposes: what an owner wants to show, each on one type role."""
 
+from enum import StrEnum
 from typing import TYPE_CHECKING, TypedDict
 
 from pydantic import BaseModel, ConfigDict
@@ -18,16 +19,21 @@ class TypeValidationError(Exception):
         self.messages = tuple(messages)
 
 
-class NewTypeData(TypedDict):
-    """A type to create from a purpose.
+class TypeEffect(StrEnum):
+    """What a change to a type does to entries it already has."""
 
-    A blank `key` is derived from `label`. `fields` maps the key of each
-    starter field to keep to its label.
-    """
+    MOVED = "moved"
+    PAGE_LOST = "page_lost"
+    PAGE_GAINED = "page_gained"
+    PART_REFUSED = "part_refused"
+    PART_MISSING = "part_missing"
+
+
+class TypeSettingsData(TypedDict):
+    """Settings both type forms of the panel hold; `fields` maps field key to label."""
 
     label: str
     label_plural: str
-    key: str
     route: str
     colour: str
     fields: dict[str, str]
@@ -36,6 +42,26 @@ class NewTypeData(TypedDict):
     in_menu: bool
     has_detail_page: bool
     door_enabled: bool
+
+
+class NewTypeData(TypeSettingsData):
+    """A type to create from a purpose.
+
+    A blank `key` is derived from `label`. `fields` names the starter fields
+    to keep.
+    """
+
+    key: str
+
+
+class TypeChangeData(TypeSettingsData):
+    """New settings for a type.
+
+    `fields` relabels the type's fields. `added` maps the label of each field
+    to add to its kind; the key is derived from the label.
+    """
+
+    added: dict[str, FieldKind]
 
 
 class StarterFieldDTO(BaseModel):
@@ -81,3 +107,28 @@ class MechanicDTO(BaseModel):
     name: str
     purposes: tuple[PurposeDTO, ...]
     types: tuple[TypeUseDTO, ...]
+
+
+class TypeEffectDTO(BaseModel):
+    """An effect on `entries` entries; `part` is set for the two part effects."""
+
+    model_config = ConfigDict(frozen=True)
+
+    kind: TypeEffect
+    entries: int
+    part: PartKind | None = None
+
+
+class TypeChangeDTO(BaseModel):
+    """A type as a change leaves it, and whether the change is saved."""
+
+    model_config = ConfigDict(frozen=True)
+
+    entry_type: EntryTypeDTO
+    effects: tuple[TypeEffectDTO, ...]
+    saved: bool
+
+    @property
+    def consent(self) -> str:
+        """What the owner sends back to agree to exactly these effects."""
+        return ",".join(f"{e.kind}:{e.part or ''}:{e.entries}" for e in self.effects)

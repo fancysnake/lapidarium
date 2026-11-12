@@ -257,6 +257,15 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
         return set(links.values_list("from_entry__type__key", "to_entry__type__key"))
 
     @override
+    def part_holders(self, type_key: str) -> dict[PartKind, int]:
+        held = (
+            Part.objects.filter(entry__type__key=type_key)
+            .values("kind")
+            .annotate(holders=Count("entry", distinct=True))
+        )
+        return {PartKind(row["kind"]): row["holders"] for row in held}
+
+    @override
     def save_all(self, types: Sequence[EntryTypeData]) -> None:
         # Every type exists before any field points at one as its target.
         saved = {
