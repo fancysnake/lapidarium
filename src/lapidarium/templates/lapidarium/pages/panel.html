@@ -7,12 +7,15 @@
       <h1 class="page__title">{% translate "Content panel" %}</h1>
       <p class="page__lead">
         {% translate "What this site is made of, by what each type is for." %}
-        {% translate "Pick a purpose to create a type." %}
-        <a href="{{ types_admin }}">{% translate "Change types in the admin" %}</a>
+        {% translate "Pick a purpose to create a type, or a type to change it." %}
+        <a href="{{ types_admin }}">{% translate "Every setting is in the admin" %}</a>
       </p>
     </div>
     {% if created %}
       <p class="notice" role="status">{% translate "The type is created." %}</p>
+    {% endif %}
+    {% if changed %}
+      <p class="notice" role="status">{% translate "The type is changed." %}</p>
     {% endif %}
     {% for mechanic in mechanics %}
       <section aria-labelledby="mechanic-{{ mechanic.role }}">
@@ -57,6 +60,7 @@
                     {% endfor %}
                   </p>
                 {% endif %}
+                <a href="{% url 'panel_change' key=use.entry_type.key %}">{% translate "Change" %}</a>
                 <a href="{{ types_admin }}?key={{ use.entry_type.key|urlencode }}">{% translate "Open in the admin" %}</a>
               </li>
             {% endfor %}

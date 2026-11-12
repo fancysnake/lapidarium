@@ -48,6 +48,8 @@ if TYPE_CHECKING:
         ContentStoreProtocol,
         EntryRepositoryProtocol,
         EntryTypeRepositoryProtocol,
+        FieldDefinitionData,
+        FieldDefinitionDTO,
         MediaAssetDTO,
         MediaAssetRepositoryProtocol,
         Metadata,
@@ -105,6 +107,20 @@ def entry_to_data(entry: EntryDTO) -> EntryData:
     }
 
 
+def field_to_data(field: FieldDefinitionDTO) -> FieldDefinitionData:
+    return {
+        "key": field.key,
+        "label": field.label,
+        "kind": field.kind,
+        "required": field.required,
+        "choices": list(field.choices),
+        "url_kind": field.url_kind,
+        "target_type": field.target_type,
+        "show_on_card": field.show_on_card,
+        "show_in_metadata_panel": field.show_in_metadata_panel,
+    }
+
+
 def type_to_data(entry_type: EntryTypeDTO) -> EntryTypeData:
     return {
         "key": entry_type.key,
@@ -126,20 +142,7 @@ def type_to_data(entry_type: EntryTypeDTO) -> EntryTypeData:
         "door_min_entries": entry_type.door_min_entries,
         "list_filters": list(entry_type.list_filters),
         "has_detail_page": entry_type.has_detail_page,
-        "fields": [
-            {
-                "key": field.key,
-                "label": field.label,
-                "kind": field.kind,
-                "required": field.required,
-                "choices": list(field.choices),
-                "url_kind": field.url_kind,
-                "target_type": field.target_type,
-                "show_on_card": field.show_on_card,
-                "show_in_metadata_panel": field.show_in_metadata_panel,
-            }
-            for field in entry_type.fields
-        ],
+        "fields": [field_to_data(field) for field in entry_type.fields],
     }
 
 

@@ -27,8 +27,10 @@ All notable changes to this project are documented here. The format follows
   the types it holds.
 - The content panel creates a type from a purpose: one form opens on the
   purpose's suggested names, address and fields, previews the type, and keeps
-  rarely needed settings in an advanced section. Types are still changed in
-  the admin.
+  rarely needed settings in an advanced section.
+- The content panel changes a type: the same form renames fields and adds one,
+  lists how many entries a change moves, strips of a page or leaves unsavable,
+  and saves only after the owner agrees to those effects.
 - Import refuses a type whose required parts are not all allowed, as the admin
   does.
 

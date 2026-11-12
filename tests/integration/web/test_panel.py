@@ -150,7 +150,7 @@ def test_the_new_type_form_opens_on_what_the_purpose_suggests(browser):
         "field_organisation": "Organisation",
         "field_position": "Position",
     }
-    assert [field.name for field in form.starters] == [
+    assert [field.name for field in form.field_labels] == [
         "field_organisation",
         "field_position",
     ]
@@ -260,3 +260,241 @@ def test_create_asks_again_for_what_the_form_cannot_read(browser):
     assert response.status_code == HTTPStatus.OK
     assert set(response.context["form"].errors) == {"route", "colour"}
     assert not EntryType.objects.exists()
+
+
+_SESSION = {
+    "label": "Sesja",
+    "label_plural": "Sesje",
+    "route": "sesje",
+    "colour": "#6b3fa0",
+    "field_system": "System",
+    "field_format": "Format",
+    "field_players": "Gracze",
+    "new_field_label": "",
+    "new_field_kind": "text",
+    "allowed_parts": ["text", "video", "image", "audio"],
+    "required_parts": ["text"],
+    "in_menu": "on",
+    "has_detail_page": "on",
+    "door_enabled": "on",
+}
+
+
+def test_the_change_form_is_for_staff(site):
+    response = site.get("/admin/panel/types/session/")
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"].startswith("/admin/login/")
+
+
+def test_the_change_form_needs_the_right_to_change_types(site):
+    site.force_login(
+        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
+    )
+
+    response = site.post(
+        "/admin/panel/types/session/", {**_SESSION, "label": "Gra", "save": "1"}
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert EntryType.objects.get(key="session").label == "Sesja"
+
+
+def test_an_unknown_type_has_no_change_form(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.get("/admin/panel/types/saga/")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+def test_the_change_form_opens_on_the_settings_of_the_type(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.get("/admin/panel/types/session/")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.context["entry_type"].key == "session"
+    assert response.context["change"] is None
+    form = response.context["form"]
+    assert {name: form[name].value() for name in form.fields} == {
+        "label": "Sesja",
+        "label_plural": "Sesje",
+        "route": "sesje",
+        "colour": "#6b3fa0",
+        "allowed_parts": ["text", "video", "image", "audio"],
+        "required_parts": ["text"],
+        "in_menu": True,
+        "has_detail_page": True,
+        "door_enabled": True,
+        "new_field_label": None,
+        "new_field_kind": "text",
+        "field_system": "System",
+        "field_format": "Format",
+        "field_players": "Gracze",
+    }
+    assert [field.name for field in form.field_labels] == [
+        "field_system",
+        "field_format",
+        "field_players",
+    ]
+    assert "I agree to these effects" not in response.text
+
+
+def test_the_panel_links_each_type_to_its_change_form(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.get("/admin/panel/")
+
+    assert 'href="/admin/panel/types/session/"' in response.text
+    assert response.context["changed"] is False
+
+
+def test_a_change_that_affects_no_entry_is_saved_at_once(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.post(
+        "/admin/panel/types/session/",
+        {
+            **_SESSION,
+            "label": "Gra",
+            "field_players": "Players",
+            "new_field_label": "Length in hours",
+            "new_field_kind": "number",
+            "save": "1",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"] == "/admin/panel/?changed=1"
+    changed = EntryType.objects.get(key="session")
+    assert (changed.label, changed.route, changed.layout, changed.list_filters) == (
+        "Gra",
+        "sesje",
+        "media_first",
+        ["year", "tag", "system", "format"],
+    )
+    assert list(changed.fields.values_list("key", "label", "kind")) == [
+        ("system", "System", "text"),
+        ("format", "Format", "choice"),
+        ("players", "Players", "text"),
+        ("length_in_hours", "Length in hours", "number"),
+    ]
+    panel = site.get(response["Location"])
+    assert panel.context["changed"] is True
+    assert "The type is changed." in panel.text
+
+
+def test_preview_lists_what_a_change_does_to_entries_without_saving(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.post(
+        "/admin/panel/types/session/",
+        {
+            **_SESSION,
+            "route": "sessions",
+            "allowed_parts": ["text", "image", "audio"],
+            "required_parts": ["text", "image"],
+            "preview": "1",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    change = response.context["change"]
+    assert [(e.kind, e.entries, e.part) for e in change.effects] == [
+        ("moved", 2, None),
+        ("part_refused", 1, "video"),
+        ("part_missing", 2, "image"),
+    ]
+    assert change.saved is False
+    assert response.context["form"].errors == {}
+    assert "2 entries move to a new address" in response.text
+    assert (
+        "1 entry holds a video part and cannot be saved until the part is removed"
+        in response.text
+    )
+    assert (
+        "2 entries have no image part and cannot be saved until they get one"
+        in response.text
+    )
+    assert f'name="agree" value="{change.consent}"' in response.text
+    assert EntryType.objects.get(key="session").route == "sesje"
+
+
+def test_save_waits_for_consent_to_the_effects_shown(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    moved = {**_SESSION, "route": "sessions", "save": "1"}
+
+    asked = site.post("/admin/panel/types/session/", moved)
+
+    assert asked.status_code == HTTPStatus.OK
+    assert asked.context["change"].consent == "moved::2"
+    assert "2 entries move to a new address" in asked.text
+    assert EntryType.objects.get(key="session").route == "sesje"
+
+    stale = site.post("/admin/panel/types/session/", {**moved, "agree": "moved::1"})
+
+    assert stale.status_code == HTTPStatus.OK
+    assert EntryType.objects.get(key="session").route == "sesje"
+
+    agreed = site.post("/admin/panel/types/session/", {**moved, "agree": "moved::2"})
+
+    assert agreed.status_code == HTTPStatus.FOUND
+    assert agreed["Location"] == "/admin/panel/?changed=1"
+    assert EntryType.objects.get(key="session").route == "sessions"
+
+
+def test_pages_lost_are_counted(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    data = {k: v for k, v in _SESSION.items() if k != "has_detail_page"}
+
+    lost = site.post("/admin/panel/types/session/", {**data, "preview": "1"})
+
+    assert [(e.kind, e.entries) for e in lost.context["change"].effects] == [
+        ("page_lost", 2)
+    ]
+    assert "2 entries lose their own pages" in lost.text
+
+
+def test_pages_gained_are_counted(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    EntryType.objects.filter(key="session").update(has_detail_page=False)
+
+    gained = site.post("/admin/panel/types/session/", {**_SESSION, "preview": "1"})
+
+    assert [(e.kind, e.entries) for e in gained.context["change"].effects] == [
+        ("page_gained", 2)
+    ]
+    assert "2 entries get their own pages" in gained.text
+
+
+def test_change_refuses_what_the_rules_forbid_and_keeps_the_form(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.post(
+        "/admin/panel/types/session/",
+        {**_SESSION, "route": "about", "new_field_label": "System", "save": "1"},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.context["change"] is None
+    assert response.context["form"].errors == {
+        "__all__": [
+            "/about/ belongs to the about page.",
+            "A field with the key 'system' already exists.",
+        ]
+    }
+    assert EntryType.objects.get(key="session").route == "sesje"
+
+
+def test_change_asks_again_for_what_the_form_cannot_read(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.post(
+        "/admin/panel/types/session/",
+        {**_SESSION, "field_system": "", "new_field_kind": "relation", "save": "1"},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert set(response.context["form"].errors) == {"field_system", "new_field_kind"}
+    assert EntryType.objects.get(key="session").label == "Sesja"

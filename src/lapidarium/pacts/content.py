@@ -54,6 +54,12 @@ class FieldKind(StrEnum):
         return self is not FieldKind.BOOL
 
 
+# Kinds a field can take with no setting beyond its label.
+PLAIN_FIELD_KINDS = tuple(
+    kind for kind in FieldKind if kind not in {FieldKind.CHOICE, FieldKind.RELATION}
+)
+
+
 class UrlKind(StrEnum):
     ANY_HOST = "any"
     YOUTUBE = "youtube"
@@ -505,6 +511,9 @@ class EntryTypeRepositoryProtocol(Protocol):
 
     def containment(self) -> set[tuple[str, str]]:
         """Key pairs (type, container type) of types whose entries a part-of joins."""
+
+    def part_holders(self, type_key: str) -> dict[PartKind, int]:
+        """Entries of the type holding a part of each kind; unheld kinds are absent."""
 
     def save_all(self, types: Sequence[EntryTypeData]) -> None:
         """Create or update each by key; field lists are replaced."""

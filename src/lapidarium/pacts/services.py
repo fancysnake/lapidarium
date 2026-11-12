@@ -32,7 +32,13 @@ if TYPE_CHECKING:
     from lapidarium.pacts.db import DatabaseProbeProtocol
     from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
     from lapidarium.pacts.outreach import ContactData
-    from lapidarium.pacts.purposes import MechanicDTO, NewTypeData, PurposeDTO
+    from lapidarium.pacts.purposes import (
+        MechanicDTO,
+        NewTypeData,
+        PurposeDTO,
+        TypeChangeData,
+        TypeChangeDTO,
+    )
     from lapidarium.pacts.site import FriendDTO, SiteDTO
     from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
 
@@ -209,6 +215,23 @@ class PurposeServiceProtocol(Protocol):
 
     def create(self, purpose_key: str, data: NewTypeData) -> EntryTypeDTO:
         """Save a new type on the purpose's role, or raise `TypeValidationError`."""
+
+    def entry_type(self, key: str) -> EntryTypeDTO:
+        """Return the type, or raise `NotFoundError`."""
+
+    def plan_change(self, key: str, data: TypeChangeData) -> TypeChangeDTO:
+        """Return what `change` would save and do to entries, saving nothing.
+
+        Raises `NotFoundError` or `TypeValidationError`.
+        """
+
+    def change(self, key: str, data: TypeChangeData, *, consent: str) -> TypeChangeDTO:
+        """Save the change if `consent` is the `consent` of its effects.
+
+        A change with no effects has a blank one.
+
+        Raises `NotFoundError` or `TypeValidationError`.
+        """
 
 
 class ServicesProtocol(Protocol):

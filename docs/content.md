@@ -75,7 +75,24 @@ section. The form opens on the purpose's suggested names, address and fields.
 **Preview** shows what the type will be before **Create** saves it. Settings a
 purpose rarely needs (the key, the parts an entry may or must hold, the menu,
 single-entry pages, the home page door) sit under **Advanced**. A purpose is a
-starting point: the type does not remember it. Types are changed in the admin.
+starting point: the type does not remember it.
+
+To change a type, follow **Change** on its card in the panel. The form holds
+the same settings as the create form, except the key. It also renames the
+type's fields and adds one field per save; a choice or relation field, a
+removed field and a changed kind stay in the admin. **Preview** lists what the
+change does to the entries the type already has, with how many:
+
+| Change | Effect on entries |
+|---|---|
+| A new address | they move to a new address |
+| Single-entry pages switched off or on | they lose or get their own pages |
+| A part no longer allowed | those that hold it cannot be saved until the part is removed |
+| A part newly required | those without it cannot be saved until they get one |
+
+**Save** stores a change with no such effect at once. Otherwise it shows the
+effects and waits until you tick **I agree to these effects**. If the effects
+differ from the ones you agreed to, the panel asks again.
 
 ### Names and address
 
