@@ -70,7 +70,10 @@ def web_button(pk: int) -> None:
         size = None
     else:
         with file:
-            size = get_image_dimensions(file)
+            try:
+                size = get_image_dimensions(file)
+            except ValueError:
+                size = None
     if size != BUTTON_SIZE:
         width, height = BUTTON_SIZE
         msg = _("A button is an %(width)dx%(height)d image.")

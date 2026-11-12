@@ -22,11 +22,12 @@ from lapidarium.pacts.content import (
     SyndicationLinkDTO,
     TypeRole,
 )
-from lapidarium.pacts.site import FriendDTO, LinkDTO
+from lapidarium.pacts.site import BUTTON_SIZE, FriendDTO, LinkDTO
 from lapidarium.specs import PURPOSES
 from tests.factories import (
     entry_data,
     field_data,
+    png,
     profile_data,
     profile_dto,
     ref_dto,
@@ -431,6 +432,35 @@ def test_import_refuses_buttons_missing_from_the_assets(repos):
             "Photo is not among the assets.",
             "Button is not among the assets.",
             "Button of 'Ada' is not among the assets.",
+        ]
+    }
+    repos.transaction.atomic.assert_not_called()
+
+
+def test_import_refuses_buttons_that_are_not_88_by_31(repos):
+    friends = [
+        {"name": "Ada", "url": "https://ada.example.org", "button": "assets/a.svg"},
+        {"name": "Bo", "url": "https://bo.example.org", "button": "assets/bo.png"},
+        {"name": "Cy", "url": "https://cy.example.org", "button": "assets/cy.ppm"},
+    ]
+    assets = [
+        {"path": "assets/me.png", "alt": "", "content": png((100, 40))},
+        {"path": "assets/a.svg", "alt": "", "content": b"<svg/>"},
+        {"path": "assets/bo.png", "alt": "", "content": png(BUTTON_SIZE)},
+        {"path": "assets/cy.ppm", "alt": "", "content": b"P6\n88 31\n0\n"},
+    ]
+    repos.store.read.return_value = _bundle(
+        profile=profile_data(button="assets/me.png"), friends=friends, assets=assets
+    )
+
+    with pytest.raises(BundleValidationError) as caught:
+        _import_service(repos).import_from(ROOT)
+
+    assert caught.value.errors == {
+        "profile.yaml": [
+            "Button is not an 88x31 image.",
+            "Button of 'Ada' is not an 88x31 image.",
+            "Button of 'Cy' is not an 88x31 image.",
         ]
     }
     repos.transaction.atomic.assert_not_called()

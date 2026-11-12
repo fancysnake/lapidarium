@@ -118,7 +118,9 @@ reports every problem by file:
 - parts are allowed by the type, required parts are present, and their assets
   exist;
 - relations point at other entries in the same bundle, `part_of` at a
-  container, without loops, and never from published to draft.
+  container, without loops, and never from published to draft;
+- the profile's photo and every button are among the assets, and each button
+  is an 88×31 image.
 
 The full demos are in
 [`src/lapidarium/links/content_files/demos/`](https://github.com/fancysnake/lapidarium/tree/main/src/lapidarium/links/content_files/demos).
