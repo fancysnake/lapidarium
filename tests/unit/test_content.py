@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.content import ContentExportService, ContentImportService
-from lapidarium.mills.schema import SchemaService
 from lapidarium.pacts.content import (
     BundleValidationError,
     ContentSummaryDTO,
@@ -31,6 +30,7 @@ from tests.factories import (
     profile_data,
     profile_dto,
     ref_dto,
+    schema_service,
     showcase_data,
     showcase_dto,
     type_data,
@@ -160,13 +160,7 @@ def _export_service(repos):
 
 def _import_service(repos):
     return ContentImportService(
-        schema=SchemaService(
-            background="#ffffff",
-            dark_background=None,
-            admin_url="admin/",
-            media_url="/media/",
-            static_url="/static/",
-        ),
+        schema=schema_service(),
         transaction=repos.transaction,
         types=repos.types,
         entries=repos.entries,

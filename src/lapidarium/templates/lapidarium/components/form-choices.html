@@ -1,0 +1,5 @@
+<fieldset>
+  <legend class="label">{{ field.label }}</legend>
+  {{ field }}
+  {% include "lapidarium/components/form-errors.html" with errors=field.errors %}
+</fieldset>

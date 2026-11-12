@@ -253,7 +253,7 @@ class Services(ServicesProtocol):
 
     @cached_property
     def purposes(self) -> PurposeService:
-        return PurposeService(types=self._repositories.entry_types)
+        return PurposeService(types=self._repositories.entry_types, schema=self.schema)
 
     @cached_property
     def outreach(self) -> OutreachService:

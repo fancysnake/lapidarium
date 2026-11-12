@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import io
-import re
 from collections import Counter
 from functools import partial
 from typing import TYPE_CHECKING, override
@@ -11,7 +10,7 @@ from typing import TYPE_CHECKING, override
 from PIL import Image
 
 from lapidarium.mills.metadata import validate_metadata
-from lapidarium.mills.schema import url_errors
+from lapidarium.mills.schema import slug_errors, type_errors, url_errors
 from lapidarium.pacts.content import (
     BundleValidationError,
     ContentBundle,
@@ -22,7 +21,6 @@ from lapidarium.pacts.content import (
     EntryTypeData,
     EntryTypeDTO,
     FirstBootDTO,
-    ListFilter,
     LocalSetupDTO,
     MetadataValidationError,
     RelationEndDTO,
@@ -39,7 +37,6 @@ from lapidarium.pacts.services import (
     SchemaServiceProtocol,
 )
 from lapidarium.pacts.site import BUTTON_SIZE
-from lapidarium.specs import SLUG_PATTERN
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Iterator, Mapping
@@ -210,22 +207,6 @@ class ContentExportService(ContentExportServiceProtocol):
         }
         self._store.write(root, bundle)
         return _summary(bundle)
-
-
-def _slug_errors(name: str, value: str) -> list[str]:
-    """Keys and slugs become file names on export, so they stay plain slugs."""
-    if re.fullmatch(SLUG_PATTERN, value):
-        return []
-    return [f"{name} {value!r} may hold only letters, digits, - and _."]
-
-
-def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:
-    fields = {f.key for f in entry_type.fields}
-    return [
-        f"List filter {key!r} is neither year, tag nor one of the fields."
-        for key in entry_type.list_filters
-        if key not in ListFilter and key not in fields
-    ]
 
 
 def _role_errors(entry_type: EntryTypeDTO, locked: Mapping[str, TypeRole]) -> list[str]:
@@ -444,10 +425,7 @@ class ContentImportService(ContentImportServiceProtocol):
             for type_key, schema in schemas.items()
             if (
                 messages := [
-                    *_slug_errors("Key", type_key),
-                    *self._schema.check_colours(schema.colour, schema.tint),
-                    *self._schema.check_route(schema.route),
-                    *_filter_errors(schema),
+                    *type_errors(self._schema, schema),
                     *_role_errors(schema, locked),
                 ]
             )
@@ -532,7 +510,7 @@ class ContentImportService(ContentImportServiceProtocol):
         *,
         assets: Mapping[str, AssetData],
     ) -> list[str]:
-        messages = _slug_errors("Slug", entry["slug"])
+        messages = slug_errors("Slug", entry["slug"])
         builtins = self._schema.check_builtins(entry_type.role, entry)
         messages.extend(f"{k}: {m}" for k, m in builtins.items())
         if entry["cover"] and entry["cover"] not in assets:

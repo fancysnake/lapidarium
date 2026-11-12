@@ -24,7 +24,13 @@ All notable changes to this project are documented here. The format follows
 - Content panel at `<ADMIN_URL>panel/`, linked from the admin sidebar: staff see
   the types grouped as pieces of work, events, projects, activities and
   sections, each with its entry count, the types its entries are part of and
-  the types it holds. The panel only shows; types are still edited in the admin.
+  the types it holds.
+- The content panel creates a type from a purpose: one form opens on the
+  purpose's suggested names, address and fields, previews the type, and keeps
+  rarely needed settings in an advanced section. Types are still changed in
+  the admin.
+- Import refuses a type whose required parts are not all allowed, as the admin
+  does.
 
 ### Fixed
 

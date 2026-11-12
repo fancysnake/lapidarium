@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 # What views hand templates: DTOs, forms and a few plain values.
-type PageValue = BaseModel | tuple[BaseModel, ...] | Form | str | bool
+type PageValue = BaseModel | tuple[BaseModel, ...] | Form | str | bool | None
 
 
 class RootRequest(HttpRequest):
