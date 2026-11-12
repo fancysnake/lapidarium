@@ -1,5 +1,4 @@
 import datetime as dt
-import io
 
 import pytest
 from django.contrib.auth.models import User
@@ -8,7 +7,6 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.db import IntegrityError
 from django.utils import translation
-from PIL import Image
 
 from lapidarium.links.db.django.models import (
     Entry,
@@ -54,6 +52,7 @@ from tests.factories import (
     entry_data,
     field_data,
     part_data,
+    png,
     profile_data,
     showcase_data,
     type_data,
@@ -424,21 +423,15 @@ def test_a_showcase_holds_an_entry_once():
         ShowcaseItem.objects.create(showcase=showcase, entry=entry)
 
 
-def _png(size):
-    image = io.BytesIO()
-    Image.new("RGB", size).save(image, format="PNG")
-    return image.getvalue()
-
-
 def test_a_button_of_88_by_31_is_valid():
-    asset = MediaAsset.objects.create(file=ContentFile(_png(BUTTON_SIZE), name="b.png"))
+    asset = MediaAsset.objects.create(file=ContentFile(png(BUTTON_SIZE), name="b.png"))
 
     Friend(name="Ada", url="https://ada.example.org", button=asset).full_clean()
 
 
 @pytest.mark.parametrize(
     ("content", "missing"),
-    ((_png((88, 32)), False), (b"<svg/>", False), (_png(BUTTON_SIZE), True)),
+    ((png((88, 32)), False), (b"<svg/>", False), (png(BUTTON_SIZE), True)),
 )
 def test_a_button_must_be_an_88_by_31_image(content, *, missing):
     asset = MediaAsset.objects.create(file=ContentFile(content, name="b.png"))

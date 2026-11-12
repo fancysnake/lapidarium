@@ -1,6 +1,9 @@
 """Write shapes and DTOs with every key filled, for tests to override what matters."""
 
 import datetime as dt
+import io
+
+from PIL import Image
 
 from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
@@ -161,6 +164,12 @@ def profile_dto(**overrides):
             **overrides,
         }
     )
+
+
+def png(size):
+    image = io.BytesIO()
+    Image.new("RGB", size).save(image, format="PNG")
+    return image.getvalue()
 
 
 def profile_data(**overrides):

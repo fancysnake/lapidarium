@@ -35,6 +35,7 @@ from lapidarium.pacts.services import (
     LocalSetupServiceProtocol,
     SchemaServiceProtocol,
 )
+from lapidarium.pacts.site import BUTTON_SIZE, is_button
 from lapidarium.specs import SLUG_PATTERN
 
 if TYPE_CHECKING:
@@ -244,13 +245,19 @@ def _draft_links(entry: EntryDTO) -> list[str]:
     ]
 
 
+def _profile_buttons(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
+    """Each button path profile.yaml refers to, labelled; blank when unset."""
+    if profile := bundle["profile"]:
+        yield "Button", profile["button"]
+    for friend in bundle["friends"]:
+        yield f"Button of {friend['name']!r}", friend["button"]
+
+
 def _profile_assets(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
     """Each asset path profile.yaml refers to, labelled; blank when unset."""
     if profile := bundle["profile"]:
         yield "Photo", profile["photo"]
-        yield "Button", profile["button"]
-    for friend in bundle["friends"]:
-        yield f"Button of {friend['name']!r}", friend["button"]
+    yield from _profile_buttons(bundle)
 
 
 def _profile_urls(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
@@ -261,12 +268,19 @@ def _profile_urls(bundle: ContentBundle) -> Iterator[tuple[str, str]]:
         yield f"Friend {friend['name']!r}", friend["url"]
 
 
-def _profile_errors(bundle: ContentBundle, *, paths: Collection[str]) -> list[str]:
+def _profile_errors(bundle: ContentBundle) -> list[str]:
+    contents = {a["path"]: a["content"] for a in bundle["assets"]}
+    width, height = BUTTON_SIZE
     return [
         *(
             f"{label} is not among the assets."
             for label, path in _profile_assets(bundle)
-            if path and path not in paths
+            if path and path not in contents
+        ),
+        *(
+            f"{label} is not an {width}x{height} image."
+            for label, path in _profile_buttons(bundle)
+            if path in contents and not is_button(contents[path])
         ),
         *(
             f"{label}: {message}"
@@ -445,7 +459,7 @@ class ContentImportService(ContentImportServiceProtocol):
             )
             if messages:
                 errors[where] = messages
-        if messages := _profile_errors(bundle, paths=alts.keys()):
+        if messages := _profile_errors(bundle):
             errors["profile.yaml"] = messages
         if messages := _showcase_errors(bundle, entries=entries.keys()):
             errors["showcases.yaml"] = messages

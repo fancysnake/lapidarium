@@ -6,7 +6,6 @@ from functools import partial
 from typing import TYPE_CHECKING, ClassVar
 
 from django.core.exceptions import ValidationError
-from django.core.files.images import get_image_dimensions
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
@@ -27,7 +26,7 @@ from lapidarium.pacts.content import (
     TypeRole,
     UrlKind,
 )
-from lapidarium.pacts.site import BUTTON_SIZE
+from lapidarium.pacts.site import BUTTON_SIZE, is_button
 
 if TYPE_CHECKING:
     from enum import StrEnum
@@ -67,11 +66,11 @@ def web_button(pk: int) -> None:
     try:
         file = asset.file.open("rb")
     except OSError:
-        size = None
+        content = b""
     else:
         with file:
-            size = get_image_dimensions(file)
-    if size != BUTTON_SIZE:
+            content = file.read()
+    if not is_button(content):
         width, height = BUTTON_SIZE
         msg = _("A button is an %(width)dx%(height)d image.")
         raise ValidationError(msg, params={"width": width, "height": height})
