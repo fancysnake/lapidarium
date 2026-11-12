@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:07+0100\n"
+"POT-Creation-Date: 2026-11-12 10:49+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -23,6 +23,42 @@ msgstr "Twoje imię"
 
 msgid "Message"
 msgstr "Wiadomość"
+
+msgid "Name of one"
+msgstr "Nazwa jednego"
+
+msgid "Name of many"
+msgstr "Nazwa wielu"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "The list lives at /address/ on the site."
+msgstr "Lista jest na stronie pod /adres/."
+
+msgid "Colour"
+msgstr "Kolor"
+
+msgid "Key"
+msgstr "Klucz"
+
+msgid "Names the type in exports. Made from the name when blank."
+msgstr "Nazywa rodzaj w eksportach. Gdy pusty, powstaje z nazwy."
+
+msgid "Parts an entry may hold"
+msgstr "Części, które wpis może zawierać"
+
+msgid "Parts an entry must hold"
+msgstr "Części, które wpis musi zawierać"
+
+msgid "Show in the menu"
+msgstr "Pokaż w menu"
+
+msgid "Each entry has its own page"
+msgstr "Każdy wpis ma własną stronę"
+
+msgid "Show a door on the home page"
+msgstr "Pokaż drzwi na stronie głównej"
 
 msgid "That was a lot of tries in a short time. Please wait a while and try again."
 msgstr "To dużo prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie."
@@ -809,8 +845,14 @@ msgstr "Prawie gotowe: sprawdź skrzynkę i potwierdź zapis."
 msgid "What this site is made of, by what each type is for."
 msgstr "Z czego składa się ta strona, według tego, do czego służy każdy rodzaj."
 
-msgid "Create and change types in the admin"
-msgstr "Twórz i zmieniaj rodzaje w panelu administracyjnym"
+msgid "Pick a purpose to create a type."
+msgstr "Wybierz cel, aby utworzyć rodzaj."
+
+msgid "Change types in the admin"
+msgstr "Zmieniaj rodzaje w panelu administracyjnym"
+
+msgid "The type is created."
+msgstr "Rodzaj został utworzony."
 
 #, python-format
 msgid "%(counter)s entry"
@@ -831,6 +873,59 @@ msgstr "Otwórz w panelu administracyjnym"
 
 msgid "No types yet."
 msgstr "Nie ma jeszcze rodzajów."
+
+msgid "New type"
+msgstr "Nowy rodzaj"
+
+msgid "New type:"
+msgstr "Nowy rodzaj:"
+
+msgid "Back to the content panel"
+msgstr "Wróć do panelu treści"
+
+msgid "What you will get"
+msgstr "Co otrzymasz"
+
+#, python-format
+msgid "A list of %(plural)s at /%(route)s/"
+msgstr "Lista „%(plural)s” pod /%(route)s/"
+
+msgid "in the menu"
+msgstr "w menu"
+
+msgid "outside the menu"
+msgstr "poza menu"
+
+#, python-format
+msgid "A page for each %(label)s"
+msgstr "Strona dla każdego wpisu „%(label)s”"
+
+msgid "No page for single entries"
+msgstr "Bez stron pojedynczych wpisów"
+
+msgid "Fields:"
+msgstr "Pola:"
+
+msgid "Parts an entry may hold:"
+msgstr "Części, które wpis może zawierać:"
+
+msgid "A door on the home page"
+msgstr "Drzwi na stronie głównej"
+
+msgid "Fields"
+msgstr "Pola"
+
+msgid "Rename a field, or clear it to leave it out."
+msgstr "Zmień nazwę pola albo wyczyść je, aby je pominąć."
+
+msgid "Advanced"
+msgstr "Zaawansowane"
+
+msgid "Preview"
+msgstr "Podgląd"
+
+msgid "Create"
+msgstr "Utwórz"
 
 msgid "Search for"
 msgstr "Szukaj"

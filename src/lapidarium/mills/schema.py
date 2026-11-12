@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 from typing import TYPE_CHECKING, override
 from urllib.parse import urlsplit
 
@@ -21,6 +22,7 @@ from lapidarium.pacts.content import (
     EntryStatus,
     EntryTypeDTO,
     FieldKind,
+    ListFilter,
     PartData,
     PartKind,
     RelationEndDTO,
@@ -29,7 +31,7 @@ from lapidarium.pacts.content import (
     role_label,
 )
 from lapidarium.pacts.services import SchemaServiceProtocol
-from lapidarium.specs import CONTRAST_FLOOR
+from lapidarium.specs import CONTRAST_FLOOR, SLUG_PATTERN
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
@@ -70,6 +72,39 @@ def url_host(url: str) -> str | None:
 def url_errors(url: str) -> list[str]:
     """Errors unless `url` is a full http(s) address."""
     return [] if url_host(url) else ["Enter a full http(s) address."]
+
+
+def slug_errors(name: str, value: str) -> list[str]:
+    """Keys and slugs become file names on export, so they stay plain slugs."""
+    if re.fullmatch(SLUG_PATTERN, value):
+        return []
+    return [f"{name} {value!r} may hold only letters, digits, - and _."]
+
+
+def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:
+    fields = {f.key for f in entry_type.fields}
+    return [
+        f"List filter {key!r} is neither year, tag nor one of the fields."
+        for key in entry_type.list_filters
+        if key not in ListFilter and key not in fields
+    ]
+
+
+def _part_errors(entry_type: EntryTypeDTO) -> list[str]:
+    if set(entry_type.required_parts) <= set(entry_type.allowed_parts):
+        return []
+    return ["Required parts must be allowed."]
+
+
+def type_errors(schema: SchemaServiceProtocol, entry_type: EntryTypeDTO) -> list[str]:
+    """Errors in a type's own settings: key, colours, route, filters, parts."""
+    return [
+        *slug_errors("Key", entry_type.key),
+        *schema.check_colours(entry_type.colour, entry_type.tint),
+        *schema.check_route(entry_type.route),
+        *_filter_errors(entry_type),
+        *_part_errors(entry_type),
+    ]
 
 
 def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str | None:

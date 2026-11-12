@@ -5,6 +5,7 @@ import io
 
 from PIL import Image
 
+from lapidarium.mills.schema import SchemaService
 from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EntryDTO,
@@ -20,6 +21,17 @@ from lapidarium.pacts.content import (
     UrlKind,
 )
 from lapidarium.pacts.site import ProfileDTO
+
+
+def schema_service():
+    """Return the schema rules of a white site served from the usual paths."""
+    return SchemaService(
+        background="#ffffff",
+        dark_background=None,
+        admin_url="admin/",
+        media_url="/media/",
+        static_url="/static/",
+    )
 
 
 def type_data(key="session", **overrides):

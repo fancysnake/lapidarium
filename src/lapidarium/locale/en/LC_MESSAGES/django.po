@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:07+0100\n"
+"POT-Creation-Date: 2026-11-12 10:49+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -22,6 +22,42 @@ msgid "Your name"
 msgstr ""
 
 msgid "Message"
+msgstr ""
+
+msgid "Name of one"
+msgstr ""
+
+msgid "Name of many"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "The list lives at /address/ on the site."
+msgstr ""
+
+msgid "Colour"
+msgstr ""
+
+msgid "Key"
+msgstr ""
+
+msgid "Names the type in exports. Made from the name when blank."
+msgstr ""
+
+msgid "Parts an entry may hold"
+msgstr ""
+
+msgid "Parts an entry must hold"
+msgstr ""
+
+msgid "Show in the menu"
+msgstr ""
+
+msgid "Each entry has its own page"
+msgstr ""
+
+msgid "Show a door on the home page"
 msgstr ""
 
 msgid "That was a lot of tries in a short time. Please wait a while and try again."
@@ -805,7 +841,13 @@ msgstr ""
 msgid "What this site is made of, by what each type is for."
 msgstr ""
 
-msgid "Create and change types in the admin"
+msgid "Pick a purpose to create a type."
+msgstr ""
+
+msgid "Change types in the admin"
+msgstr ""
+
+msgid "The type is created."
 msgstr ""
 
 #, python-format
@@ -824,6 +866,59 @@ msgid "Open in the admin"
 msgstr ""
 
 msgid "No types yet."
+msgstr ""
+
+msgid "New type"
+msgstr ""
+
+msgid "New type:"
+msgstr ""
+
+msgid "Back to the content panel"
+msgstr ""
+
+msgid "What you will get"
+msgstr ""
+
+#, python-format
+msgid "A list of %(plural)s at /%(route)s/"
+msgstr ""
+
+msgid "in the menu"
+msgstr ""
+
+msgid "outside the menu"
+msgstr ""
+
+#, python-format
+msgid "A page for each %(label)s"
+msgstr ""
+
+msgid "No page for single entries"
+msgstr ""
+
+msgid "Fields:"
+msgstr ""
+
+msgid "Parts an entry may hold:"
+msgstr ""
+
+msgid "A door on the home page"
+msgstr ""
+
+msgid "Fields"
+msgstr ""
+
+msgid "Rename a field, or clear it to leave it out."
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Preview"
+msgstr ""
+
+msgid "Create"
 msgstr ""
 
 msgid "Search for"

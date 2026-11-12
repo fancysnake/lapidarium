@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts.db import DatabaseProbeProtocol
     from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
     from lapidarium.pacts.outreach import ContactData
-    from lapidarium.pacts.purposes import MechanicDTO
+    from lapidarium.pacts.purposes import MechanicDTO, NewTypeData, PurposeDTO
     from lapidarium.pacts.site import FriendDTO, SiteDTO
     from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
 
@@ -200,6 +200,15 @@ class ThemeServiceProtocol(Protocol):
 class PurposeServiceProtocol(Protocol):
     def overview(self) -> tuple[MechanicDTO, ...]:
         """Every type role, each with the site's types of that role."""
+
+    def purpose(self, key: str) -> PurposeDTO:
+        """Return the purpose, or raise `NotFoundError`."""
+
+    def plan(self, purpose_key: str, data: NewTypeData) -> EntryTypeDTO:
+        """Return the type `create` would save, or raise `TypeValidationError`."""
+
+    def create(self, purpose_key: str, data: NewTypeData) -> EntryTypeDTO:
+        """Save a new type on the purpose's role, or raise `TypeValidationError`."""
 
 
 class ServicesProtocol(Protocol):

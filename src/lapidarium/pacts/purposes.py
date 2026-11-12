@@ -1,8 +1,41 @@
 """Purposes: what an owner wants to show, each on one type role."""
 
+from typing import TYPE_CHECKING, TypedDict
+
 from pydantic import BaseModel, ConfigDict
 
-from lapidarium.pacts.content import EntryTypeDTO, FieldKind, TypeRole
+from lapidarium.pacts.content import EntryTypeDTO, FieldKind, PartKind, TypeRole
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+class TypeValidationError(Exception):
+    """A type that breaks the schema rules, one message per broken rule."""
+
+    def __init__(self, messages: Sequence[str]) -> None:
+        super().__init__("; ".join(messages))
+        self.messages = tuple(messages)
+
+
+class NewTypeData(TypedDict):
+    """A type to create from a purpose.
+
+    A blank `key` is derived from `label`. `fields` maps the key of each
+    starter field to keep to its label.
+    """
+
+    label: str
+    label_plural: str
+    key: str
+    route: str
+    colour: str
+    fields: dict[str, str]
+    allowed_parts: list[PartKind]
+    required_parts: list[PartKind]
+    in_menu: bool
+    has_detail_page: bool
+    door_enabled: bool
 
 
 class StarterFieldDTO(BaseModel):
