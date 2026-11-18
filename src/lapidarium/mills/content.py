@@ -51,6 +51,7 @@ if TYPE_CHECKING:
         MediaAssetDTO,
         MediaAssetRepositoryProtocol,
         Metadata,
+        PageCacheProtocol,
     )
     from lapidarium.pacts.db import TransactionProtocol
     from lapidarium.pacts.site import ProfileData, ProfileDTO, ProfileRepositoryProtocol
@@ -524,6 +525,44 @@ class ContentImportService(ContentImportServiceProtocol):
         kinds = [part["kind"] for part in entry["parts"]]
         messages.extend(self._schema.check_part_kinds(entry_type, kinds))
         return messages
+
+
+class PageClearingImportService(ContentImportServiceProtocol):
+    """Import, then drop the rendered pages once the import commits.
+
+    The import's bulk writes send no save signal, so they clear no page.
+    """
+
+    def __init__(
+        self,
+        *,
+        content_import: ContentImportServiceProtocol,
+        transaction: TransactionProtocol,
+        pages: PageCacheProtocol,
+    ) -> None:
+        self._content_import = content_import
+        self._transaction = transaction
+        self._pages = pages
+
+    @override
+    def import_from(self, root: Path) -> ContentSummaryDTO:
+        return self._then_clear(self._content_import.import_from(root))
+
+    @override
+    def demo_names(self) -> tuple[str, ...]:
+        return self._content_import.demo_names()
+
+    @override
+    def load_demo(self, name: str) -> ContentSummaryDTO:
+        return self._then_clear(self._content_import.load_demo(name))
+
+    @override
+    def seed_demo(self, name: str) -> ContentSummaryDTO:
+        return self._then_clear(self._content_import.seed_demo(name))
+
+    def _then_clear(self, summary: ContentSummaryDTO) -> ContentSummaryDTO:
+        self._transaction.on_commit(self._pages.clear)
+        return summary
 
 
 class LocalSetupService(LocalSetupServiceProtocol):

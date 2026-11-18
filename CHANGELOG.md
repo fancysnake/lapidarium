@@ -51,6 +51,8 @@ All notable changes to this project are documented here. The format follows
   and the type list flags types saved on one earlier.
 - `import_content` and `load_demo` refuse a site or friend button that is not
   an 88×31 image, as the admin does, and name the button.
+- Every import clears the cached pages once it commits. A bundle holding only
+  a profile could leave the About page stale until the cache expired.
 
 ## [0.1.0] - 2026-10-30
 

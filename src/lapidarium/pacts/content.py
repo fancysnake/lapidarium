@@ -558,3 +558,8 @@ class ContentStoreProtocol(Protocol):
 
     def read_demo(self, name: str) -> ContentBundle:
         """Bundled fixture set; `NotFoundError` for an unknown name."""
+
+
+class PageCacheProtocol(Protocol):
+    def clear(self) -> None:
+        """Drop every rendered public page."""

@@ -8,6 +8,7 @@ from random import SystemRandom
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.core.cache import caches
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 
@@ -34,6 +35,7 @@ from lapidarium.mills.content import (
     ContentImportService,
     FirstBootService,
     LocalSetupService,
+    PageClearingImportService,
 )
 from lapidarium.mills.maintenance import MaintenanceService
 from lapidarium.mills.metadata import MetadataService
@@ -42,6 +44,7 @@ from lapidarium.mills.purposes import PurposeService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
 from lapidarium.mills.theme import ThemeService
+from lapidarium.pacts.content import PAGE_CACHE
 from lapidarium.pacts.outreach import NewsletterBackend
 from lapidarium.pacts.services import ContentServicesProtocol, ServicesProtocol
 
@@ -156,16 +159,20 @@ class ContentServices(ContentServicesProtocol):
         )
 
     @cached_property
-    def importer(self) -> ContentImportService:
+    def importer(self) -> PageClearingImportService:
         repos = self._repositories
-        return ContentImportService(
-            schema=self._schema,
+        return PageClearingImportService(
+            content_import=ContentImportService(
+                schema=self._schema,
+                transaction=DjangoTransaction(),
+                types=repos.entry_types,
+                entries=repos.entries,
+                assets=repos.media_assets,
+                profile=repos.profile,
+                store=repos.content_files,
+            ),
             transaction=DjangoTransaction(),
-            types=repos.entry_types,
-            entries=repos.entries,
-            assets=repos.media_assets,
-            profile=repos.profile,
-            store=repos.content_files,
+            pages=caches[PAGE_CACHE],
         )
 
     @cached_property

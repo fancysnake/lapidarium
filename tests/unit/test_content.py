@@ -4,7 +4,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lapidarium.mills.content import ContentExportService, ContentImportService
+from lapidarium.mills.content import (
+    ContentExportService,
+    ContentImportService,
+    PageClearingImportService,
+)
 from lapidarium.pacts.content import (
     BundleValidationError,
     ContentSummaryDTO,
@@ -699,3 +703,30 @@ def test_seeding_a_demo_writes_files_inside_the_transaction(repos):
     repos.store.read_demo.assert_called_once_with("dev")
     repos.assets.write.assert_called_once_with("assets/me.png", content=b"png")
     repos.transaction.on_commit.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("method", "source"),
+    (("import_from", ROOT), ("load_demo", "dev"), ("seed_demo", "dev")),
+)
+def test_every_import_clears_the_pages_on_commit(method, source):
+    content_import, transaction, pages = MagicMock(), MagicMock(), MagicMock()
+    service = PageClearingImportService(
+        content_import=content_import, transaction=transaction, pages=pages
+    )
+
+    summary = getattr(service, method)(source)
+
+    assert summary == getattr(content_import, method).return_value
+    getattr(content_import, method).assert_called_once_with(source)
+    transaction.on_commit.assert_called_once_with(pages.clear)
+
+
+def test_demo_names_come_from_the_wrapped_import():
+    content_import, transaction = MagicMock(), MagicMock()
+    service = PageClearingImportService(
+        content_import=content_import, transaction=transaction, pages=MagicMock()
+    )
+
+    assert service.demo_names() == content_import.demo_names.return_value
+    transaction.on_commit.assert_not_called()

@@ -15,9 +15,9 @@ from lapidarium.links.newsletter.mailchimp import MailchimpNewsletter
 from lapidarium.mills.catalogue import CatalogueService
 from lapidarium.mills.content import (
     ContentExportService,
-    ContentImportService,
     FirstBootService,
     LocalSetupService,
+    PageClearingImportService,
 )
 from lapidarium.mills.maintenance import MaintenanceService
 from lapidarium.mills.metadata import MetadataService
@@ -44,7 +44,7 @@ def test_services_are_built_once_per_container():
     assert isinstance(services.metadata, MetadataService)
     assert isinstance(services.schema, SchemaService)
     assert isinstance(services.content.exporter, ContentExportService)
-    assert isinstance(services.content.importer, ContentImportService)
+    assert isinstance(services.content.importer, PageClearingImportService)
     assert isinstance(services.content.local_setup, LocalSetupService)
     assert isinstance(services.content.first_boot, FirstBootService)
     first = services.content.importer
