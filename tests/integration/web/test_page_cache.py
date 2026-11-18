@@ -11,13 +11,18 @@ from lapidarium.pacts.content import PAGE_CACHE
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
 
-@pytest.fixture(name="cached_site")
-def cached_site_fixture(settings, site):
+@pytest.fixture(name="page_cache")
+def page_cache_fixture(settings):
     settings.CACHES = {
         **settings.CACHES,
         PAGE_CACHE: {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
     }
     caches[PAGE_CACHE].clear()
+
+
+@pytest.fixture(name="cached_site")
+def cached_site_fixture(page_cache, site):
+    del page_cache  # Requested for its effect: an empty page cache.
     return site
 
 
@@ -63,15 +68,11 @@ def _import_profile(root, friends):
     Services().content.importer.import_from(root)
 
 
-def test_import_clears_the_cache_when_no_record_is_saved_or_deleted(
-    *, browser, settings, tmp_path, django_capture_on_commit_callbacks
+@pytest.mark.usefixtures("page_cache")
+def test_import_clears_the_cache_when_its_writes_send_no_signal(
+    *, browser, tmp_path, django_capture_on_commit_callbacks
 ):
-    settings.CACHES = {
-        **settings.CACHES,
-        PAGE_CACHE: {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
-    }
     _import_profile(tmp_path, [])
-    caches[PAGE_CACHE].clear()
     browser.get("/about/")
     assert browser.get("/about/").context is None
 
