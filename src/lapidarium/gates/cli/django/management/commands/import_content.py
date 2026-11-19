@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, override
 
 from django.core.management.base import BaseCommand, CommandError
 
-from lapidarium.gates.cli.django.services import build_services, counts
+from lapidarium.gates.cli.django.services import build_services, check_demo, counts
 from lapidarium.pacts.content import BundleValidationError
 
 if TYPE_CHECKING:
@@ -13,16 +13,29 @@ if TYPE_CHECKING:
 
 
 class Command(BaseCommand):
-    help = "Import an export (format v1): create or update types, entries, assets."
+    help = (
+        "Import an export (format v1) or a bundled demo: create or update types,"
+        " entries, assets."
+    )
 
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument("source", type=Path)
+        origin = parser.add_mutually_exclusive_group(required=True)
+        origin.add_argument("source", nargs="?", type=Path)
+        origin.add_argument("--demo", help="A bundled demo set, instead of a path.")
 
     @override
-    def handle(self, *_args: str, **options: Path) -> None:
+    def handle(self, *_args: str, **options: Path | str | None) -> None:
+        importer = build_services().content.importer
+        demo = options["demo"]
+        if isinstance(demo, str):
+            check_demo(demo, importer.demo_names())
         try:
-            summary = build_services().content.importer.import_from(options["source"])
+            summary = (
+                importer.load_demo(demo)
+                if isinstance(demo, str)
+                else importer.import_from(Path(str(options["source"])))
+            )
         except BundleValidationError as exc:
             raise CommandError(str(exc)) from exc
         self.stdout.write(self.style.SUCCESS(f"Imported {counts(summary)}."))

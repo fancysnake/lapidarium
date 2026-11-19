@@ -9,4 +9,4 @@ relations:
   - role: part_of
     to: doc_set/lapidarium-guide
 ---
-Install the package, run the migrations, then `load_demo dev`.
+Install the package, run the migrations, then `import_content --demo dev`.

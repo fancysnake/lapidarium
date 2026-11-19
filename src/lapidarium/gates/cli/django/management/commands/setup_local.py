@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
-from lapidarium.gates.cli.django.services import build_services, counts
+from lapidarium.gates.cli.django.services import build_services, check_demo, counts
 from lapidarium.pacts.content import BundleValidationError
 
 if TYPE_CHECKING:
@@ -18,8 +18,7 @@ class Command(BaseCommand):
 
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:
-        names = build_services().content.importer.demo_names()
-        parser.add_argument("--demo", choices=names, default="ttrpg")
+        parser.add_argument("--demo", default="ttrpg")
         parser.add_argument("--username", default="admin")
         parser.add_argument("--password", default="admin")
 
@@ -28,9 +27,11 @@ class Command(BaseCommand):
         if not settings.DEBUG:
             msg = "Local setup creates a known login; it runs only with DEBUG on."
             raise CommandError(msg)
+        content = build_services().content
+        check_demo(options["demo"], content.importer.demo_names())
         call_command("migrate", verbosity=0)
         try:
-            result = build_services().content.local_setup.set_up(
+            result = content.local_setup.set_up(
                 options["demo"],
                 username=options["username"],
                 password=options["password"],

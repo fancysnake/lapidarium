@@ -66,8 +66,8 @@ and the admin shows them read-only.
 
 ### The demo, as a worked example
 
-The `ttrpg` demo (`load_demo ttrpg`) is a game master's site built on this
-model. Sessions, songs, games, memes, articles and events are `thing` and
+The `ttrpg` demo (`import_content --demo ttrpg`) is a game master's site built
+on this model. Sessions, songs, games, memes, articles and events are `thing` and
 `calendar` types; a campaign is an outcome container that sessions are part
 of; an initiative is a timespan container. Load it locally and read its types
 in the admin to see each setting in use.

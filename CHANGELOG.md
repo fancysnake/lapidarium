@@ -32,8 +32,14 @@ All notable changes to this project are documented here. The format follows
 - Import refuses a type whose required parts are not all allowed, as the admin
   does.
 
+### Changed
+
+- An unknown demo name in `setup_local --demo` or `import_content --demo` fails
+  with the list of bundled ones.
+
 ### Removed
 
+- `load_demo`: `import_content --demo ttrpg|dev` loads a bundled demo instead.
 - `.vekna.toml` and the cabinet dev dependency. vekna and cabinet are
   installed per user, and the rituals read `[projects.lapidarium.cabinet]`
   from the vekna user config.
@@ -45,8 +51,8 @@ All notable changes to this project are documented here. The format follows
   compose files no longer wire their own.
 - A type's role locks once it has entries, so changing it can no longer wipe
   built-in fields on the next save or leave entries that won't save. The admin
-  shows the role read-only, and `import_content` and `load_demo` refuse a bundle
-  that changes it.
+  shows the role read-only, and `import_content` refuses a bundle that changes
+  it.
 - Saving an entry no longer turns a link into "part of" after its relation field
   is gone. The link shows its old role as no longer defined, and the entry saves
   once an editor picks another role or removes the link.
@@ -55,8 +61,8 @@ All notable changes to this project are documented here. The format follows
 - A content type can't take a route a fixed page, the admin, uploads or
   static files already use; the admin and `import_content` name the owner,
   and the type list flags types saved on one earlier.
-- `import_content` and `load_demo` refuse a site or friend button that is not
-  an 88×31 image, as the admin does, and name the button.
+- `import_content` refuses a site or friend button that is not an 88×31 image,
+  as the admin does, and names the button.
 - Every import clears the cached pages once it commits. A bundle holding only
   a profile could leave the About page stale until the cache expired.
 
