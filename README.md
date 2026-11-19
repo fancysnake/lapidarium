@@ -59,10 +59,9 @@ anchor.
 
 `vekna cast` runs [cabinet](https://cabinet.fancysnake.dev)'s pull request
 rituals: `heal.this`, `heal.mine`, `merge`, `ci`, `answer`, `review`, `guide`,
-`labels`. The repository carries neither tool and no `.vekna.toml`. Install
-vekna 1.3 and cabinet 7 for your user, and add this to your vekna user config
-(`~/.config/vekna/config.toml`). Change `path` to where you cloned the
-repository. Cabinet's
+`labels`. Install vekna 1.3 and cabinet 7 for your user, and add this to your
+vekna user config (`~/.config/vekna/config.toml`). Change `path` to where you
+cloned the repository. Cabinet's
 [configuration reference](https://cabinet.fancysnake.dev/configuration/) lists
 the other keys.
 
@@ -75,6 +74,14 @@ path = "~/lapidarium"
 
 [projects.lapidarium.cabinet]
 remote = "https-origin"
+# Commits are not signed, so a night run never stops at a key prompt.
+sign_commits = false
+# This repository has no `diff-cover` task, which is cabinet's default.
+coverage = "mise run test:py:cov:diff"
+
+# `fullcheck` includes the debt budget and is slow; the rituals run `pr-fix`.
+[projects.lapidarium.cabinet.agent]
+may_not_run = ["mise run fullcheck"]
 
 # The job names in .github/workflows/ci.yml. The `ci` ritual repairs only the
 # checks listed here.
