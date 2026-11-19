@@ -37,6 +37,9 @@ All notable changes to this project are documented here. The format follows
 - `load_demo`: `import_content --demo ttrpg|dev` loads a bundled demo instead.
   An unknown demo name, there or in `setup_local --demo`, fails with the list
   of bundled ones.
+- `.vekna.toml` and the cabinet dev dependency. vekna and cabinet are
+  installed per user, and the rituals read `[projects.lapidarium.cabinet]`
+  from the vekna user config.
 
 ### Fixed
 

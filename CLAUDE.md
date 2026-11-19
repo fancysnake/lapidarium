@@ -15,7 +15,9 @@ Docs site (MkDocs Material, `docs/`): `mise run site:dev` on :8001,
 `mise run site:build`; `strict: true`, so a broken link or anchor fails both.
 `docs/configuration.md` and `docs/cli.md` are guarded by integration tests:
 a new env var or command needs its row or section.
-Pull request rituals: `vekna cast refresh|cover|review|labels` (cabinet, `.vekna.toml`).
+Pull request rituals: `vekna cast`, listed in the README's Rituals section
+(cabinet 7, vekna 1.3; both installed per user, configured under
+`[projects.lapidarium.cabinet]` in the vekna user config, not in the repo).
 
 ## Architecture
 
