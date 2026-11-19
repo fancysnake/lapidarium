@@ -58,9 +58,15 @@ anchor.
 ## Rituals
 
 `vekna cast` runs [cabinet](https://cabinet.fancysnake.dev)'s pull request
-rituals (`.vekna.toml`): `refresh`, `cover`, `review`, `labels`. They push over
-HTTPS with `gh` as the credential helper, so they look for a remote named
-`https-origin`. Add it once per clone:
+rituals: `heal.this`, `heal.mine`, `merge`, `ci`, `answer`, `review`, `guide`,
+`labels`. The repository carries neither tool and no `.vekna.toml`. Install
+vekna 1.3 and cabinet 7 for your user, and configure this clone under
+`[projects.lapidarium.cabinet]` in your vekna user config; cabinet's
+[configuration reference](https://cabinet.fancysnake.dev/configuration/) lists
+the keys.
+
+The rituals push over HTTPS with `gh` as the credential helper. Set
+`remote = "https-origin"` in that table and add the remote once per clone:
 
 ```bash
 git remote add https-origin https://github.com/fancysnake/lapidarium.git
