@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, override
 
@@ -31,11 +30,12 @@ class Command(BaseCommand):
         demo = options["demo"]
         if isinstance(demo, str):
             check_demo(demo, importer.demo_names())
-            load = partial(importer.load_demo, demo)
-        else:
-            load = partial(importer.import_from, Path(str(options["source"])))
         try:
-            summary = load()
+            summary = (
+                importer.load_demo(demo)
+                if isinstance(demo, str)
+                else importer.import_from(Path(str(options["source"])))
+            )
         except BundleValidationError as exc:
             raise CommandError(str(exc)) from exc
         self.stdout.write(self.style.SUCCESS(f"Imported {counts(summary)}."))

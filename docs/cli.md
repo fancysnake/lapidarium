@@ -54,7 +54,9 @@ mise run dj import_content <source>
 mise run dj import_content --demo ttrpg|dev
 ```
 
-Takes the path of an export or, with `--demo`, a bundled demo, never both:
+Takes the path of an export or, with `--demo`, a bundled demo, never both.
+
+Bundled demos:
 
 - `ttrpg`: a game master's site, in Polish: sessions, a campaign, songs, memes,
   events, a wiki.
