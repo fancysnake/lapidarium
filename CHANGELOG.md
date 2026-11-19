@@ -32,6 +32,12 @@ All notable changes to this project are documented here. The format follows
 - Import refuses a type whose required parts are not all allowed, as the admin
   does.
 
+### Removed
+
+- `.vekna.toml` and the cabinet dev dependency. vekna and cabinet are
+  installed per user, and the rituals read `[projects.lapidarium.cabinet]`
+  from the vekna user config.
+
 ### Fixed
 
 - `/healthz/` answers `503` while the database is unreachable, so a container
