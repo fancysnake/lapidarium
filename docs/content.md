@@ -297,5 +297,5 @@ A musician's site with songs:
 
 The home page now has a *Songs* door, the menu a *Songs* item, and
 `/songs/` a list. To see a complete set, load a demo
-(`load_demo dev` or `load_demo ttrpg`) on a local instance and read its types
-in the admin.
+(`import_content --demo dev` or `--demo ttrpg`) on a local instance and read
+its types in the admin.

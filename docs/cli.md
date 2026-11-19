@@ -1,5 +1,5 @@
 ---
-description: "The lapidarium management commands: setup_local, load_demo, export_content and import_content, their options, and how to run them in a clone or container."
+description: "The lapidarium management commands: setup_local, first_boot, export_content and import_content, their options, and how to run them in a clone or container."
 ---
 
 # Commands
@@ -33,18 +33,6 @@ while the demo's files are written, nothing is kept and the next start tries
 again. Once any account exists it does nothing, so it never changes a password.
 See [Configuration](configuration.md#first-boot).
 
-## `load_demo`
-
-```bash
-mise run dj load_demo ttrpg|dev
-```
-
-Imports a bundled demo, exactly as `import_content` would:
-
-- `ttrpg`: a game master's site, in Polish: sessions, a campaign, songs, memes,
-  events, a wiki.
-- `dev`: a developer's site: projects, repos, talks, documentation sets, events.
-
 ## `export_content`
 
 ```bash
@@ -63,7 +51,14 @@ Fails, writing nothing, when a published entry links to a draft.
 
 ```bash
 mise run dj import_content <source>
+mise run dj import_content --demo ttrpg|dev
 ```
+
+Takes the path of an export or, with `--demo`, a bundled demo, never both:
+
+- `ttrpg`: a game master's site, in Polish: sessions, a campaign, songs, memes,
+  events, a wiki.
+- `dev`: a developer's site: projects, repos, talks, documentation sets, events.
 
 Reads an export and merges it in. It checks the whole bundle first: format
 version, slugs, colour contrast, field values, role fields, parts, assets,
