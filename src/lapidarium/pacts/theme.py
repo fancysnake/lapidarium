@@ -121,6 +121,15 @@ class SiteThemeDTO(BaseModel):
     stylesheets: tuple[StylesheetDTO, ...]
 
 
+class SchemeColoursDTO(BaseModel):
+    """The page and card backgrounds of one colour scheme."""
+
+    model_config = ConfigDict(frozen=True)
+
+    background: str
+    surface: str
+
+
 class ProblemDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 

@@ -214,10 +214,8 @@ class Services(ServicesProtocol):
     @cached_property
     def schema(self) -> SchemaService:
         return SchemaService(
-            background=self.theme.background(),
-            surface=self.theme.surface(),
-            dark_background=self.theme.dark_background(),
-            dark_surface=self.theme.dark_surface(),
+            colours=self.theme.colours(),
+            dark_colours=self.theme.dark_colours(),
             admin_url=settings.ADMIN_URL,
             media_url=settings.MEDIA_URL,
             static_url=settings.STATIC_URL,

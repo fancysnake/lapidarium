@@ -21,18 +21,20 @@ from lapidarium.pacts.content import (
     UrlKind,
 )
 from lapidarium.pacts.site import ProfileDTO
+from lapidarium.pacts.theme import SchemeColoursDTO
 
 
-def schema_service():
+def schema_service(**overrides):
     """Return the schema rules of a white site served from the usual paths."""
     return SchemaService(
-        background="#ffffff",
-        surface="#ffffff",
-        dark_background=None,
-        dark_surface=None,
-        admin_url="admin/",
-        media_url="/media/",
-        static_url="/static/",
+        **{
+            "colours": SchemeColoursDTO(background="#ffffff", surface="#ffffff"),
+            "dark_colours": None,
+            "admin_url": "admin/",
+            "media_url": "/media/",
+            "static_url": "/static/",
+            **overrides,
+        }
     )
 
 

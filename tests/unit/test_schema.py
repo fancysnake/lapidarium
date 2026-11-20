@@ -2,7 +2,6 @@ import datetime as dt
 
 import pytest
 
-from lapidarium.mills.schema import SchemaService
 from lapidarium.pacts.content import (
     FIELD_DEFAULTS,
     EntryTypeDTO,
@@ -12,7 +11,8 @@ from lapidarium.pacts.content import (
     RelationEndDTO,
     TypeRole,
 )
-from tests.factories import builtins, part_data
+from lapidarium.pacts.theme import SchemeColoursDTO
+from tests.factories import builtins, part_data, schema_service
 
 WHITE = "#ffffff"
 BLACK = "#000000"
@@ -57,20 +57,7 @@ URLS = {
 
 @pytest.fixture(name="schema")
 def schema_fixture():
-    return _schema()
-
-
-def _schema(**colours):
-    return SchemaService(
-        **{
-            "background": WHITE,
-            "surface": WHITE,
-            "dark_background": None,
-            "dark_surface": None,
-            **colours,
-            **URLS,
-        }
-    )
+    return schema_service(**URLS)
 
 
 @pytest.mark.parametrize(
@@ -286,7 +273,9 @@ def test_check_colours(schema):
 
 
 def test_check_colours_covers_a_surface_that_differs_from_the_background():
-    schema = _schema(surface="#c0c0c0")
+    schema = schema_service(
+        colours=SchemeColoursDTO(background=WHITE, surface="#c0c0c0"), **URLS
+    )
 
     assert schema.check_colours("#6b3fa0", schema.derive_tint("#6b3fa0")) == [
         "Contrast with the surface is 4.06:1, needs 4.5:1."
@@ -319,19 +308,25 @@ def test_without_a_dark_scheme_there_is_no_dark_colour(schema):
     (("#6b3fa0", "#9779bc"), ("#c9a0ff", "#c9a0ff"), ("#000000", "#878787")),
 )
 def test_derive_dark_colour_lightens_until_it_reads(colour, dark):
-    schema = _schema(dark_background="#121212", dark_surface="#121212")
+    schema = schema_service(
+        dark_colours=SchemeColoursDTO(background="#121212", surface="#121212"), **URLS
+    )
 
     assert schema.derive_dark_colour(colour) == dark
 
 
 def test_derive_dark_colour_lightens_until_it_reads_on_the_surface_too():
-    schema = _schema(dark_background="#121212", dark_surface="#3a3a3a")
+    schema = schema_service(
+        dark_colours=SchemeColoursDTO(background="#121212", surface="#3a3a3a"), **URLS
+    )
 
     assert schema.derive_dark_colour("#6b3fa0") == "#b29bce"
 
 
 def test_derive_dark_colour_is_white_when_nothing_reads():
     # White on #777777 is 4.48:1, under the floor.
-    schema = _schema(dark_background="#777777", dark_surface="#777777")
+    schema = schema_service(
+        dark_colours=SchemeColoursDTO(background="#777777", surface="#777777"), **URLS
+    )
 
     assert schema.derive_dark_colour("#6b3fa0") == WHITE

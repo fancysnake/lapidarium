@@ -36,6 +36,8 @@ from lapidarium.specs import CONTRAST_FLOOR, SLUG_PATTERN
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 
+    from lapidarium.pacts.theme import SchemeColoursDTO
+
 _BLANK = frozenset({None, ""})
 _LIGHTEN_STEPS = 100
 # Pages ask per request; the colours and the background change per process.
@@ -145,26 +147,22 @@ class SchemaService(SchemaServiceProtocol):
     """Type schemas: role built-ins, parts, relations, colours, routes.
 
     Type colours are drawn on the page background, their tint and `surface`.
-    They get a dark-scheme variant when `dark_background` and `dark_surface`
-    are given. A type's route cannot start a fixed page, nor the admin, upload or static
-    URL prefix the deployment serves.
+    They get a dark-scheme variant when `dark_colours` are given. A type's route
+    cannot start a fixed page, nor the admin, upload or static URL prefix the
+    deployment serves.
     """
 
     def __init__(
         self,
-        background: str,
+        colours: SchemeColoursDTO,
         *,
-        surface: str,
-        dark_background: str | None,
-        dark_surface: str | None,
+        dark_colours: SchemeColoursDTO | None,
         admin_url: str,
         media_url: str,
         static_url: str,
     ) -> None:
-        self._background = background
-        self._surface = surface
-        self._dark_background = dark_background
-        self._dark_surface = dark_surface
+        self._colours = colours
+        self._dark_colours = dark_colours
         served = {
             admin_url: "the admin",
             media_url: "uploads",
@@ -294,28 +292,26 @@ class SchemaService(SchemaServiceProtocol):
 
     @override
     def derive_tint(self, colour: str) -> str:
-        return tint_over(colour, self._background)
+        return tint_over(colour, self._colours.background)
 
     @override
     def check_colours(self, colour: str, tint: str) -> list[str]:
+        drawn_on = (
+            ("page background", self._colours.background),
+            ("tint", tint),
+            ("surface", self._colours.surface),
+        )
         errors: list[str] = []
-        if (ratio := contrast_ratio(colour, self._background)) < CONTRAST_FLOOR:
-            errors.append(
-                f"Contrast with the page background is {ratio:.2f}:1,"
-                f" needs {CONTRAST_FLOOR}:1."
-            )
-        if (ratio := contrast_ratio(colour, tint)) < CONTRAST_FLOOR:
-            errors.append(
-                f"Contrast with the tint is {ratio:.2f}:1, needs {CONTRAST_FLOOR}:1."
-            )
-        if (
-            self._surface != self._background
-            and (ratio := contrast_ratio(colour, self._surface)) < CONTRAST_FLOOR
-        ):
-            errors.append(
-                f"Contrast with the surface is {ratio:.2f}:1,"
-                f" needs {CONTRAST_FLOOR}:1."
-            )
+        seen: set[str] = set()
+        for label, other in drawn_on:
+            if other in seen:
+                continue
+            seen.add(other)
+            if (ratio := contrast_ratio(colour, other)) < CONTRAST_FLOOR:
+                errors.append(
+                    f"Contrast with the {label} is {ratio:.2f}:1,"
+                    f" needs {CONTRAST_FLOOR}:1."
+                )
         return errors
 
     @override
@@ -326,6 +322,6 @@ class SchemaService(SchemaServiceProtocol):
 
     @override
     def derive_dark_colour(self, colour: str) -> str | None:
-        if (dark := self._dark_background) is None:
+        if (dark := self._dark_colours) is None:
             return None
-        return _lighten(colour, background=dark, surface=self._dark_surface or dark)
+        return _lighten(colour, background=dark.background, surface=dark.surface)

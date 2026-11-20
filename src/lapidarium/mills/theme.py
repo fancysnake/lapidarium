@@ -10,6 +10,7 @@ from lapidarium.pacts.theme import (
     CONTRAST_PAIRS,
     REQUIRED_TOKENS,
     ProblemDTO,
+    SchemeColoursDTO,
     SiteThemeDTO,
     StylesheetDTO,
     ThemeProblem,
@@ -35,9 +36,13 @@ def _release(version: str) -> tuple[str, ...]:
 def _contrast_problems(
     tokens: Mapping[str, str], *, scheme: str
 ) -> Iterator[ProblemDTO]:
+    checked: set[tuple[str, str]] = set()
     for text, background in CONTRAST_PAIRS:
         if text not in tokens or background not in tokens:
             continue
+        if (text, tokens[background]) in checked:
+            continue
+        checked.add((text, tokens[background]))
         if (ratio := contrast_ratio(tokens[text], tokens[background])) < CONTRAST_FLOOR:
             yield ProblemDTO(
                 code=ThemeProblem.LOW_CONTRAST,
@@ -48,39 +53,49 @@ def _contrast_problems(
             )
 
 
-def _type_colour_problems(
-    *, light: str, dark: str, light_surface: str, dark_surface: str
+def _white_problems(
+    token: str, *, light: str, dark: str, drawn_on: tuple[str, ...], what: str
 ) -> Iterator[ProblemDTO]:
-    """Report a darker dark page or surface that white type colours cannot read on.
+    """Report a dark `token` that white, the lightest type colour, cannot read on.
 
-    White is as light as type colours get; a page or surface no darker than its
-    light counterpart lightens none of them.
+    A dark colour no darker than its light counterpart lightens none of them.
+    `drawn_on` is every colour white lands on there; `what` names them.
     """
-    if (
-        contrast_ratio(WHITE, dark) > contrast_ratio(WHITE, light)
-        and (ratio := lowest_contrast(WHITE, (dark, tint_over(WHITE, dark))))
-        < CONTRAST_FLOOR
-    ):
-        yield ProblemDTO(
-            code=ThemeProblem.LOW_CONTRAST,
-            message=(
-                f"No type colour reads on {_BACKGROUND} (dark): white has"
-                f" contrast {ratio:.2f}:1 with it or its tint,"
-                f" needs {CONTRAST_FLOOR}:1."
-            ),
+    if contrast_ratio(WHITE, dark) <= contrast_ratio(WHITE, light):
+        return
+    if (ratio := lowest_contrast(WHITE, drawn_on)) >= CONTRAST_FLOOR:
+        return
+    yield ProblemDTO(
+        code=ThemeProblem.LOW_CONTRAST,
+        message=(
+            f"No type colour reads on {token} (dark): white has"
+            f" contrast {ratio:.2f}:1 with {what}, needs {CONTRAST_FLOOR}:1."
+        ),
+    )
+
+
+def _type_colour_problems(
+    light: SchemeColoursDTO, dark: SchemeColoursDTO
+) -> Iterator[ProblemDTO]:
+    yield from _white_problems(
+        _BACKGROUND,
+        light=light.background,
+        dark=dark.background,
+        drawn_on=(dark.background, tint_over(WHITE, dark.background)),
+        what="it or its tint",
+    )
+    if dark.surface != dark.background:
+        yield from _white_problems(
+            _SURFACE,
+            light=light.surface,
+            dark=dark.surface,
+            drawn_on=(dark.surface,),
+            what="it",
         )
-    if (
-        dark_surface != dark
-        and contrast_ratio(WHITE, dark_surface) > contrast_ratio(WHITE, light_surface)
-        and (ratio := contrast_ratio(WHITE, dark_surface)) < CONTRAST_FLOOR
-    ):
-        yield ProblemDTO(
-            code=ThemeProblem.LOW_CONTRAST,
-            message=(
-                f"No type colour reads on {_SURFACE} (dark): white has"
-                f" contrast {ratio:.2f}:1 with it, needs {CONTRAST_FLOOR}:1."
-            ),
-        )
+
+
+def _scheme(tokens: Mapping[str, str]) -> SchemeColoursDTO:
+    return SchemeColoursDTO(background=tokens[_BACKGROUND], surface=tokens[_SURFACE])
 
 
 def _site_theme(layers: tuple[ThemeDTO, ...]) -> SiteThemeDTO:
@@ -105,7 +120,8 @@ def _site_theme(layers: tuple[ThemeDTO, ...]) -> SiteThemeDTO:
 class ThemeService(ThemeServiceProtocol):
     """Read through `store`; checked against `engine_version`.
 
-    `ValueError` when no layer sets `--color-bg`: the colour checks need it.
+    `ValueError` when no layer sets `--color-bg` or `--color-surface`: the colour
+    checks need them.
     """
 
     def __init__(self, *, store: ThemeStoreProtocol, engine_version: str) -> None:
@@ -119,9 +135,10 @@ class ThemeService(ThemeServiceProtocol):
         for layer in self._layers:
             self._light |= layer.tokens
             self._dark |= layer.tokens | layer.dark_tokens
-        if _BACKGROUND not in self._light:
-            msg = f"No theme defines the required token {_BACKGROUND}."
-            raise ValueError(msg)
+        for token in (_BACKGROUND, _SURFACE):
+            if token not in self._light:
+                msg = f"No theme defines the required token {token}."
+                raise ValueError(msg)
         self._has_dark = any(layer.dark_tokens for layer in self._layers)
         self._active = _site_theme(self._layers)
 
@@ -130,22 +147,12 @@ class ThemeService(ThemeServiceProtocol):
         return self._active
 
     @override
-    def background(self) -> str:
-        return self._light[_BACKGROUND]
+    def colours(self) -> SchemeColoursDTO:
+        return _scheme(self._light)
 
     @override
-    def dark_background(self) -> str | None:
-        return self._dark[_BACKGROUND] if self._has_dark else None
-
-    @override
-    def surface(self) -> str:
-        return self._light.get(_SURFACE, self._light[_BACKGROUND])
-
-    @override
-    def dark_surface(self) -> str | None:
-        if not self._has_dark:
-            return None
-        return self._dark.get(_SURFACE, self._dark[_BACKGROUND])
+    def dark_colours(self) -> SchemeColoursDTO | None:
+        return _scheme(self._dark) if self._has_dark else None
 
     @override
     def check(self) -> list[ProblemDTO]:
@@ -167,12 +174,7 @@ class ThemeService(ThemeServiceProtocol):
         yield from _contrast_problems(self._light, scheme="light")
         if self._has_dark:
             yield from _contrast_problems(self._dark, scheme="dark")
-            yield from _type_colour_problems(
-                light=self._light[_BACKGROUND],
-                dark=self._dark[_BACKGROUND],
-                light_surface=self.surface(),
-                dark_surface=self._dark.get(_SURFACE, self._dark[_BACKGROUND]),
-            )
+            yield from _type_colour_problems(self.colours(), _scheme(self._dark))
 
     def _engine(self) -> Iterator[ProblemDTO]:
         active = self._layers[-1]

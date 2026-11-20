@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts.outreach import ContactData
     from lapidarium.pacts.purposes import MechanicDTO, NewTypeData, PurposeDTO
     from lapidarium.pacts.site import FriendDTO, SiteDTO
-    from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
+    from lapidarium.pacts.theme import ProblemDTO, SchemeColoursDTO, SiteThemeDTO
 
 
 class MetadataServiceProtocol(Protocol):
@@ -193,17 +193,11 @@ class ThemeServiceProtocol(Protocol):
     def check(self) -> list[ProblemDTO]:
         """Return what is wrong with the active theme, errors first."""
 
-    def background(self) -> str:
-        """Return the page background type colours must stand out against."""
+    def colours(self) -> SchemeColoursDTO:
+        """Return the backgrounds type colours must stand out against."""
 
-    def dark_background(self) -> str | None:
-        """Return the dark-scheme page background; `None` without dark tokens."""
-
-    def surface(self) -> str:
-        """Return the card background type colours must also stand out against."""
-
-    def dark_surface(self) -> str | None:
-        """Return the dark-scheme card background; `None` without dark tokens."""
+    def dark_colours(self) -> SchemeColoursDTO | None:
+        """Return the dark-scheme backgrounds; `None` without dark tokens."""
 
 
 class PurposeServiceProtocol(Protocol):
