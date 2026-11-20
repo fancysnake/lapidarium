@@ -140,6 +140,19 @@ def test_a_dark_surface_is_checked_when_the_page_backgrounds_match():
     ]
 
 
+def test_a_dark_surface_is_checked_when_the_background_check_is_skipped():
+    light = COMPLETE | {"--color-bg": "#767676"}
+    dark = {"--color-bg": "#808080", "--color-surface": "#808080"}
+    base = _theme(tokens=light, dark_tokens=dark)
+
+    messages = [p.message for p in _service(base=base).check()]
+
+    assert (
+        "No type colour reads on --color-surface (dark): white has"
+        " contrast 3.95:1 with it, needs 4.5:1."
+    ) in messages
+
+
 def test_a_dark_surface_lighter_than_the_light_one_is_not_a_problem():
     light = COMPLETE | {"--color-surface": "#404040", "--color-text": "#ffffff"}
     light |= {"--color-type-default": "#ffffff", "--color-bg": "#404040"}

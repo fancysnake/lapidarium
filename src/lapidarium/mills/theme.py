@@ -84,7 +84,10 @@ def _type_colour_problems(
         drawn_on=(dark.background, tint_over(WHITE, dark.background)),
         what="it or its tint",
     )
-    if dark.surface != dark.background:
+    background_covers_surface = dark.surface == dark.background and contrast_ratio(
+        WHITE, dark.background
+    ) > contrast_ratio(WHITE, light.background)
+    if not background_covers_surface:
         yield from _white_problems(
             _SURFACE,
             light=light.surface,
