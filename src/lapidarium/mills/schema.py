@@ -39,26 +39,26 @@ if TYPE_CHECKING:
 _BLANK = frozenset({None, ""})
 _LIGHTEN_STEPS = 100
 # Pages ask per request; the colours and the background change per process.
-_LIGHTENED: dict[tuple[str, str], str] = {}
+_LIGHTENED: dict[tuple[str, str, str], str] = {}
 
 
-def _lift(colour: str, background: str) -> str:
-    """Return the least white that lifts `colour` over `background` and its tint.
+def _lift(colour: str, *, background: str, surface: str) -> str:
+    """Return the least white that lifts `colour` over all it is drawn on.
 
-    White itself when nothing reads; the theme check reports that background.
+    That is `background`, the tint mixed over it, and `surface`. White itself
+    when nothing reads; the theme check reports that scheme.
     """
     for step in range(_LIGHTEN_STEPS + 1):
         candidate = mix(WHITE, colour, share=step / _LIGHTEN_STEPS)
         tint = tint_over(candidate, background)
-        ratio = lowest_contrast(candidate, background=background, tint=tint)
-        if ratio >= CONTRAST_FLOOR:
+        if lowest_contrast(candidate, (background, tint, surface)) >= CONTRAST_FLOOR:
             return candidate
     return WHITE
 
 
-def _lighten(colour: str, background: str) -> str:
-    if (key := (colour, background)) not in _LIGHTENED:
-        _LIGHTENED[key] = _lift(colour, background)
+def _lighten(colour: str, *, background: str, surface: str) -> str:
+    if (key := (colour, background, surface)) not in _LIGHTENED:
+        _LIGHTENED[key] = _lift(colour, background=background, surface=surface)
     return _LIGHTENED[key]
 
 
@@ -144,8 +144,9 @@ def _first_segment(prefix: str) -> str | None:
 class SchemaService(SchemaServiceProtocol):
     """Type schemas: role built-ins, parts, relations, colours, routes.
 
-    Type colours get a dark-scheme variant when `dark_background` is given.
-    A type's route cannot start a fixed page, nor the admin, upload or static
+    Type colours are drawn on the page background, their tint and `surface`.
+    They get a dark-scheme variant when `dark_background` and `dark_surface`
+    are given. A type's route cannot start a fixed page, nor the admin, upload or static
     URL prefix the deployment serves.
     """
 
@@ -153,13 +154,17 @@ class SchemaService(SchemaServiceProtocol):
         self,
         background: str,
         *,
+        surface: str,
         dark_background: str | None,
+        dark_surface: str | None,
         admin_url: str,
         media_url: str,
         static_url: str,
     ) -> None:
         self._background = background
+        self._surface = surface
         self._dark_background = dark_background
+        self._dark_surface = dark_surface
         served = {
             admin_url: "the admin",
             media_url: "uploads",
@@ -303,6 +308,14 @@ class SchemaService(SchemaServiceProtocol):
             errors.append(
                 f"Contrast with the tint is {ratio:.2f}:1, needs {CONTRAST_FLOOR}:1."
             )
+        if (
+            self._surface != self._background
+            and (ratio := contrast_ratio(colour, self._surface)) < CONTRAST_FLOOR
+        ):
+            errors.append(
+                f"Contrast with the surface is {ratio:.2f}:1,"
+                f" needs {CONTRAST_FLOOR}:1."
+            )
         return errors
 
     @override
@@ -315,4 +328,4 @@ class SchemaService(SchemaServiceProtocol):
     def derive_dark_colour(self, colour: str) -> str | None:
         if (dark := self._dark_background) is None:
             return None
-        return _lighten(colour, dark)
+        return _lighten(colour, background=dark, surface=self._dark_surface or dark)

@@ -30,7 +30,9 @@ def layered_theme_fixture(tmp_path):
     (theme / "tokens.css").write_text(
         ":root { --color-brand: #0b6b33; --color-link: #0b6b33; }\n"
         "@media (prefers-color-scheme: dark) {\n"
-        "  :root { --color-bg: #121412; --color-text: #ecefe9; }\n"
+        "  :root {\n"
+        "    --color-bg: #121412; --color-surface: #121412; --color-text: #ecefe9;\n"
+        "  }\n"
         "}\n"
     )
     (theme / "theme.css").write_text(".card { box-shadow: none; }\n")

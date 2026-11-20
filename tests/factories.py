@@ -27,7 +27,9 @@ def schema_service():
     """Return the schema rules of a white site served from the usual paths."""
     return SchemaService(
         background="#ffffff",
+        surface="#ffffff",
         dark_background=None,
+        dark_surface=None,
         admin_url="admin/",
         media_url="/media/",
         static_url="/static/",

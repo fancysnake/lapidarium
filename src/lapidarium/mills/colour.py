@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 from lapidarium.specs import TINT_MIX
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 WHITE = "#ffffff"
 _LINEAR_THRESHOLD = 0.04045
@@ -44,6 +48,6 @@ def tint_over(colour: str, background: str) -> str:
     return mix(colour, background, share=TINT_MIX)
 
 
-def lowest_contrast(colour: str, *, background: str, tint: str) -> float:
-    """Return the weaker of `colour`'s contrasts with `background` and `tint`."""
-    return min(contrast_ratio(colour, background), contrast_ratio(colour, tint))
+def lowest_contrast(colour: str, backgrounds: Iterable[str]) -> float:
+    """Return the weakest of `colour`'s contrasts with `backgrounds`."""
+    return min(contrast_ratio(colour, background) for background in backgrounds)

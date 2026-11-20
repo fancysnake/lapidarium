@@ -70,6 +70,7 @@ CONTRAST_PAIRS = (
     ("--color-brand-contrast", "--color-brand"),
     ("--color-type-default", "--color-bg"),
     ("--color-type-default", "--color-type-default-tint"),
+    ("--color-type-default", "--color-surface"),
 )
 
 

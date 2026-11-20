@@ -92,7 +92,10 @@ class SchemaServiceProtocol(Protocol):
         """Mix `colour` over the page background."""
 
     def check_colours(self, colour: str, tint: str) -> list[str]:
-        """Contrast errors for a type colour against the background and its tint."""
+        """Contrast errors for a type colour against all it is drawn on.
+
+        That is the page background, `tint` and the surface.
+        """
 
     def check_route(self, route: str) -> list[str]:
         """Errors when a fixed page or a served path already owns `route`."""
@@ -195,6 +198,12 @@ class ThemeServiceProtocol(Protocol):
 
     def dark_background(self) -> str | None:
         """Return the dark-scheme page background; `None` without dark tokens."""
+
+    def surface(self) -> str:
+        """Return the card background type colours must also stand out against."""
+
+    def dark_surface(self) -> str | None:
+        """Return the dark-scheme card background; `None` without dark tokens."""
 
 
 class PurposeServiceProtocol(Protocol):

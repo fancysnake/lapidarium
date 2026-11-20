@@ -7,6 +7,7 @@ from lapidarium.pacts.theme import REQUIRED_TOKENS, ProblemLevel, ThemeDTO, Them
 
 COMPLETE = dict.fromkeys(REQUIRED_TOKENS, "1rem") | {
     "--color-bg": "#ffffff",
+    "--color-surface": "#ffffff",
     "--color-text": "#151515",
     "--color-brand": "#151515",
     "--color-brand-contrast": "#ffffff",
@@ -68,6 +69,74 @@ def test_the_dark_background_is_the_dark_scheme_one():
     assert _service(base=base).dark_background() == "#121212"
 
 
+def test_the_surface_is_the_active_one_in_each_scheme():
+    base = _theme(
+        tokens=COMPLETE | {"--color-surface": "#f4f4f4"},
+        dark_tokens={"--color-bg": "#121212", "--color-surface": "#1c1c1c"},
+    )
+
+    service = _service(base=base)
+
+    assert service.surface() == "#f4f4f4"
+    assert service.dark_surface() == "#1c1c1c"
+
+
+def test_a_theme_without_dark_tokens_has_no_dark_surface():
+    assert _service().dark_surface() is None
+
+
+def test_a_theme_without_a_surface_draws_on_the_background():
+    tokens = {k: v for k, v in COMPLETE.items() if k != "--color-surface"}
+    base = _theme(tokens=tokens, dark_tokens={"--color-bg": "#121212"})
+
+    service = _service(base=base)
+
+    assert service.surface() == "#ffffff"
+    assert service.dark_surface() == "#121212"
+
+
+def test_a_type_fallback_colour_must_read_on_the_surface():
+    base = _theme(tokens=COMPLETE | {"--color-surface": "#404040"})
+
+    problems = _service(base=base).check()
+
+    assert [(p.code, p.message) for p in problems] == [
+        (
+            ThemeProblem.LOW_CONTRAST,
+            (
+                "--color-type-default on --color-surface (light) has contrast"
+                " 1.76:1, needs 4.5:1."
+            ),
+        )
+    ]
+
+
+def test_a_dark_surface_even_white_cannot_read_on_is_a_problem():
+    dark = {
+        "--color-bg": "#121212",
+        "--color-surface": "#808080",
+        "--color-text": "#eeeeee",
+        "--color-brand": "#eeeeee",
+        "--color-brand-contrast": "#151515",
+        "--color-type-default": "#ffffff",
+        "--color-type-default-tint": "#2a2a2a",
+    }
+    base = _theme(tokens=COMPLETE, dark_tokens=dark)
+
+    problems = _service(base=base).check()
+
+    assert [p.message for p in problems] == [
+        (
+            "--color-type-default on --color-surface (dark) has contrast"
+            " 3.95:1, needs 4.5:1."
+        ),
+        (
+            "No type colour reads on --color-surface (dark): white has"
+            " contrast 3.95:1 with it, needs 4.5:1."
+        ),
+    ]
+
+
 def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
     # Over the base's dark #000000, --color-text would fail the contrast check.
     base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#000000"})
@@ -78,7 +147,8 @@ def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
 
 def test_a_dark_background_even_white_cannot_read_on_is_a_problem():
     # White on #808080 is 3.95:1, and less on its tint; the text tokens pass.
-    base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#808080"})
+    dark = {"--color-bg": "#808080", "--color-surface": "#808080"}
+    base = _theme(tokens=COMPLETE, dark_tokens=dark)
 
     problems = _service(base=base).check()
 
@@ -167,7 +237,11 @@ def test_low_contrast_is_an_error():
 
 
 def test_dark_tokens_are_checked_too():
-    dark = {"--color-bg": "#111111", "--color-text": "#222222"}
+    dark = {
+        "--color-bg": "#111111",
+        "--color-surface": "#111111",
+        "--color-text": "#222222",
+    }
     service = _service(active=_theme("night", dark_tokens=dark))
 
     problems = service.check()
@@ -176,6 +250,7 @@ def test_dark_tokens_are_checked_too():
         "--color-text on --color-bg (dark)",
         "--color-brand on --color-bg (dark)",
         "--color-type-default on --color-bg (dark)",
+        "--color-type-default on --color-surface (dark)",
     ]
 
 
