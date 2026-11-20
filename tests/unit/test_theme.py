@@ -137,6 +137,34 @@ def test_a_dark_surface_even_white_cannot_read_on_is_a_problem():
     ]
 
 
+def test_a_dark_surface_is_checked_when_the_page_backgrounds_match():
+    dark = {"--color-bg": "#ffffff", "--color-surface": "#808080"}
+    base = _theme(tokens=COMPLETE, dark_tokens=dark)
+
+    problems = _service(base=base).check()
+
+    assert [(p.code, p.message) for p in problems] == [
+        (
+            ThemeProblem.LOW_CONTRAST,
+            (
+                "No type colour reads on --color-surface (dark): white has"
+                " contrast 3.95:1 with it, needs 4.5:1."
+            ),
+        )
+    ]
+
+
+def test_a_dark_surface_lighter_than_the_light_one_is_not_a_problem():
+    light = COMPLETE | {"--color-surface": "#404040", "--color-text": "#ffffff"}
+    light |= {"--color-type-default": "#ffffff", "--color-bg": "#404040"}
+    dark = {"--color-bg": "#808080", "--color-surface": "#808080"}
+    base = _theme(tokens=light, dark_tokens=dark)
+
+    problems = _service(base=base).check()
+
+    assert all("(dark): white has" not in p.message for p in problems)
+
+
 def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
     # Over the base's dark #000000, --color-text would fail the contrast check.
     base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#000000"})

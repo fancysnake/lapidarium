@@ -49,17 +49,18 @@ def _contrast_problems(
 
 
 def _type_colour_problems(
-    *, light: str, dark: str, dark_surface: str
+    *, light: str, dark: str, light_surface: str, dark_surface: str
 ) -> Iterator[ProblemDTO]:
-    """Report a darker dark page that even white type colours cannot read on.
+    """Report a darker dark page or surface that white type colours cannot read on.
 
-    White is as light as type colours get; a page no darker than `light` lightens
-    none of them.
+    White is as light as type colours get; a page or surface no darker than its
+    light counterpart lightens none of them.
     """
-    if contrast_ratio(WHITE, dark) <= contrast_ratio(WHITE, light):
-        return
-    ratio = lowest_contrast(WHITE, (dark, tint_over(WHITE, dark)))
-    if ratio < CONTRAST_FLOOR:
+    if (
+        contrast_ratio(WHITE, dark) > contrast_ratio(WHITE, light)
+        and (ratio := lowest_contrast(WHITE, (dark, tint_over(WHITE, dark))))
+        < CONTRAST_FLOOR
+    ):
         yield ProblemDTO(
             code=ThemeProblem.LOW_CONTRAST,
             message=(
@@ -70,6 +71,7 @@ def _type_colour_problems(
         )
     if (
         dark_surface != dark
+        and contrast_ratio(WHITE, dark_surface) > contrast_ratio(WHITE, light_surface)
         and (ratio := contrast_ratio(WHITE, dark_surface)) < CONTRAST_FLOOR
     ):
         yield ProblemDTO(
@@ -168,6 +170,7 @@ class ThemeService(ThemeServiceProtocol):
             yield from _type_colour_problems(
                 light=self._light[_BACKGROUND],
                 dark=self._dark[_BACKGROUND],
+                light_surface=self.surface(),
                 dark_surface=self._dark.get(_SURFACE, self._dark[_BACKGROUND]),
             )
 
