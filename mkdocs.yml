@@ -3,7 +3,7 @@ site_url: https://lapidarium.fancysnake.dev
 site_description: "Self-hosted home base for multi-format creators: admin-defined content types, every piece at its own address, markdown export. Django, PostgreSQL, zero Node."
 repo_url: https://github.com/fancysnake/lapidarium
 repo_name: fancysnake/lapidarium
-copyright: MIT
+copyright: 'MIT · <a href="https://github.com/sponsors/fancysnake">Support the project</a>'
 
 # A link to a page that is not there is what rots first when a page is
 # renamed, and from here it fails `site:dev` as well as `site:build`.

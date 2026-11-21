@@ -97,6 +97,10 @@ The rituals push over HTTPS with `gh` as the credential helper. Add the
 git remote add https-origin https://github.com/fancysnake/lapidarium.git
 ```
 
+## Support the project
+
+If lapidarium is useful to you, [sponsor it on GitHub](https://github.com/sponsors/fancysnake).
+
 ## License
 
 [MIT](LICENSE).
