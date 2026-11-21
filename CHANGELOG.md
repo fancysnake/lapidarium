@@ -65,6 +65,12 @@ All notable changes to this project are documented here. The format follows
   as the admin does, and names the button.
 - Every import clears the cached pages once it commits. A bundle holding only
   a profile could leave the About page stale until the cache expired.
+- Type colours are checked against `--color-surface` too: showcase links and
+  the video play button draw them there. The admin and `import_content` refuse
+  a colour under 4.5:1 on it, the dark scheme lightens colours until they read
+  on the dark surface, and the theme check covers `--color-type-default` on
+  it. `--color-surface` must now be `#rrggbb`, and a dark scheme keeps the
+  light surface unless it sets its own.
 
 ## [0.1.0] - 2026-10-30
 

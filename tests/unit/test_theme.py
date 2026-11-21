@@ -7,6 +7,7 @@ from lapidarium.pacts.theme import REQUIRED_TOKENS, ProblemLevel, ThemeDTO, Them
 
 COMPLETE = dict.fromkeys(REQUIRED_TOKENS, "1rem") | {
     "--color-bg": "#ffffff",
+    "--color-surface": "#ffffff",
     "--color-text": "#151515",
     "--color-brand": "#151515",
     "--color-brand-contrast": "#ffffff",
@@ -54,18 +55,128 @@ def test_active_tokens_override_the_base():
 
     service = _service(active=active)
 
-    assert service.background() == "#fafafa"
+    assert service.colours().background == "#fafafa"
     assert service.active().key == "green"
 
 
-def test_a_theme_without_dark_tokens_has_no_dark_background():
-    assert _service().dark_background() is None
+def test_a_theme_without_dark_tokens_has_no_dark_colours():
+    assert _service().dark_colours() is None
 
 
 def test_the_dark_background_is_the_dark_scheme_one():
     base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#121212"})
 
-    assert _service(base=base).dark_background() == "#121212"
+    assert _service(base=base).dark_colours().background == "#121212"
+
+
+def test_the_surface_is_the_active_one_in_each_scheme():
+    base = _theme(
+        tokens=COMPLETE | {"--color-surface": "#f4f4f4"},
+        dark_tokens={"--color-bg": "#121212", "--color-surface": "#1c1c1c"},
+    )
+
+    service = _service(base=base)
+
+    assert service.colours().surface == "#f4f4f4"
+    assert service.dark_colours().surface == "#1c1c1c"
+
+
+def test_a_type_fallback_colour_must_read_on_the_surface():
+    base = _theme(tokens=COMPLETE | {"--color-surface": "#404040"})
+
+    problems = _service(base=base).check()
+
+    assert [(p.code, p.message) for p in problems] == [
+        (
+            ThemeProblem.LOW_CONTRAST,
+            (
+                "--color-type-default on --color-surface (light) has contrast"
+                " 1.76:1, needs 4.5:1."
+            ),
+        )
+    ]
+
+
+def test_a_dark_surface_even_white_cannot_read_on_is_a_problem():
+    dark = {
+        "--color-bg": "#121212",
+        "--color-surface": "#808080",
+        "--color-text": "#eeeeee",
+        "--color-brand": "#eeeeee",
+        "--color-brand-contrast": "#151515",
+        "--color-type-default": "#ffffff",
+        "--color-type-default-tint": "#2a2a2a",
+    }
+    base = _theme(tokens=COMPLETE, dark_tokens=dark)
+
+    problems = _service(base=base).check()
+
+    assert [p.message for p in problems] == [
+        (
+            "--color-type-default on --color-surface (dark) has contrast"
+            " 3.95:1, needs 4.5:1."
+        ),
+        (
+            "No type colour reads on --color-surface (dark): white has"
+            " contrast 3.95:1 with it, needs 4.5:1."
+        ),
+    ]
+
+
+def test_a_dark_surface_is_checked_when_the_page_backgrounds_match():
+    dark = {"--color-bg": "#ffffff", "--color-surface": "#808080"}
+    base = _theme(tokens=COMPLETE, dark_tokens=dark)
+
+    problems = _service(base=base).check()
+
+    assert [(p.code, p.message) for p in problems] == [
+        (
+            ThemeProblem.LOW_CONTRAST,
+            (
+                "No type colour reads on --color-surface (dark): white has"
+                " contrast 3.95:1 with it, needs 4.5:1."
+            ),
+        )
+    ]
+
+
+def test_a_dark_surface_is_checked_when_the_background_check_is_skipped():
+    light = COMPLETE | {"--color-bg": "#767676"}
+    dark = {"--color-bg": "#808080", "--color-surface": "#808080"}
+    base = _theme(tokens=light, dark_tokens=dark)
+
+    messages = [p.message for p in _service(base=base).check()]
+
+    assert (
+        "No type colour reads on --color-surface (dark): white has"
+        " contrast 3.95:1 with it, needs 4.5:1."
+    ) in messages
+
+
+def test_a_dark_surface_lighter_than_the_light_one_is_not_a_problem():
+    light = COMPLETE | {"--color-surface": "#404040", "--color-text": "#ffffff"}
+    light |= {"--color-type-default": "#ffffff", "--color-bg": "#404040"}
+    dark = {"--color-bg": "#404040", "--color-surface": "#808080"}
+    base = _theme(tokens=light, dark_tokens=dark)
+
+    problems = _service(base=base).check()
+
+    assert [p.message for p in problems] == [
+        "--color-brand on --color-bg (light) has contrast 1.76:1, needs 4.5:1.",
+        (
+            "--color-type-default on --color-type-default-tint (light) has contrast"
+            " 1.13:1, needs 4.5:1."
+        ),
+        "--color-brand on --color-bg (dark) has contrast 1.76:1, needs 4.5:1.",
+        (
+            "--color-type-default on --color-type-default-tint (dark) has contrast"
+            " 1.13:1, needs 4.5:1."
+        ),
+        (
+            "--color-type-default on --color-surface (dark) has contrast"
+            " 3.95:1, needs 4.5:1."
+        ),
+    ]
 
 
 def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
@@ -78,7 +189,8 @@ def test_each_layer_sets_its_dark_tokens_over_its_own_light_ones():
 
 def test_a_dark_background_even_white_cannot_read_on_is_a_problem():
     # White on #808080 is 3.95:1, and less on its tint; the text tokens pass.
-    base = _theme(tokens=COMPLETE, dark_tokens={"--color-bg": "#808080"})
+    dark = {"--color-bg": "#808080", "--color-surface": "#808080"}
+    base = _theme(tokens=COMPLETE, dark_tokens=dark)
 
     problems = _service(base=base).check()
 
@@ -148,10 +260,11 @@ def test_a_missing_colour_is_reported_once_not_contrast_checked():
     assert "--color-brand" in problems[0].message
 
 
-def test_a_theme_without_a_background_fails_to_load():
-    base = _theme(tokens={k: v for k, v in COMPLETE.items() if k != "--color-bg"})
+@pytest.mark.parametrize("token", ("--color-bg", "--color-surface"))
+def test_a_theme_without_a_colour_the_checks_need_fails_to_load(token):
+    base = _theme(tokens={k: v for k, v in COMPLETE.items() if k != token})
 
-    with pytest.raises(ValueError, match="--color-bg"):
+    with pytest.raises(ValueError, match=token):
         _service(base=base)
 
 
@@ -167,7 +280,11 @@ def test_low_contrast_is_an_error():
 
 
 def test_dark_tokens_are_checked_too():
-    dark = {"--color-bg": "#111111", "--color-text": "#222222"}
+    dark = {
+        "--color-bg": "#111111",
+        "--color-surface": "#111111",
+        "--color-text": "#222222",
+    }
     service = _service(active=_theme("night", dark_tokens=dark))
 
     problems = service.check()

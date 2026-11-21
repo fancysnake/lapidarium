@@ -70,6 +70,7 @@ CONTRAST_PAIRS = (
     ("--color-brand-contrast", "--color-brand"),
     ("--color-type-default", "--color-bg"),
     ("--color-type-default", "--color-type-default-tint"),
+    ("--color-type-default", "--color-surface"),
 )
 
 
@@ -118,6 +119,15 @@ class SiteThemeDTO(BaseModel):
     name: str
     version: str | None
     stylesheets: tuple[StylesheetDTO, ...]
+
+
+class SchemeColoursDTO(BaseModel):
+    """The page and card backgrounds of one colour scheme."""
+
+    model_config = ConfigDict(frozen=True)
+
+    background: str
+    surface: str
 
 
 class ProblemDTO(BaseModel):

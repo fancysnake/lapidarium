@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts.outreach import ContactData
     from lapidarium.pacts.purposes import MechanicDTO, NewTypeData, PurposeDTO
     from lapidarium.pacts.site import FriendDTO, SiteDTO
-    from lapidarium.pacts.theme import ProblemDTO, SiteThemeDTO
+    from lapidarium.pacts.theme import ProblemDTO, SchemeColoursDTO, SiteThemeDTO
 
 
 class MetadataServiceProtocol(Protocol):
@@ -92,7 +92,10 @@ class SchemaServiceProtocol(Protocol):
         """Mix `colour` over the page background."""
 
     def check_colours(self, colour: str, tint: str) -> list[str]:
-        """Contrast errors for a type colour against the background and its tint."""
+        """Contrast errors for a type colour against all it is drawn on.
+
+        That is the page background, `tint` and the surface.
+        """
 
     def check_route(self, route: str) -> list[str]:
         """Errors when a fixed page or a served path already owns `route`."""
@@ -190,11 +193,11 @@ class ThemeServiceProtocol(Protocol):
     def check(self) -> list[ProblemDTO]:
         """Return what is wrong with the active theme, errors first."""
 
-    def background(self) -> str:
-        """Return the page background type colours must stand out against."""
+    def colours(self) -> SchemeColoursDTO:
+        """Return the backgrounds type colours must stand out against."""
 
-    def dark_background(self) -> str | None:
-        """Return the dark-scheme page background; `None` without dark tokens."""
+    def dark_colours(self) -> SchemeColoursDTO | None:
+        """Return the dark-scheme backgrounds; `None` without dark tokens."""
 
 
 class PurposeServiceProtocol(Protocol):
