@@ -11,7 +11,7 @@ runs:
         key: venv-${{ runner.os }}-${{ hashFiles('poetry.lock', 'mise.toml') }}
         restore-keys: |
           venv-${{ runner.os }}-
-    - uses: jdx/mise-action@v2
+    - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5
     - run: mise install
       shell: bash
     - name: Drop stale virtualenv
