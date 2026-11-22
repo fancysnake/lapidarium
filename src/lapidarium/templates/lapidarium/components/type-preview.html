@@ -1,0 +1,44 @@
+{% load i18n %}
+  <section class="notice" role="status" aria-labelledby="preview-title">
+    <h2 class="section-title" id="preview-title">{% translate "What you will get" %}</h2>
+    <ul>
+      <li>
+        {% blocktranslate with plural=preview.label_plural route=preview.route trimmed %}
+          A list of {{ plural }} at /{{ route }}/
+        {% endblocktranslate %}
+        {% if preview.in_menu %}
+          {% translate "in the menu" %}
+        {% else %}
+          {% translate "outside the menu" %}
+        {% endif %}
+      </li>
+      <li>
+        {% if preview.has_detail_page %}
+          {% blocktranslate with label=preview.label trimmed %}
+            A page for each {{ label }}
+          {% endblocktranslate %}
+        {% else %}
+          {% translate "No page for single entries" %}
+        {% endif %}
+      </li>
+      {% if preview.fields %}
+        <li>
+          {% translate "Fields:" %}
+          {% for field in preview.fields %}
+            {{ field.label }}
+            {% if not forloop.last %}·{% endif %}
+          {% endfor %}
+        </li>
+      {% endif %}
+      <li>
+        {% translate "Parts an entry may hold:" %}
+        {% for kind in preview.allowed_parts %}
+          {{ kind }}
+          {% if not forloop.last %}·{% endif %}
+        {% endfor %}
+      </li>
+      {% if preview.door_enabled %}
+        <li>{% translate "A door on the home page" %}</li>
+      {% endif %}
+    </ul>
+  </section>

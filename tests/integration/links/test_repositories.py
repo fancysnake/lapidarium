@@ -501,3 +501,17 @@ def test_recent_external_items_leave_out_those_an_entry_speaks_for():
             published_at=when + dt.timedelta(days=1),
         )
     ]
+
+
+def test_part_holders_count_entries_of_one_type_per_kind_once():
+    EntryTypeRepository().save_all([type_data(), type_data("event")])
+    text, link = part_data(), part_data(PartKind.LINK)
+    EntryRepository().save(entry_data(parts=[text, text, link]))
+    EntryRepository().save(entry_data("elk", parts=[text]))
+    EntryRepository().save(entry_data("fair", "event", parts=[text, link]))
+
+    assert EntryTypeRepository().part_holders("session") == {
+        PartKind.TEXT: 2,
+        PartKind.LINK: 1,
+    }
+    assert EntryTypeRepository().part_holders("saga") == {}

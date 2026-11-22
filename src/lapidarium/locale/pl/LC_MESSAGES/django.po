@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 10:49+0100\n"
+"POT-Creation-Date: 2026-11-12 19:11+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -39,12 +39,6 @@ msgstr "Lista jest na stronie pod /adres/."
 msgid "Colour"
 msgstr "Kolor"
 
-msgid "Key"
-msgstr "Klucz"
-
-msgid "Names the type in exports. Made from the name when blank."
-msgstr "Nazywa rodzaj w eksportach. Gdy pusty, powstaje z nazwy."
-
 msgid "Parts an entry may hold"
 msgstr "Części, które wpis może zawierać"
 
@@ -59,6 +53,21 @@ msgstr "Każdy wpis ma własną stronę"
 
 msgid "Show a door on the home page"
 msgstr "Pokaż drzwi na stronie głównej"
+
+msgid "Key"
+msgstr "Klucz"
+
+msgid "Names the type in exports. Made from the name when blank."
+msgstr "Nazywa rodzaj w eksportach. Gdy pusty, powstaje z nazwy."
+
+msgid "Name of a new field"
+msgstr "Nazwa nowego pola"
+
+msgid "Leave blank to add none."
+msgstr "Zostaw puste, aby nie dodawać pola."
+
+msgid "Kind of the new field"
+msgstr "Rodzaj nowego pola"
 
 msgid "That was a lot of tries in a short time. Please wait a while and try again."
 msgstr "To dużo prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie."
@@ -776,6 +785,35 @@ msgstr "Starsze"
 msgid "Take a look"
 msgstr "Zobacz"
 
+msgid "What you will get"
+msgstr "Co otrzymasz"
+
+#, python-format
+msgid "A list of %(plural)s at /%(route)s/"
+msgstr "Lista „%(plural)s” pod /%(route)s/"
+
+msgid "in the menu"
+msgstr "w menu"
+
+msgid "outside the menu"
+msgstr "poza menu"
+
+#, python-format
+msgid "A page for each %(label)s"
+msgstr "Strona dla każdego wpisu „%(label)s”"
+
+msgid "No page for single entries"
+msgstr "Bez stron pojedynczych wpisów"
+
+msgid "Fields:"
+msgstr "Pola:"
+
+msgid "Parts an entry may hold:"
+msgstr "Części, które wpis może zawierać:"
+
+msgid "A door on the home page"
+msgstr "Drzwi na stronie głównej"
+
 msgid "Where to find me"
 msgstr "Gdzie mnie znaleźć"
 
@@ -845,14 +883,17 @@ msgstr "Prawie gotowe: sprawdź skrzynkę i potwierdź zapis."
 msgid "What this site is made of, by what each type is for."
 msgstr "Z czego składa się ta strona, według tego, do czego służy każdy rodzaj."
 
-msgid "Pick a purpose to create a type."
-msgstr "Wybierz cel, aby utworzyć rodzaj."
+msgid "Pick a purpose to create a type, or a type to change it."
+msgstr "Wybierz cel, aby utworzyć rodzaj, albo rodzaj, aby go zmienić."
 
-msgid "Change types in the admin"
-msgstr "Zmieniaj rodzaje w panelu administracyjnym"
+msgid "Every setting is in the admin"
+msgstr "Wszystkie ustawienia są w panelu administracyjnym"
 
 msgid "The type is created."
 msgstr "Rodzaj został utworzony."
+
+msgid "The type is changed."
+msgstr "Rodzaj został zmieniony."
 
 #, python-format
 msgid "%(counter)s entry"
@@ -868,11 +909,87 @@ msgstr "Część:"
 msgid "Holds:"
 msgstr "Zawiera:"
 
+msgid "Change"
+msgstr "Zmień"
+
 msgid "Open in the admin"
 msgstr "Otwórz w panelu administracyjnym"
 
 msgid "No types yet."
 msgstr "Nie ma jeszcze rodzajów."
+
+msgid "Change type"
+msgstr "Zmiana rodzaju"
+
+msgid "Change type:"
+msgstr "Zmiana rodzaju:"
+
+msgid "Preview shows what a change does to the entries before anything is saved."
+msgstr "Podgląd pokazuje, co zmiana zrobi z wpisami, zanim cokolwiek zostanie zapisane."
+
+msgid "Back to the content panel"
+msgstr "Wróć do panelu treści"
+
+msgid "Fields"
+msgstr "Pola"
+
+msgid "Rename a field here. Remove one, or change its kind, in the admin."
+msgstr "Tutaj zmienisz nazwę pola. Usuniesz je albo zmienisz jego rodzaj w panelu administracyjnym."
+
+msgid "Advanced"
+msgstr "Zaawansowane"
+
+msgid "What this does to the entries"
+msgstr "Co ta zmiana zrobi z wpisami"
+
+#, python-format
+msgid "%(counter)s entry moves to a new address"
+msgid_plural "%(counter)s entries move to a new address"
+msgstr[0] "%(counter)s wpis przenosi się pod nowy adres"
+msgstr[1] "%(counter)s wpisy przenoszą się pod nowy adres"
+msgstr[2] "%(counter)s wpisów przenosi się pod nowy adres"
+msgstr[3] "%(counter)s wpisu przenosi się pod nowy adres"
+
+#, python-format
+msgid "%(counter)s entry loses its own page"
+msgid_plural "%(counter)s entries lose their own pages"
+msgstr[0] "%(counter)s wpis traci własną stronę"
+msgstr[1] "%(counter)s wpisy tracą własne strony"
+msgstr[2] "%(counter)s wpisów traci własne strony"
+msgstr[3] "%(counter)s wpisu traci własne strony"
+
+#, python-format
+msgid "%(counter)s entry gets its own page"
+msgid_plural "%(counter)s entries get their own pages"
+msgstr[0] "%(counter)s wpis dostaje własną stronę"
+msgstr[1] "%(counter)s wpisy dostają własne strony"
+msgstr[2] "%(counter)s wpisów dostaje własne strony"
+msgstr[3] "%(counter)s wpisu dostaje własne strony"
+
+#, python-format
+msgid "%(counter)s entry holds a %(part)s part and cannot be saved until the part is removed"
+msgid_plural "%(counter)s entries hold a %(part)s part and cannot be saved until the part is removed"
+msgstr[0] "%(counter)s wpis zawiera część typu %(part)s i nie da się go zapisać, dopóki ta część nie zostanie usunięta"
+msgstr[1] "%(counter)s wpisy zawierają część typu %(part)s i nie da się ich zapisać, dopóki ta część nie zostanie usunięta"
+msgstr[2] "%(counter)s wpisów zawiera część typu %(part)s i nie da się ich zapisać, dopóki ta część nie zostanie usunięta"
+msgstr[3] "%(counter)s wpisu zawiera część typu %(part)s i nie da się ich zapisać, dopóki ta część nie zostanie usunięta"
+
+#, python-format
+msgid "%(counter)s entry has no %(part)s part and cannot be saved until it gets one"
+msgid_plural "%(counter)s entries have no %(part)s part and cannot be saved until they get one"
+msgstr[0] "%(counter)s wpis nie ma części typu %(part)s i nie da się go zapisać, dopóki jej nie dostanie"
+msgstr[1] "%(counter)s wpisy nie mają części typu %(part)s i nie da się ich zapisać, dopóki jej nie dostaną"
+msgstr[2] "%(counter)s wpisów nie ma części typu %(part)s i nie da się ich zapisać, dopóki jej nie dostaną"
+msgstr[3] "%(counter)s wpisu nie ma części typu %(part)s i nie da się ich zapisać, dopóki jej nie dostaną"
+
+msgid "I agree to these effects"
+msgstr "Zgadzam się na te skutki"
+
+msgid "Preview"
+msgstr "Podgląd"
+
+msgid "Save"
+msgstr "Zapisz"
 
 msgid "New type"
 msgstr "Nowy rodzaj"
@@ -880,49 +997,8 @@ msgstr "Nowy rodzaj"
 msgid "New type:"
 msgstr "Nowy rodzaj:"
 
-msgid "Back to the content panel"
-msgstr "Wróć do panelu treści"
-
-msgid "What you will get"
-msgstr "Co otrzymasz"
-
-#, python-format
-msgid "A list of %(plural)s at /%(route)s/"
-msgstr "Lista „%(plural)s” pod /%(route)s/"
-
-msgid "in the menu"
-msgstr "w menu"
-
-msgid "outside the menu"
-msgstr "poza menu"
-
-#, python-format
-msgid "A page for each %(label)s"
-msgstr "Strona dla każdego wpisu „%(label)s”"
-
-msgid "No page for single entries"
-msgstr "Bez stron pojedynczych wpisów"
-
-msgid "Fields:"
-msgstr "Pola:"
-
-msgid "Parts an entry may hold:"
-msgstr "Części, które wpis może zawierać:"
-
-msgid "A door on the home page"
-msgstr "Drzwi na stronie głównej"
-
-msgid "Fields"
-msgstr "Pola"
-
 msgid "Rename a field, or clear it to leave it out."
 msgstr "Zmień nazwę pola albo wyczyść je, aby je pominąć."
-
-msgid "Advanced"
-msgstr "Zaawansowane"
-
-msgid "Preview"
-msgstr "Podgląd"
 
 msgid "Create"
 msgstr "Utwórz"
@@ -966,3 +1042,6 @@ msgstr "ładuje się po kliknięciu"
 
 msgid "Play the video"
 msgstr "Odtwórz nagranie"
+
+#~ msgid "Change types in the admin"
+#~ msgstr "Zmieniaj rodzaje w panelu administracyjnym"

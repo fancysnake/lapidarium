@@ -13,49 +13,7 @@
       </p>
     </div>
     {% if preview %}
-      <section class="notice" role="status" aria-labelledby="preview-title">
-        <h2 class="section-title" id="preview-title">{% translate "What you will get" %}</h2>
-        <ul>
-          <li>
-            {% blocktranslate with plural=preview.label_plural route=preview.route trimmed %}
-              A list of {{ plural }} at /{{ route }}/
-            {% endblocktranslate %}
-            {% if preview.in_menu %}
-              {% translate "in the menu" %}
-            {% else %}
-              {% translate "outside the menu" %}
-            {% endif %}
-          </li>
-          <li>
-            {% if preview.has_detail_page %}
-              {% blocktranslate with label=preview.label trimmed %}
-                A page for each {{ label }}
-              {% endblocktranslate %}
-            {% else %}
-              {% translate "No page for single entries" %}
-            {% endif %}
-          </li>
-          {% if preview.fields %}
-            <li>
-              {% translate "Fields:" %}
-              {% for field in preview.fields %}
-                {{ field.label }}
-                {% if not forloop.last %}·{% endif %}
-              {% endfor %}
-            </li>
-          {% endif %}
-          <li>
-            {% translate "Parts an entry may hold:" %}
-            {% for kind in preview.allowed_parts %}
-              {{ kind }}
-              {% if not forloop.last %}·{% endif %}
-            {% endfor %}
-          </li>
-          {% if preview.door_enabled %}
-            <li>{% translate "A door on the home page" %}</li>
-          {% endif %}
-        </ul>
-      </section>
+      {% include "lapidarium/components/type-preview.html" %}
     {% endif %}
     <form class="form" method="post">
       {% csrf_token %}
@@ -64,11 +22,11 @@
       {% include "lapidarium/components/form-field.html" with field=form.label_plural %}
       {% include "lapidarium/components/form-field.html" with field=form.route %}
       {% include "lapidarium/components/form-field.html" with field=form.colour %}
-      {% if form.starters %}
+      {% if form.field_labels %}
         <fieldset class="form">
           <legend class="label">{% translate "Fields" %}</legend>
           <p>{% translate "Rename a field, or clear it to leave it out." %}</p>
-          {% for field in form.starters %}
+          {% for field in form.field_labels %}
             {% include "lapidarium/components/form-field.html" %}
           {% endfor %}
         </fieldset>

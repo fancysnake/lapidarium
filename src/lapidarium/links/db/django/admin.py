@@ -60,6 +60,7 @@ from lapidarium.pacts.content import (
     RelationEndDTO,
     RelationRole,
     TypeRole,
+    enum_choices,
     role_label,
     unused_builtins,
 )
@@ -121,7 +122,7 @@ else:
 
 META_PREFIX = "meta_"
 ROLE_COLUMNS = tuple(BUILTIN_DEFAULTS)
-PART_CHOICES = [(kind.value, kind.value.capitalize()) for kind in PartKind]
+PART_CHOICES = enum_choices(PartKind)
 
 
 def build_services() -> ServicesProtocol:
