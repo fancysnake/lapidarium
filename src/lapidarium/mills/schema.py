@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+import unicodedata
 from typing import TYPE_CHECKING, override
 from urllib.parse import urlsplit
 
@@ -81,6 +82,33 @@ def slug_errors(name: str, value: str) -> list[str]:
     if re.fullmatch(SLUG_PATTERN, value):
         return []
     return [f"{name} {value!r} may hold only letters, digits, - and _."]
+
+
+def label_key(label: str) -> str:
+    """Return `label` as a slug; blank when it has no Latin letter or digit."""
+    # NFKD splits "ą" into "a" plus a mark the ASCII encode drops; "ł" has no
+    # decomposition.
+    latin = (
+        unicodedata.normalize("NFKD", label.lower().replace("ł", "l"))
+        .encode("ascii", "ignore")
+        .decode()
+    )
+    return re.sub(r"[^a-z0-9]+", "_", latin).strip("_")
+
+
+def no_key_error(label: str, *, remedy: str) -> str:
+    return f"No key can be made from {label!r}; {remedy}."
+
+
+def type_clashes(planned: EntryTypeDTO, others: Iterable[EntryTypeDTO]) -> list[str]:
+    """Keys and addresses `planned` shares with another type."""
+    errors: list[str] = []
+    for other in others:
+        if other.key == planned.key:
+            errors.append(f"A type with the key {planned.key!r} already exists.")
+        if other.route == planned.route:
+            errors.append(f"/{planned.route}/ already lists {other.label_plural}.")
+    return errors
 
 
 def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:

@@ -44,6 +44,7 @@ from lapidarium.mills.purposes import PurposeService
 from lapidarium.mills.schema import SchemaService
 from lapidarium.mills.site import SiteService
 from lapidarium.mills.theme import ThemeService
+from lapidarium.mills.type_changes import TypeChangeService
 from lapidarium.pacts.content import PAGE_CACHE
 from lapidarium.pacts.outreach import NewsletterBackend
 from lapidarium.pacts.services import ContentServicesProtocol, ServicesProtocol
@@ -261,6 +262,12 @@ class Services(ServicesProtocol):
     @cached_property
     def purposes(self) -> PurposeService:
         return PurposeService(types=self._repositories.entry_types, schema=self.schema)
+
+    @cached_property
+    def type_changes(self) -> TypeChangeService:
+        return TypeChangeService(
+            types=self._repositories.entry_types, schema=self.schema
+        )
 
     @cached_property
     def outreach(self) -> OutreachService:

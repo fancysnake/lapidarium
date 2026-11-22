@@ -72,9 +72,9 @@ def panel_new(request: RootRequest, purpose: str) -> HttpResponse:
 @require_http_methods(["GET", "POST"])
 def panel_change(request: RootRequest, key: str) -> HttpResponse:
     """One form: "Preview" shows the change, "Save" needs consent to its effects."""
-    purposes = request.services.purposes
+    changes = request.services.type_changes
     try:
-        entry_type = purposes.entry_type(key)
+        entry_type = changes.entry_type(key)
     except NotFoundError as exc:
         raise Http404 from exc
     form = ChangeTypeForm(request.POST or None, entry_type=entry_type)
@@ -83,7 +83,7 @@ def panel_change(request: RootRequest, key: str) -> HttpResponse:
         data = form.to_data()
         if "save" in request.POST:
             try:
-                purposes.change(key, data, consent=request.POST.get("agree", ""))
+                changes.change(key, data, consent=request.POST.get("agree", ""))
             except ConsentNeededError as exc:
                 change = exc.change
             except TypeValidationError as exc:
@@ -92,7 +92,7 @@ def panel_change(request: RootRequest, key: str) -> HttpResponse:
                 return HttpResponseRedirect(reverse("panel") + "?changed=1")
         else:
             try:
-                change = purposes.plan_change(key, data)
+                change = changes.plan_change(key, data)
             except TypeValidationError as exc:
                 _add_errors(form, exc)
     return render_page(

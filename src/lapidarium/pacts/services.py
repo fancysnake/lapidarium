@@ -219,6 +219,8 @@ class PurposeServiceProtocol(Protocol):
     def create(self, purpose_key: str, data: NewTypeData) -> EntryTypeDTO:
         """Save a new type on the purpose's role, or raise `TypeValidationError`."""
 
+
+class TypeChangeServiceProtocol(Protocol):
     def entry_type(self, key: str) -> EntryTypeDTO:
         """Return the type, or raise `NotFoundError`."""
 
@@ -269,6 +271,9 @@ class ServicesProtocol(Protocol):
 
     @property
     def purposes(self) -> PurposeServiceProtocol: ...
+
+    @property
+    def type_changes(self) -> TypeChangeServiceProtocol: ...
 
 
 class RootRequestProtocol(Protocol):
