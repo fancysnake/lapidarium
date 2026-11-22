@@ -146,9 +146,17 @@ class PurposeService(PurposeServiceProtocol):
             for field in purpose.fields
             if field.key in kept
         ]
-        settings: dict[str, object] = {
+        settings: dict[str, SettingDefault | tuple[FieldDefinitionDTO, ...]] = {
             **TYPE_DEFAULTS,
-            **_settings(data),
+            "label": data["label"],
+            "label_plural": data["label_plural"],
+            "route": data["route"],
+            "colour": data["colour"],
+            "allowed_parts": tuple(data["allowed_parts"]),
+            "required_parts": tuple(data["required_parts"]),
+            "in_menu": data["in_menu"],
+            "has_detail_page": data["has_detail_page"],
+            "door_enabled": data["door_enabled"],
             "key": data["key"] or _key(data["label"], remedy="set one under Advanced"),
             "tint": self._schema.derive_tint(data["colour"]),
             "role": purpose.role,
