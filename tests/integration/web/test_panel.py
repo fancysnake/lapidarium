@@ -498,6 +498,21 @@ def test_change_refuses_what_the_rules_forbid_and_keeps_the_form(site):
     assert EntryType.objects.get(key="session").route == "sesje"
 
 
+def test_preview_refuses_what_the_rules_forbid_and_shows_no_change(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.post(
+        "/admin/panel/types/session/", {**_SESSION, "route": "about", "preview": "1"}
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.context["change"] is None
+    assert response.context["form"].errors == {
+        "__all__": ["/about/ belongs to the about page."]
+    }
+    assert EntryType.objects.get(key="session").route == "sesje"
+
+
 def test_change_asks_again_for_what_the_form_cannot_read(site):
     site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
 

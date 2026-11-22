@@ -5,7 +5,12 @@ import pytest
 from lapidarium.mills.content import type_to_data
 from lapidarium.mills.purposes import PurposeService
 from lapidarium.pacts.content import FieldKind, NotFoundError, PartKind, TypeRole
-from lapidarium.pacts.purposes import TypeChangeData, TypeEffect, TypeValidationError
+from lapidarium.pacts.purposes import (
+    ConsentNeededError,
+    TypeEffect,
+    TypeSettingsData,
+    TypeValidationError,
+)
 from lapidarium.specs import MECHANIC_NAMES, PURPOSES
 from tests.factories import field_dto, schema_service, type_dto
 
@@ -14,20 +19,26 @@ def _service(types):
     return PurposeService(types=types, schema=schema_service())
 
 
-def _new_type(**overrides):
+def _new_type(*, key="", labels=None, **settings):
     return {
-        "key": "",
-        "label": "Volunteering",
-        "label_plural": "Volunteering",
-        "route": "volunteering",
-        "colour": "#6b3fa0",
-        "kept": {"organisation": "Organisation", "position": "Role"},
-        "allowed_parts": list(PartKind),
-        "required_parts": [],
-        "in_menu": True,
-        "has_detail_page": True,
-        "door_enabled": False,
-        **overrides,
+        "key": key,
+        "labels": (
+            {"organisation": "Organisation", "position": "Role"}
+            if labels is None
+            else labels
+        ),
+        "settings": {
+            "label": "Volunteering",
+            "label_plural": "Volunteering",
+            "route": "volunteering",
+            "colour": "#6b3fa0",
+            "allowed_parts": list(PartKind),
+            "required_parts": [],
+            "in_menu": True,
+            "has_detail_page": True,
+            "door_enabled": False,
+            **settings,
+        },
     }
 
 
@@ -101,7 +112,7 @@ def test_plan_derives_the_key_and_drops_fields_left_out_without_saving():
 
     planned = _service(types).plan(
         "job",
-        _new_type(label="Day job!", route="day-jobs", kept={"employer": "Company"}),
+        _new_type(label="Day job!", route="day-jobs", labels={"employer": "Company"}),
     )
 
     assert (planned.key, planned.order) == ("day_job", 0)
@@ -120,7 +131,7 @@ def test_create_refuses_a_type_that_breaks_the_rules():
                 key="song",
                 route="about",
                 colour="#ffff00",
-                kept={},
+                labels={},
                 allowed_parts=[PartKind.TEXT],
                 required_parts=[PartKind.IMAGE],
             ),
@@ -144,32 +155,37 @@ def test_plan_transliterates_the_name_into_the_key(label, key):
     types = MagicMock()
     types.list_all.return_value = []
 
-    planned = _service(types).plan("work", _new_type(label=label, kept={}))
+    planned = _service(types).plan("work", _new_type(label=label, labels={}))
 
     assert planned.key == key
 
 
-def test_create_refuses_a_name_no_key_can_be_made_from():
+def test_create_refuses_a_name_no_key_can_be_made_from_among_the_other_errors():
     types = MagicMock()
     types.list_all.return_value = []
 
     with pytest.raises(TypeValidationError) as caught:
-        _service(types).create("work", _new_type(label="作品", kept={}))
+        _service(types).create(
+            "work", _new_type(label="作品", route="about", labels={})
+        )
 
     assert caught.value.messages == (
         "No key can be made from '作品'; set one under Advanced.",
+        "/about/ belongs to the about page.",
     )
     types.save_all.assert_not_called()
 
 
-def _change(entry_type, **overrides):
-    """Return a change that leaves the type as it is, but for `overrides`."""
+def _change(entry_type, *, labels=None, added=None, **settings):
+    """Return a change that leaves the type as it is, but for the arguments."""
     stored = type_to_data(entry_type)
     return {
-        **{key: stored[key] for key in TypeChangeData.__annotations__ if key in stored},
-        "labels": {field.key: field.label for field in entry_type.fields},
-        "added": None,
-        **overrides,
+        "settings": {
+            **{key: stored[key] for key in TypeSettingsData.__annotations__},
+            **settings,
+        },
+        "labels": labels or {field.key: field.label for field in entry_type.fields},
+        "added": added,
     }
 
 
@@ -296,11 +312,12 @@ def test_change_saves_only_with_consent_to_its_effects():
     data = _change(song, route="tunes")
 
     for consent in ("", "moved::3"):
-        refused = service.change("song", data, consent=consent)
-        assert refused.consent == "moved::2"
+        with pytest.raises(ConsentNeededError) as refused:
+            service.change("song", data, consent=consent)
+        assert refused.value.change.consent == "moved::2"
     types.save_all.assert_not_called()
 
-    assert service.change("song", data, consent="moved::2") is None
+    service.change("song", data, consent="moved::2")
 
     [saved] = types.save_all.call_args.args[0]
     assert saved == type_to_data(song) | {"route": "tunes"}
@@ -311,7 +328,7 @@ def test_change_without_effects_needs_no_consent():
     types = _types_with(song, entries=2)
     data = _change(song, label="Tune")
 
-    assert _service(types).change("song", data, consent="") is None
+    _service(types).change("song", data, consent="")
 
     [saved] = types.save_all.call_args.args[0]
     assert saved == type_to_data(song) | {"label": "Tune"}
@@ -337,15 +354,19 @@ def test_change_refuses_what_the_rules_forbid():
     types.save_all.assert_not_called()
 
 
-def test_change_refuses_a_field_name_no_key_can_be_made_from():
+def test_change_refuses_a_field_name_no_key_can_be_made_from_among_the_rest():
     song = type_dto("song")
-    data = _change(song, added={"label": "???", "kind": FieldKind.TEXT})
+    types = _types_with(song, type_dto("talk", route="talks"))
+    added = {"label": "???", "kind": FieldKind.TEXT}
 
     with pytest.raises(TypeValidationError) as caught:
-        _service(_types_with(song)).change("song", data, consent="")
+        _service(types).change(
+            "song", _change(song, route="talks", added=added), consent=""
+        )
 
     assert caught.value.messages == (
         "No key can be made from '???'; pick another name.",
+        "/talks/ already lists Talks.",
     )
 
 

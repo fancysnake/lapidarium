@@ -174,9 +174,9 @@ class NewTypeForm(_TypeForm):
     def to_data(self) -> NewTypeData:
         """Return the cleaned type; read after `is_valid()`."""
         return {
-            **self._settings(),
+            "settings": self._settings(),
             "key": self.cleaned_data["key"],
-            "kept": {key: label for key, label in self._labels().items() if label},
+            "labels": {key: label for key, label in self._labels().items() if label},
         }
 
 
@@ -220,7 +220,7 @@ class ChangeTypeForm(_TypeForm):
         label = self.cleaned_data["new_field_label"]
         kind = FieldKind(self.cleaned_data["new_field_kind"])
         return {
-            **self._settings(),
+            "settings": self._settings(),
             "labels": self._labels(),
             "added": {"label": label, "kind": kind} if label else None,
         }

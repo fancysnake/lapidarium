@@ -43,15 +43,17 @@ class TypeSettingsData(TypedDict):
     door_enabled: bool
 
 
-class NewTypeData(TypeSettingsData):
+class NewTypeData(TypedDict):
     """A type to create from a purpose.
 
-    A blank `key` is derived from `label`. `kept` maps the key of each starter
-    field to keep to its label.
+    A blank `key` is derived from the label in `settings`. `labels` maps the key
+    of each starter field to its label; a field left out of it is dropped, and
+    the form leaves out the ones with a blank label.
     """
 
+    settings: TypeSettingsData
     key: str
-    kept: dict[str, str]
+    labels: dict[str, str]
 
 
 class NewFieldData(TypedDict):
@@ -61,9 +63,10 @@ class NewFieldData(TypedDict):
     kind: FieldKind
 
 
-class TypeChangeData(TypeSettingsData):
+class TypeChangeData(TypedDict):
     """New settings for a type; `labels` maps the key of each field to its label."""
 
+    settings: TypeSettingsData
     labels: dict[str, str]
     added: NewFieldData | None
 
@@ -135,3 +138,11 @@ class TypeChangeDTO(BaseModel):
     def consent(self) -> str:
         """What the owner sends back to agree to exactly these effects."""
         return ",".join(f"{e.kind}:{e.part or ''}:{e.entries}" for e in self.effects)
+
+
+class ConsentNeededError(Exception):
+    """A change sent without consent to exactly the effects `change` has."""
+
+    def __init__(self, change: TypeChangeDTO) -> None:
+        super().__init__(change.consent)
+        self.change = change

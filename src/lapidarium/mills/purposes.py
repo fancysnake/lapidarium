@@ -16,14 +16,15 @@ from lapidarium.pacts.content import (
     SettingDefault,
 )
 from lapidarium.pacts.purposes import (
+    ConsentNeededError,
     MechanicDTO,
+    NewFieldData,
     NewTypeData,
     PurposeDTO,
     TypeChangeData,
     TypeChangeDTO,
     TypeEffect,
     TypeEffectDTO,
-    TypeSettingsData,
     TypeUseDTO,
     TypeValidationError,
 )
@@ -40,7 +41,8 @@ if TYPE_CHECKING:
     )
 
 
-def _key(label: str, *, remedy: str) -> str:
+def _key(label: str) -> str:
+    """Return `label` as a slug; blank when it has no Latin letter or digit."""
     # NFKD splits "ą" into "a" plus a mark the ASCII encode drops; "ł" has no
     # decomposition.
     latin = (
@@ -48,24 +50,11 @@ def _key(label: str, *, remedy: str) -> str:
         .encode("ascii", "ignore")
         .decode()
     )
-    if not (key := re.sub(r"[^a-z0-9]+", "_", latin).strip("_")):
-        raise TypeValidationError([f"No key can be made from {label!r}; {remedy}."])
-    return key
+    return re.sub(r"[^a-z0-9]+", "_", latin).strip("_")
 
 
-def _settings(data: TypeSettingsData) -> TypeSettingsData:
-    """Return the settings in `data` a type takes as they are, without the rest."""
-    return {
-        "route": data["route"],
-        "colour": data["colour"],
-        "label": data["label"],
-        "label_plural": data["label_plural"],
-        "in_menu": data["in_menu"],
-        "has_detail_page": data["has_detail_page"],
-        "door_enabled": data["door_enabled"],
-        "allowed_parts": data["allowed_parts"],
-        "required_parts": data["required_parts"],
-    }
+def _no_key(label: str, *, remedy: str) -> str:
+    return f"No key can be made from {label!r}; {remedy}."
 
 
 def _find(types: Iterable[EntryTypeDTO], key: str) -> EntryTypeDTO:
@@ -85,13 +74,25 @@ def _clashes(planned: EntryTypeDTO, others: Iterable[EntryTypeDTO]) -> list[str]
     return errors
 
 
-def _new_field_errors(added: FieldDefinitionDTO, taken: Collection[str]) -> list[str]:
-    errors = slug_errors("Field key", added.key)
+def _added_field(
+    new: NewFieldData, taken: Collection[str]
+) -> tuple[FieldDefinitionData | None, list[str]]:
+    """Return the field `new` asks for, `None` without a key, and what is wrong."""
+    if not (key := _key(new["label"])):
+        return None, [_no_key(new["label"], remedy="pick another name")]
+    settings: dict[str, SettingDefault] = {
+        **FIELD_DEFAULTS,
+        "key": key,
+        "label": new["label"],
+        "kind": new["kind"],
+    }
+    added = FieldDefinitionDTO.model_validate(settings)
+    errors: list[str] = []
     if added.key in taken:
         errors.append(f"A field with the key {added.key!r} already exists.")
     if added.kind not in PLAIN_FIELD_KINDS:
         errors.append(f"A {added.kind} field needs settings only the admin has.")
-    return errors
+    return field_to_data(added), errors
 
 
 class PurposeService(PurposeServiceProtocol):
@@ -135,30 +136,23 @@ class PurposeService(PurposeServiceProtocol):
     def plan(self, purpose_key: str, data: NewTypeData) -> EntryTypeDTO:
         purpose = self.purpose(purpose_key)
         existing = self._types.list_all()
-        kept = data["kept"]
+        given = data["settings"]
+        labels = data["labels"]
         fields: list[dict[str, SettingDefault]] = [
             {
                 **FIELD_DEFAULTS,
                 "key": field.key,
-                "label": kept[field.key],
+                "label": labels[field.key],
                 "kind": field.kind,
             }
             for field in purpose.fields
-            if field.key in kept
+            if field.key in labels
         ]
-        settings: dict[str, SettingDefault | tuple[FieldDefinitionDTO, ...]] = {
+        settings: dict[str, object] = {
             **TYPE_DEFAULTS,
-            "label": data["label"],
-            "label_plural": data["label_plural"],
-            "route": data["route"],
-            "colour": data["colour"],
-            "allowed_parts": tuple(data["allowed_parts"]),
-            "required_parts": tuple(data["required_parts"]),
-            "in_menu": data["in_menu"],
-            "has_detail_page": data["has_detail_page"],
-            "door_enabled": data["door_enabled"],
-            "key": data["key"] or _key(data["label"], remedy="set one under Advanced"),
-            "tint": self._schema.derive_tint(data["colour"]),
+            **given,
+            "key": data["key"] or _key(given["label"]),
+            "tint": self._schema.derive_tint(given["colour"]),
             "role": purpose.role,
             # After every type there is: the menu and the admin sort by it.
             "order": max((t.order for t in existing), default=-1) + 1,
@@ -167,7 +161,15 @@ class PurposeService(PurposeServiceProtocol):
             ),
         }
         planned = EntryTypeDTO.model_validate(settings)
-        self._check(planned, others=existing)
+        errors = [*type_errors(self._schema, planned), *_clashes(planned, existing)]
+        if not planned.key:
+            # The schema calls a blank key malformed; say why it is blank.
+            [malformed] = slug_errors("Key", planned.key)
+            errors[errors.index(malformed)] = _no_key(
+                given["label"], remedy="set one under Advanced"
+            )
+        if errors:
+            raise TypeValidationError(errors)
         return planned
 
     @override
@@ -191,19 +193,13 @@ class PurposeService(PurposeServiceProtocol):
         ]
         errors: list[str] = []
         if (new := data["added"]) is not None:
-            settings: dict[str, SettingDefault] = {
-                **FIELD_DEFAULTS,
-                "key": _key(new["label"], remedy="pick another name"),
-                "label": new["label"],
-                "kind": new["kind"],
-            }
-            added = FieldDefinitionDTO.model_validate(settings)
-            errors = _new_field_errors(added, {f["key"] for f in fields})
-            fields.append(field_to_data(added))
-        colour = data["colour"]
+            added, errors = _added_field(new, {f["key"] for f in fields})
+            if added is not None:
+                fields.append(added)
+        colour = data["settings"]["colour"]
         changes: EntryTypeData = {
             **stored,
-            **_settings(data),
+            **data["settings"],
             # A tint set by hand stays until the colour it was set for goes.
             "tint": (
                 current.tint
@@ -213,36 +209,22 @@ class PurposeService(PurposeServiceProtocol):
             "fields": fields,
         }
         changed = EntryTypeDTO.model_validate(changes)
-        self._check(
-            changed, others=[t for t in existing if t.key != key], errors=errors
-        )
+        others = [t for t in existing if t.key != key]
+        if errors := [
+            *type_errors(self._schema, changed),
+            *errors,
+            *_clashes(changed, others),
+        ]:
+            raise TypeValidationError(errors)
         effects = self._effects(current, changed)
         return TypeChangeDTO(entry_type=changed, effects=effects)
 
     @override
-    def change(
-        self, key: str, data: TypeChangeData, *, consent: str
-    ) -> TypeChangeDTO | None:
+    def change(self, key: str, data: TypeChangeData, *, consent: str) -> None:
         planned = self.plan_change(key, data)
         if planned.consent != consent:
-            return planned
+            raise ConsentNeededError(planned)
         self._types.save_all([type_to_data(planned.entry_type)])
-        return None
-
-    def _check(
-        self,
-        planned: EntryTypeDTO,
-        *,
-        others: Iterable[EntryTypeDTO],
-        errors: Iterable[str] = (),
-    ) -> None:
-        """Raise `TypeValidationError` with the schema's, `errors` and clashes."""
-        if found := [
-            *type_errors(self._schema, planned),
-            *errors,
-            *_clashes(planned, others),
-        ]:
-            raise TypeValidationError(found)
 
     def _effects(
         self, current: EntryTypeDTO, changed: EntryTypeDTO

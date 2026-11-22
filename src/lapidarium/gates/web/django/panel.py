@@ -9,13 +9,19 @@ from django.views.decorators.http import require_http_methods
 from lapidarium.gates.web.django.forms import ChangeTypeForm, NewTypeForm
 from lapidarium.gates.web.django.rendering import RootRequest, render_page
 from lapidarium.pacts.content import NotFoundError
-from lapidarium.pacts.purposes import TypeValidationError
+from lapidarium.pacts.purposes import ConsentNeededError, TypeValidationError
 
 if TYPE_CHECKING:
+    from django.forms import Form
     from django.http import HttpResponse
 
     from lapidarium.pacts.content import EntryTypeDTO
     from lapidarium.pacts.purposes import TypeChangeDTO
+
+
+def _add_errors(form: Form, error: TypeValidationError) -> None:
+    for message in error.messages:
+        form.add_error(None, message)
 
 
 @staff_member_required
@@ -48,8 +54,7 @@ def panel_new(request: RootRequest, purpose: str) -> HttpResponse:
         try:
             preview = act(purpose, form.to_data())
         except TypeValidationError as exc:
-            for message in exc.messages:
-                form.add_error(None, message)
+            _add_errors(form, exc)
         else:
             if creating:
                 return HttpResponseRedirect(reverse("panel") + "?created=1")
@@ -76,19 +81,20 @@ def panel_change(request: RootRequest, key: str) -> HttpResponse:
     change: TypeChangeDTO | None = None
     if form.is_valid():
         data = form.to_data()
-        consent = request.POST.get("agree", "")
-        try:
-            change = (
-                purposes.change(key, data, consent=consent)
-                if "save" in request.POST
-                else purposes.plan_change(key, data)
-            )
-        except TypeValidationError as exc:
-            for message in exc.messages:
-                form.add_error(None, message)
-        else:
-            if change is None:
+        if "save" in request.POST:
+            try:
+                purposes.change(key, data, consent=request.POST.get("agree", ""))
+            except ConsentNeededError as exc:
+                change = exc.change
+            except TypeValidationError as exc:
+                _add_errors(form, exc)
+            else:
                 return HttpResponseRedirect(reverse("panel") + "?changed=1")
+        else:
+            try:
+                change = purposes.plan_change(key, data)
+            except TypeValidationError as exc:
+                _add_errors(form, exc)
     return render_page(
         request,
         "lapidarium/pages/panel_change.html",
