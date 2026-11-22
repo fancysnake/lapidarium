@@ -284,6 +284,12 @@ BUILTIN_DEFAULTS: Mapping[str, str | bool | None] = {
 }
 
 
+def unused_builtins(role: TypeRole) -> Mapping[str, str | bool | None]:
+    """Empty value of each role-dependent built-in the role does not use."""
+    used = ROLE_BUILTINS[role]
+    return {key: empty for key, empty in BUILTIN_DEFAULTS.items() if key not in used}
+
+
 class EntryData(BuiltinValues):
     type: str
     slug: str

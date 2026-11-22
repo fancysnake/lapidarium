@@ -61,6 +61,7 @@ from lapidarium.pacts.content import (
     RelationRole,
     TypeRole,
     role_label,
+    unused_builtins,
 )
 
 if TYPE_CHECKING:
@@ -483,10 +484,9 @@ class EntryForm(EntryFormBase):
     def clean(self) -> None:
         super().clean()
         # Built-ins the role does not use stay empty.
-        used = ROLE_BUILTINS[TypeRole(self.instance.type.role)]
-        for column, default in BUILTIN_DEFAULTS.items():
-            if column not in used:
-                setattr(self.instance, column, default)
+        role = TypeRole(self.instance.type.role)
+        for column, empty in unused_builtins(role).items():
+            setattr(self.instance, column, empty)
         services = build_services()
         self._check_builtins(services)
         self._check_metadata(services)

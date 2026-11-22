@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 from collections import Counter
 from functools import partial
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, cast, override
 
 from PIL import Image
 
@@ -28,6 +28,7 @@ from lapidarium.pacts.content import (
     ShowcaseData,
     ShowcaseDTO,
     TypeRole,
+    unused_builtins,
 )
 from lapidarium.pacts.services import (
     ContentExportServiceProtocol,
@@ -59,8 +60,9 @@ if TYPE_CHECKING:
 type _EntryKey = tuple[str, str]
 
 
-def entry_to_data(entry: EntryDTO) -> EntryData:
-    return {
+def entry_to_data(entry: EntryDTO, role: TypeRole) -> EntryData:
+    """Entry as export data, built-ins the role does not use left empty."""
+    data: EntryData = {
         "type": entry.type_key,
         "slug": entry.slug,
         "title": entry.title,
@@ -104,6 +106,8 @@ def entry_to_data(entry: EntryDTO) -> EntryData:
         "created_at": entry.created_at,
         "updated_at": entry.updated_at,
     }
+    data.update(cast("EntryData", unused_builtins(role)))
+    return data
 
 
 def type_to_data(entry_type: EntryTypeDTO) -> EntryTypeData:
@@ -166,6 +170,8 @@ class ContentExportService(ContentExportServiceProtocol):
     def export(self, root: Path) -> ContentSummaryDTO:
         profile = self._profile.get()
         published = self._entries.list_published()
+        types = self._types.list_all()
+        roles = {t.key: t.role for t in types}
         if drafts := {
             f"content/{entry.type_key}/{entry.slug}.md": messages
             for entry in published
@@ -199,8 +205,10 @@ class ContentExportService(ContentExportServiceProtocol):
                 _showcase_to_data(showcase)
                 for showcase in self._entries.list_showcases()
             ],
-            "types": [type_to_data(t) for t in self._types.list_all()],
-            "entries": [entry_to_data(entry) for entry in published],
+            "types": [type_to_data(t) for t in types],
+            "entries": [
+                entry_to_data(entry, roles[entry.type_key]) for entry in published
+            ],
             "assets": [
                 {"path": path, "alt": alt, "content": self._assets.read(path)}
                 for path, alt in sorted(alts.items())
