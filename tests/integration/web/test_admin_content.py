@@ -70,7 +70,6 @@ def _type(**values):
         "route": "talks",
         "order": "0",
         "role": "thing",
-        "layout": "article",
         "colour": "#6b3fa0",
         "tint": "",
         "icon": "",

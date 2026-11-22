@@ -147,7 +147,6 @@ import that changes it fails. For a different role, create a new type.
 
 | Field | Choices |
 |---|---|
-| Layout | `article` (text first), `media_first` (video or audio above the text), `gallery` (images in a grid) |
 | Has detail page | off for types too small for a page of their own: list items then link to `/<route>/#<slug>` |
 
 ### Look
@@ -244,6 +243,12 @@ An entry is a sequence of parts, in order:
 | File | asset | a download; `download_label` in options replaces the link text |
 | Link | URL | a card linking out |
 
+An entry's page takes its shape from its parts. An entry that starts with a
+video or audio part shows its players above the text. An entry of images only
+shows them in a grid. Any other entry shows its parts in the order they
+were written. A type's list is a grid of images while every entry of the type
+holds only images.
+
 Every URL must be http(s). Upload images and files under **Admin → Media
 assets** first, with alt text that says what the image shows; for an image of
 text, transcribe the text.
@@ -317,8 +322,8 @@ request.
 A musician's site with songs:
 
 1. Profile: name, tagline, photo, e-mail.
-2. Type *Song* / *Songs*, key `song`, route `songs`, role `thing`, layout
-   `media_first`, a colour that passes, door enabled.
+2. Type *Song* / *Songs*, key `song`, route `songs`, role `thing`, a colour that
+   passes, door enabled.
 3. Allowed parts: text, audio, video. Required: audio.
 4. Fields: `album` (`text`, show on card), `released` (`date`), list filters
    `year` and `tag`.

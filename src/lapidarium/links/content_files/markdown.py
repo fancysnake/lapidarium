@@ -1,4 +1,4 @@
-"""Export format v1: YAML for types and the profile, markdown for entries.
+"""Export format v2: YAML for types and the profile, markdown for entries.
 
 ```text
 lapidarium.yaml               format version
@@ -30,6 +30,7 @@ from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
     EXPORT_FORMAT_VERSION,
     FIELD_DEFAULTS,
+    READABLE_FORMAT_VERSIONS,
     TYPE_DEFAULTS,
     AssetData,
     BundleValidationError,
@@ -127,7 +128,7 @@ class ContentFilesStore(ContentStoreProtocol):
             manifest = (
                 yaml.safe_load((root / MANIFEST).read_text(encoding="utf-8")) or {}
             )
-            if manifest.get("format") != EXPORT_FORMAT_VERSION:
+            if manifest.get("format") not in READABLE_FORMAT_VERSIONS:
                 msg = f"Expected format {EXPORT_FORMAT_VERSION}."
                 raise ValueError(msg)
         if errors:

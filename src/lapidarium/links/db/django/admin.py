@@ -344,8 +344,8 @@ class EntryTypeForm(EntryTypeFormBase):
 class EntryTypeAdmin(EntryTypeAdminBase):
     form = EntryTypeForm
     inlines = (FieldDefinitionInline,)
-    list_display = ("label_plural", "key", "route_status", "role", "layout", "in_menu")
-    list_filter = ("role", "layout", "in_menu")
+    list_display = ("label_plural", "key", "route_status", "role", "in_menu")
+    list_filter = ("role", "in_menu")
     search_fields = ("label", "label_plural", "key")
     ordering_field = "order"
     hide_ordering_field = True
@@ -355,7 +355,7 @@ class EntryTypeAdmin(EntryTypeAdminBase):
         (
             _("Behaviour"),
             {
-                "fields": ("role", "layout", "has_detail_page"),
+                "fields": ("role", "has_detail_page"),
                 "description": _("A type's role is fixed once it has entries."),
             },
         ),

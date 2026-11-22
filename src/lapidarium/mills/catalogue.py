@@ -22,8 +22,10 @@ from lapidarium.pacts.content import (
     DoorPick,
     EntryRefDTO,
     FieldKind,
+    Layout,
     ListFilter,
     NotFoundError,
+    PartKind,
     RelationRole,
     TypeRole,
 )
@@ -55,6 +57,24 @@ if TYPE_CHECKING:
 
 type _Key = tuple[str, str]
 _BLANK = frozenset({None, ""})
+_PLAYED = frozenset({PartKind.AUDIO, PartKind.VIDEO})
+
+
+def layout_of(entry: EntryDTO) -> Layout:
+    """Return the page shape the entry's own parts ask for."""
+    kinds = [part.kind for part in entry.parts]
+    if kinds and kinds[0] in _PLAYED:
+        return Layout.MEDIA_FIRST
+    if kinds and all(kind == PartKind.IMAGE for kind in kinds):
+        return Layout.GALLERY
+    return Layout.ARTICLE
+
+
+def _list_layout(entries: Sequence[EntryDTO]) -> Layout:
+    """Return a grid for a type whose every entry is a gallery, else a plain list."""
+    if entries and all(layout_of(e) == Layout.GALLERY for e in entries):
+        return Layout.GALLERY
+    return Layout.ARTICLE
 
 
 def when(entry: EntryDTO) -> dt.date | None:
@@ -342,6 +362,7 @@ class CatalogueService(CatalogueServiceProtocol):
             filters=offered,
             upcoming=catalogue.cards(upcoming),
             cards=catalogue.cards(shown),
+            layout=_list_layout(catalogue.of_type(entry_type.key)),
             page=page,
             pages=pages,
             total=len(entries),
@@ -367,6 +388,7 @@ class CatalogueService(CatalogueServiceProtocol):
         ]
         return DetailDTO(
             card=catalogue.card(entry),
+            layout=layout_of(entry),
             panel=catalogue.facts(
                 entry, (f for f in entry_type.fields if f.show_in_metadata_panel)
             ),

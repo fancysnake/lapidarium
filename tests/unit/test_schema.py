@@ -35,7 +35,6 @@ def _type(*fields, allowed=(PartKind.TEXT,), required=()):
         order=0,
         in_menu=True,
         role=TypeRole.THING,
-        layout="article",
         allowed_parts=allowed,
         required_parts=required,
         door_enabled=False,

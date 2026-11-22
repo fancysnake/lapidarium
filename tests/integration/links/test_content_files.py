@@ -259,13 +259,13 @@ def test_write_without_showcases_removes_their_file(bundle_dir):
     assert not (bundle_dir / "showcases.yaml").exists()
 
 
-def test_read_requires_format_one(tmp_path):
-    (tmp_path / "lapidarium.yaml").write_text("format: 2\n", encoding="utf-8")
+def test_read_refuses_a_format_it_does_not_know(tmp_path):
+    (tmp_path / "lapidarium.yaml").write_text("format: 3\n", encoding="utf-8")
 
     with pytest.raises(BundleValidationError) as caught:
         ContentFilesStore().read(tmp_path)
 
-    assert caught.value.errors == {"lapidarium.yaml": ["Expected format 1."]}
+    assert caught.value.errors == {"lapidarium.yaml": ["Expected format 2."]}
 
 
 def test_read_requires_a_manifest(tmp_path):
@@ -319,3 +319,18 @@ def test_read_of_an_empty_bundle(tmp_path):
         "entries": [],
         "assets": [],
     }
+
+
+def test_read_takes_format_one_and_drops_its_layout_setting(tmp_path):
+    (tmp_path / "lapidarium.yaml").write_text("format: 1\n", encoding="utf-8")
+    (tmp_path / "types").mkdir()
+    (tmp_path / "types" / "song.yaml").write_text(
+        "key: song\nlabel: Song\nlabel_plural: Songs\nroute: songs\n"
+        "colour: '#123456'\nlayout: media_first\n",
+        encoding="utf-8",
+    )
+
+    types = ContentFilesStore().read(tmp_path)["types"]
+
+    assert [entry_type["key"] for entry_type in types] == ["song"]
+    assert "layout" not in types[0]

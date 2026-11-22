@@ -379,10 +379,9 @@ def test_a_change_that_affects_no_entry_is_saved_at_once(site):
     assert response.status_code == HTTPStatus.FOUND
     assert response["Location"] == "/admin/panel/?changed=1"
     changed = EntryType.objects.get(key="session")
-    assert (changed.label, changed.route, changed.layout, changed.list_filters) == (
+    assert (changed.label, changed.route, changed.list_filters) == (
         "Gra",
         "sesje",
-        "media_first",
         ["year", "tag", "system", "format"],
     )
     assert list(changed.fields.values_list("key", "label", "kind")) == [

@@ -16,5 +16,5 @@ def detail(request: RootRequest, *, route: str, slug: str) -> HttpResponse:
         request,
         "lapidarium/pages/detail.html",
         detail=found,
-        layout=f"lapidarium/layouts/{found.card.entry_type.layout}.html",
+        layout=f"lapidarium/layouts/{found.layout}.html",
     )
