@@ -17,7 +17,10 @@ from lapidarium.pacts.content import (
     DoorPick,
     EntryStatus,
     FieldKind,
+    Layout,
     NotFoundError,
+    PartDTO,
+    PartKind,
     RelationRole,
     TypeRole,
 )
@@ -586,3 +589,54 @@ def test_upcoming_lists_calendar_entries_soonest_first():
     service, _ = _service(types=[EVENT], entries=entries)
 
     assert [c.entry.slug for c in service.upcoming()] == ["soon", "later"]
+
+
+def _parts(*kinds):
+    return tuple(
+        PartDTO(kind=kind, text="", url="", asset=None, caption="", options={})
+        for kind in kinds
+    )
+
+
+@pytest.mark.parametrize(
+    ("kinds", "layout"),
+    (
+        ((), Layout.ARTICLE),
+        ((PartKind.TEXT,), Layout.ARTICLE),
+        ((PartKind.TEXT, PartKind.VIDEO), Layout.ARTICLE),
+        ((PartKind.VIDEO, PartKind.TEXT), Layout.MEDIA_FIRST),
+        ((PartKind.AUDIO,), Layout.MEDIA_FIRST),
+        ((PartKind.IMAGE, PartKind.IMAGE), Layout.GALLERY),
+        ((PartKind.IMAGE, PartKind.TEXT), Layout.ARTICLE),
+    ),
+)
+def test_detail_layout_follows_the_entrys_parts(kinds, layout):
+    service, _ = _service(entries=[entry_dto("x", parts=_parts(*kinds))])
+
+    assert service.detail("sessions", "x").layout == layout
+
+
+def test_listing_is_a_grid_when_every_entry_holds_only_images():
+    images = _parts(PartKind.IMAGE)
+    service, _ = _service(
+        entries=[entry_dto("a", parts=images), entry_dto("b", parts=images)]
+    )
+
+    assert service.listing("sessions", filters={}, page=1).layout == Layout.GALLERY
+
+
+def test_listing_is_no_grid_when_an_entry_holds_something_else():
+    service, _ = _service(
+        entries=[
+            entry_dto("a", parts=_parts(PartKind.IMAGE)),
+            entry_dto("b", parts=_parts(PartKind.TEXT)),
+        ]
+    )
+
+    assert service.listing("sessions", filters={}, page=1).layout == Layout.ARTICLE
+
+
+def test_listing_an_empty_list_is_no_grid():
+    service, _ = _service()
+
+    assert service.listing("sessions", filters={}, page=1).layout == Layout.ARTICLE

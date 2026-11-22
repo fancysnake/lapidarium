@@ -13,6 +13,7 @@ from lapidarium.pacts.content import (
     EntryRefDTO,
     EntryTypeDTO,
     FieldKind,
+    Layout,
     MetadataValue,
 )
 
@@ -113,6 +114,7 @@ class ListingDTO(BaseModel):
     filters: tuple[FilterDTO, ...]
     upcoming: tuple[CardDTO, ...]
     cards: tuple[CardDTO, ...]
+    layout: Layout
     page: int
     pages: int
     total: int
@@ -122,6 +124,7 @@ class DetailDTO(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     card: CardDTO
+    layout: Layout
     panel: tuple[FactDTO, ...]
     containers: tuple[EntryRefDTO, ...]
     contents: tuple[CardDTO, ...]

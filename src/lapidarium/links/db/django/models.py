@@ -21,7 +21,6 @@ from lapidarium.pacts.content import (
     DoorPick,
     EntryStatus,
     FieldKind,
-    Layout,
     Outcome,
     PartKind,
     TypeRole,
@@ -107,12 +106,6 @@ class EntryType(models.Model):
         max_length=32,
         choices=enum_choices(TypeRole),
         default=TYPE_DEFAULTS["role"],
-    )
-    layout = models.CharField(
-        _("layout"),
-        max_length=32,
-        choices=enum_choices(Layout),
-        default=TYPE_DEFAULTS["layout"],
     )
     allowed_parts = models.JSONField(
         _("allowed parts"), default=partial(list, DEFAULT_PARTS), blank=True

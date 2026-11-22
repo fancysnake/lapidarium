@@ -32,7 +32,7 @@ Everything on the site is one of these records:
 Every entry, whatever its type, shares the same core: title, slug, a
 one-sentence summary, status, tags, cover, and a sequence of parts. What
 differs between types is data: the type's fields, its role, which parts it
-allows, its layout and its colour. A site without songs simply has no song
+allows and its colour. A site without songs simply has no song
 type. A new kind of work is a new row in the admin, not a code change or a
 migration.
 

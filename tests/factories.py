@@ -53,7 +53,6 @@ def type_data(key="session", **overrides):
         "key": key,
         "label": key.title(),
         "label_plural": f"{key.title()}s",
-        "layout": "article",
         "list_filters": [],
         "order": 0,
         "required_parts": [],

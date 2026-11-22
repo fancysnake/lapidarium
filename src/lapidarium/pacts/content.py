@@ -155,7 +155,6 @@ TYPE_DEFAULTS: Mapping[str, SettingDefault] = {
     "order": 0,
     "in_menu": True,
     "role": TypeRole.THING,
-    "layout": Layout.ARTICLE,
     "allowed_parts": DEFAULT_PARTS,
     "required_parts": (),
     "door_enabled": False,
@@ -180,7 +179,9 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 SUMMARY_MAX_LENGTH = 200
 
 
-EXPORT_FORMAT_VERSION = 1
+EXPORT_FORMAT_VERSION = 2
+# Version 1 differs only by a `layout` type setting, which reading drops.
+READABLE_FORMAT_VERSIONS = frozenset({1, EXPORT_FORMAT_VERSION})
 
 
 # Cache alias for rendered public pages; every content commit clears it.
@@ -243,7 +244,6 @@ class EntryTypeData(TypedDict):
     order: int
     in_menu: bool
     role: TypeRole
-    layout: Layout
     allowed_parts: list[PartKind]
     required_parts: list[PartKind]
     door_enabled: bool
@@ -340,7 +340,7 @@ class ShowcaseData(TypedDict):
 
 
 class ContentBundle(TypedDict):
-    """Everything export format v1 holds, as one value."""
+    """Everything export format v2 holds, as one value."""
 
     profile: ProfileData | None
     links: list[LinkData]
@@ -378,7 +378,6 @@ class EntryTypeDTO(BaseModel):
     order: int
     in_menu: bool
     role: TypeRole
-    layout: Layout
     allowed_parts: tuple[PartKind, ...]
     required_parts: tuple[PartKind, ...]
     door_enabled: bool
@@ -579,7 +578,7 @@ class AccountRepositoryProtocol(Protocol):
 
 
 class ContentStoreProtocol(Protocol):
-    """Export format v1 on disk: `types/`, `content/`, `assets/`."""
+    """Export format v2 on disk: `types/`, `content/`, `assets/`."""
 
     def read(self, root: Path) -> ContentBundle: ...
 

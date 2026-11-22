@@ -37,7 +37,7 @@ the record of the work outlives any one platform.
   See [containers](concepts.md#containers) and
   [relations](concepts.md#relations).
 - **New kinds of work need no new code.** Creators invent formats faster than
-  software ships. Content types, fields, allowed parts and layouts are set in
+  software ships. Content types, fields and allowed parts are set in
   the admin; a podcast, a zine or a TTRPG campaign needs no code and no
   migration. See [the content model](concepts.md#the-content-model).
 - **The web page is enough.** Every page works without JavaScript. Videos load

@@ -5,7 +5,6 @@ route: piosenki
 colour: '#b23b0a'
 icon: music_note
 order: 2
-layout: media_first
 allowed_parts: [text, audio, video, image]
 required_parts: [audio]
 door_enabled: true

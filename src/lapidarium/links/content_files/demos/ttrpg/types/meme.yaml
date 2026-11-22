@@ -5,7 +5,6 @@ route: memy
 colour: '#8a5306'
 icon: mood
 order: 4
-layout: gallery
 allowed_parts: [image]
 required_parts: [image]
 door_enabled: true

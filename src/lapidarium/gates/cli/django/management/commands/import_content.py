@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class Command(BaseCommand):
     help = (
-        "Import an export (format v1) or a bundled demo: create or update types,"
+        "Import an export (format v2) or a bundled demo: create or update types,"
         " entries, assets."
     )
 

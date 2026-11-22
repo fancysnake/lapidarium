@@ -27,7 +27,7 @@ def test_a_session_page_brings_its_relations(site):
     ]
     assert detail.siblings == ()
     assert detail.contents == ()
-    assert response.context["layout"] == "lapidarium/layouts/media_first.html"
+    assert response.context["layout"] == "lapidarium/layouts/article.html"
     assert 'data-embed-url="https://www.youtube-nocookie.com/embed/' in response.text
     assert '<meta property="og:title" content="Ucieczka przed kosmicznym łosiem">' in (
         response.text
@@ -38,6 +38,7 @@ def test_a_session_page_brings_its_relations(site):
 def test_a_song_links_what_inspired_it_and_plays_from_its_provider(site):
     response = site.get("/piosenki/ballada-o-losiu/")
 
+    assert response.context["layout"] == "lapidarium/layouts/media_first.html"
     detail = response.context["detail"]
     assert [ref.slug for ref in detail.panel[0].refs] == [
         "ucieczka-przed-kosmicznym-losiem"
@@ -96,7 +97,6 @@ def test_online_entries_say_so(site):
 def test_every_part_kind_renders(site):
     entry = Entry.objects.get(slug="krotkie-nogi")
     asset = MediaAsset.objects.get(file="assets/demo/krotkie-nogi.svg")
-    EntryType.objects.filter(key="game").update(layout="gallery")
     entry.license = "CC BY 4.0"
     entry.save()
     Part.objects.filter(entry=entry).delete()
@@ -121,7 +121,7 @@ def test_every_part_kind_renders(site):
     response = site.get("/gry/krotkie-nogi/")
 
     text = response.text
-    assert response.context["layout"] == "lapidarium/layouts/gallery.html"
+    assert response.context["layout"] == "lapidarium/layouts/article.html"
     assert "<figcaption>Okładka</figcaption>" in text
     assert "krotkie-nogi.svg</strong>" in text
     assert "Zasady (PDF)" in text
@@ -150,7 +150,7 @@ def test_missing_and_list_only_entries_are_not_found(site, path):
     assert site.get(path).status_code == HTTPStatus.NOT_FOUND
 
 
-def test_media_first_entries_show_their_cover_url_and_bool_fields(site):
+def test_entries_show_their_cover_url_and_bool_fields(site):
     session_type = EntryType.objects.get(key="session")
     session_type.fields.create(key="vod", label="VOD", kind="url", order=9)
     session_type.fields.create(key="safe", label="Safety tools", kind="bool")
@@ -170,3 +170,23 @@ def test_media_first_entries_show_their_cover_url_and_bool_fields(site):
         response.text
     )
     assert "<dt>Safety tools</dt>" in response.text
+
+
+def test_an_entry_of_images_only_shows_them_in_a_grid(site):
+    EntryType.objects.filter(key="meme").update(has_detail_page=True)
+
+    response = site.get("/memy/los-w-kosmosie/")
+
+    assert response.context["layout"] == "lapidarium/layouts/gallery.html"
+    assert '<ul class="gallery">' in response.text
+    assert 'src="/media/assets/demo/los.svg"' in response.text
+
+
+def test_an_entry_that_leads_with_a_player_shows_its_cover_below_it(site):
+    Entry.objects.filter(slug="ballada-o-losiu").update(
+        cover=MediaAsset.objects.get(file="assets/demo/los.svg")
+    )
+
+    text = site.get("/piosenki/ballada-o-losiu/").text
+
+    assert text.index("soundcloud.com") < text.index('class="detail-hero__cover"')

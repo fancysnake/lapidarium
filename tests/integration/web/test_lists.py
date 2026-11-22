@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
-from lapidarium.links.db.django.models import Entry, EntryType
+from lapidarium.links.db.django.models import Entry, EntryType, Part
 from lapidarium.pacts.catalogue import FilterDTO
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
@@ -112,3 +112,14 @@ def test_gallery_types_with_detail_pages_link_to_them(site):
     response = site.get("/memy/")
 
     assert 'href="/memy/los-w-kosmosie/"' in response.text
+
+
+def test_a_list_with_an_entry_that_is_not_only_images_shows_cards(site):
+    Part.objects.create(
+        entry=Entry.objects.get(slug="los-w-kosmosie"), order=1, kind="text", text="x"
+    )
+
+    response = site.get("/memy/")
+
+    assert response.context["listing"].layout == "article"
+    assert 'class="gallery"' not in response.text

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-22 11:53+0100\n"
+"POT-Creation-Date: 2026-11-22 13:31+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -306,9 +306,6 @@ msgid "order"
 msgstr ""
 
 msgid "in menu"
-msgstr ""
-
-msgid "layout"
 msgstr ""
 
 msgid "door on the home page"
