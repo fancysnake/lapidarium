@@ -280,6 +280,26 @@ def test_export_without_a_profile(repos):
     assert bundle["assets"] == []
 
 
+def test_export_leaves_out_builtins_the_role_does_not_use(repos):
+    repos.entries.list_published.return_value = [
+        _entry_dto().model_copy(
+            update={
+                "start_at": NOW,
+                "end_at": NOW,
+                "location": "Kraków",
+                "is_online": True,
+                "outcome": "Shipped",
+            }
+        )
+    ]
+
+    _export_service(repos).export(ROOT)
+
+    (entry,) = repos.store.write.call_args.args[1]["entries"]
+    assert not schema_service().check_builtins(TypeRole.THING, entry)
+    assert entry["date"] == dt.date(2026, 3, 14)
+
+
 def test_export_refuses_a_published_link_to_a_draft(repos):
     draft = EntryRefDTO(type_key="session", slug="draft", title="D", status="draft")
     entry = _entry_dto()

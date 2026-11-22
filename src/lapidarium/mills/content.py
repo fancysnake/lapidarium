@@ -12,6 +12,7 @@ from PIL import Image
 from lapidarium.mills.metadata import validate_metadata
 from lapidarium.mills.schema import slug_errors, type_errors, url_errors
 from lapidarium.pacts.content import (
+    ROLE_BUILTINS,
     BundleValidationError,
     ContentBundle,
     ContentSummaryDTO,
@@ -59,23 +60,25 @@ if TYPE_CHECKING:
 type _EntryKey = tuple[str, str]
 
 
-def entry_to_data(entry: EntryDTO) -> EntryData:
+def entry_to_data(entry: EntryDTO, role: TypeRole) -> EntryData:
+    """Entry as export data, built-ins the role does not use left empty."""
+    used = ROLE_BUILTINS[role]
     return {
         "type": entry.type_key,
         "slug": entry.slug,
         "title": entry.title,
         "summary": entry.summary,
-        "date": entry.date,
-        "start_at": entry.start_at,
-        "end_at": entry.end_at,
-        "location": entry.location,
-        "is_online": entry.is_online,
+        "date": entry.date if "date" in used else None,
+        "start_at": entry.start_at if "start_at" in used else None,
+        "end_at": entry.end_at if "end_at" in used else None,
+        "location": entry.location if "location" in used else "",
+        "is_online": entry.is_online and "is_online" in used,
         "external_url": entry.external_url,
         "status": entry.status,
         "featured": entry.featured,
         "hide_from_whats_new": entry.hide_from_whats_new,
         "license": entry.license,
-        "outcome": entry.outcome,
+        "outcome": entry.outcome if "outcome" in used else "",
         "cover": entry.cover.path if entry.cover else "",
         "tags": list(entry.tags),
         "metadata": dict(entry.metadata),
@@ -166,6 +169,8 @@ class ContentExportService(ContentExportServiceProtocol):
     def export(self, root: Path) -> ContentSummaryDTO:
         profile = self._profile.get()
         published = self._entries.list_published()
+        types = self._types.list_all()
+        roles = {t.key: t.role for t in types}
         if drafts := {
             f"content/{entry.type_key}/{entry.slug}.md": messages
             for entry in published
@@ -199,8 +204,10 @@ class ContentExportService(ContentExportServiceProtocol):
                 _showcase_to_data(showcase)
                 for showcase in self._entries.list_showcases()
             ],
-            "types": [type_to_data(t) for t in self._types.list_all()],
-            "entries": [entry_to_data(entry) for entry in published],
+            "types": [type_to_data(t) for t in types],
+            "entries": [
+                entry_to_data(entry, roles[entry.type_key]) for entry in published
+            ],
             "assets": [
                 {"path": path, "alt": alt, "content": self._assets.read(path)}
                 for path, alt in sorted(alts.items())
