@@ -450,7 +450,6 @@ ignore_names = [
     "FINISHED",
     "GALLERY",
     "LATEST",
-    "MEDIA_FIRST",
     "ONGOING",
     "RANDOM_FEATURED",
     "RELATED",
@@ -462,7 +461,9 @@ ignore_names = [
     "to",
     # DTO fields only templates read
     "contents",
+    "cover_below_player",
     "dark_colours",
+    "grid",
     "href",
     "menu",
     "next_up",

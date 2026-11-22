@@ -39,18 +39,18 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
-- An entry's page takes its shape from its own parts: players on top when it
-  starts with audio or video, a grid when it holds only images, text first
-  otherwise. A type's list is a grid while every entry holds only images.
-- The export format is version 2. Version 1 files still import; their
-  `layout` type setting is ignored.
+- An entry's page takes its shape from its own parts: a grid when it holds only
+  images, its parts in written order otherwise, with the cover below a leading
+  audio or video part. A type's list is a grid while every entry holds only
+  images.
 
 - An unknown demo name in `setup_local --demo` or `import_content --demo` fails
   with the list of bundled ones.
 
 ### Removed
 
-- The layout setting of a type, in the admin and in export files.
+- The layout setting of a type, in the admin and in export files. Files that
+  still carry it import; the key is ignored.
 - `load_demo`: `import_content --demo ttrpg|dev` loads a bundled demo instead.
 - `.vekna.toml` and the cabinet dev dependency. vekna and cabinet are
   installed per user, and the rituals read `[projects.lapidarium.cabinet]`

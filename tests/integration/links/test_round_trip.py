@@ -1,4 +1,4 @@
-"""Export format v2 survives database → files → database on both demo sets."""
+"""Export format v1 survives database → files → database on both demo sets."""
 
 import filecmp
 

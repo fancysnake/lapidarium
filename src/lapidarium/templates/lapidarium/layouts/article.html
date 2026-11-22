@@ -1,11 +1,14 @@
 {% include "lapidarium/components/detail-hero.html" %}
-{% if entry.cover %}
-  <img class="detail-hero__cover" src="{{ entry.cover.url }}" alt="{{ entry.cover.alt }}">
+{% if entry.cover and not detail.cover_below_player %}
+  {% include "lapidarium/components/detail-cover.html" %}
 {% endif %}
 <div class="detail-layout">
   <div class="detail-layout__main">
     {% for part in entry.parts %}
       {% include "lapidarium/components/part.html" %}
+      {% if forloop.first and entry.cover and detail.cover_below_player %}
+        {% include "lapidarium/components/detail-cover.html" %}
+      {% endif %}
     {% endfor %}
   </div>
   <aside class="detail-layout__aside">

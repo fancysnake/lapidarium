@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class Command(BaseCommand):
-    help = "Export published content, its types and assets as format v2."
+    help = "Export published content, its types and assets as format v1."
 
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:

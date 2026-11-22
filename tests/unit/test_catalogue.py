@@ -604,8 +604,6 @@ def _parts(*kinds):
         ((), Layout.ARTICLE),
         ((PartKind.TEXT,), Layout.ARTICLE),
         ((PartKind.TEXT, PartKind.VIDEO), Layout.ARTICLE),
-        ((PartKind.VIDEO, PartKind.TEXT), Layout.MEDIA_FIRST),
-        ((PartKind.AUDIO,), Layout.MEDIA_FIRST),
         ((PartKind.IMAGE, PartKind.IMAGE), Layout.GALLERY),
         ((PartKind.IMAGE, PartKind.TEXT), Layout.ARTICLE),
     ),
@@ -616,13 +614,29 @@ def test_detail_layout_follows_the_entrys_parts(kinds, layout):
     assert service.detail("sessions", "x").layout == layout
 
 
+@pytest.mark.parametrize(
+    ("kinds", "below_player"),
+    (
+        ((), False),
+        ((PartKind.TEXT, PartKind.VIDEO), False),
+        ((PartKind.VIDEO, PartKind.TEXT), True),
+        ((PartKind.AUDIO,), True),
+        ((PartKind.IMAGE,), False),
+    ),
+)
+def test_detail_puts_the_cover_below_a_leading_player(kinds, below_player):
+    service, _ = _service(entries=[entry_dto("x", parts=_parts(*kinds))])
+
+    assert service.detail("sessions", "x").cover_below_player is below_player
+
+
 def test_listing_is_a_grid_when_every_entry_holds_only_images():
     images = _parts(PartKind.IMAGE)
     service, _ = _service(
         entries=[entry_dto("a", parts=images), entry_dto("b", parts=images)]
     )
 
-    assert service.listing("sessions", filters={}, page=1).layout == Layout.GALLERY
+    assert service.listing("sessions", filters={}, page=1).grid is True
 
 
 def test_listing_is_no_grid_when_an_entry_holds_something_else():
@@ -633,10 +647,10 @@ def test_listing_is_no_grid_when_an_entry_holds_something_else():
         ]
     )
 
-    assert service.listing("sessions", filters={}, page=1).layout == Layout.ARTICLE
+    assert service.listing("sessions", filters={}, page=1).grid is False
 
 
 def test_listing_an_empty_list_is_no_grid():
     service, _ = _service()
 
-    assert service.listing("sessions", filters={}, page=1).layout == Layout.ARTICLE
+    assert service.listing("sessions", filters={}, page=1).grid is False

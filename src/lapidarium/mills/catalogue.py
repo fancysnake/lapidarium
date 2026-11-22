@@ -60,21 +60,20 @@ _BLANK = frozenset({None, ""})
 _PLAYED = frozenset({PartKind.AUDIO, PartKind.VIDEO})
 
 
-def layout_of(entry: EntryDTO) -> Layout:
+def _layout(entry: EntryDTO) -> Layout:
     """Return the page shape the entry's own parts ask for."""
-    kinds = [part.kind for part in entry.parts]
-    if kinds and kinds[0] in _PLAYED:
-        return Layout.MEDIA_FIRST
-    if kinds and all(kind == PartKind.IMAGE for kind in kinds):
+    if entry.parts and all(part.kind == PartKind.IMAGE for part in entry.parts):
         return Layout.GALLERY
     return Layout.ARTICLE
 
 
-def _list_layout(entries: Sequence[EntryDTO]) -> Layout:
-    """Return a grid for a type whose every entry is a gallery, else a plain list."""
-    if entries and all(layout_of(e) == Layout.GALLERY for e in entries):
-        return Layout.GALLERY
-    return Layout.ARTICLE
+def _plays_first(entry: EntryDTO) -> bool:
+    return bool(entry.parts) and entry.parts[0].kind in _PLAYED
+
+
+def _is_grid(entries: Sequence[EntryDTO]) -> bool:
+    """Tell whether a type's list is a grid: every entry is a gallery."""
+    return bool(entries) and all(_layout(e) == Layout.GALLERY for e in entries)
 
 
 def when(entry: EntryDTO) -> dt.date | None:
@@ -238,6 +237,17 @@ def _filters(
     return tuple(offered)
 
 
+def _matching(
+    entries: Sequence[EntryDTO], offered: Sequence[FilterDTO]
+) -> list[EntryDTO]:
+    """Keep the entries that hold every selected filter value."""
+    return [
+        e
+        for e in entries
+        if all(f.selected in _filter_value(e, f.key) for f in offered if f.selected)
+    ]
+
+
 def _band(catalogue: Catalogue, showcase: ShowcaseDTO) -> ShowcaseBandDTO | None:
     """Band the showcase's published entries; `None` when none are left."""
     entries = [
@@ -338,15 +348,9 @@ class CatalogueService(CatalogueServiceProtocol):
     ) -> ListingDTO:
         catalogue = self._catalogue()
         entry_type = catalogue.by_route(route)
-        entries = catalogue.of_type(entry_type.key)
-        offered = _filters(entry_type, entries, chosen=filters)
-        for chosen in offered:
-            if chosen.selected:
-                entries = [
-                    e
-                    for e in entries
-                    if chosen.selected in _filter_value(e, chosen.key)
-                ]
+        of_type = catalogue.of_type(entry_type.key)
+        offered = _filters(entry_type, of_type, chosen=filters)
+        entries = _matching(of_type, offered)
         upcoming: list[EntryDTO] = []
         if entry_type.role == TypeRole.CALENDAR:
             upcoming = self._upcoming(entries)
@@ -362,7 +366,7 @@ class CatalogueService(CatalogueServiceProtocol):
             filters=offered,
             upcoming=catalogue.cards(upcoming),
             cards=catalogue.cards(shown),
-            layout=_list_layout(catalogue.of_type(entry_type.key)),
+            grid=_is_grid(of_type),
             page=page,
             pages=pages,
             total=len(entries),
@@ -388,7 +392,8 @@ class CatalogueService(CatalogueServiceProtocol):
         ]
         return DetailDTO(
             card=catalogue.card(entry),
-            layout=layout_of(entry),
+            layout=_layout(entry),
+            cover_below_player=_plays_first(entry),
             panel=catalogue.facts(
                 entry, (f for f in entry_type.fields if f.show_in_metadata_panel)
             ),

@@ -114,7 +114,7 @@ class ListingDTO(BaseModel):
     filters: tuple[FilterDTO, ...]
     upcoming: tuple[CardDTO, ...]
     cards: tuple[CardDTO, ...]
-    layout: Layout
+    grid: bool
     page: int
     pages: int
     total: int
@@ -125,6 +125,7 @@ class DetailDTO(BaseModel):
 
     card: CardDTO
     layout: Layout
+    cover_below_player: bool
     panel: tuple[FactDTO, ...]
     containers: tuple[EntryRefDTO, ...]
     contents: tuple[CardDTO, ...]

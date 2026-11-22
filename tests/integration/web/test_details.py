@@ -38,7 +38,6 @@ def test_a_session_page_brings_its_relations(site):
 def test_a_song_links_what_inspired_it_and_plays_from_its_provider(site):
     response = site.get("/piosenki/ballada-o-losiu/")
 
-    assert response.context["layout"] == "lapidarium/layouts/media_first.html"
     detail = response.context["detail"]
     assert [ref.slug for ref in detail.panel[0].refs] == [
         "ucieczka-przed-kosmicznym-losiem"

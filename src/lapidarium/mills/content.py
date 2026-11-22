@@ -1,4 +1,4 @@
-"""Content as export format v2: export, import, local setup, first boot."""
+"""Content as export format v1: export, import, local setup, first boot."""
 
 from __future__ import annotations
 
@@ -151,7 +151,7 @@ def type_to_data(entry_type: EntryTypeDTO) -> EntryTypeData:
 
 
 class ContentExportService(ContentExportServiceProtocol):
-    """Published content, its types and the assets it uses, as export format v2."""
+    """Published content, its types and the assets it uses, as export format v1."""
 
     def __init__(
         self,

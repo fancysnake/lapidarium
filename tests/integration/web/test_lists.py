@@ -121,5 +121,5 @@ def test_a_list_with_an_entry_that_is_not_only_images_shows_cards(site):
 
     response = site.get("/memy/")
 
-    assert response.context["listing"].layout == "article"
+    assert response.context["listing"].grid is False
     assert 'class="gallery"' not in response.text

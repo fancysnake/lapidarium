@@ -243,10 +243,10 @@ An entry is a sequence of parts, in order:
 | File | asset | a download; `download_label` in options replaces the link text |
 | Link | URL | a card linking out |
 
-An entry's page takes its shape from its parts. An entry that starts with a
-video or audio part shows its players above the text. An entry of images only
-shows them in a grid. Any other entry shows its parts in the order they
-were written. A type's list is a grid of images while every entry of the type
+An entry's page takes its shape from its parts. An entry of images only shows
+them in a grid. Any other entry shows its parts in the order they were written;
+when the first part is audio or video, the cover goes below it instead of above
+the parts. A type's list is a grid of images while every entry of the type
 holds only images.
 
 Every URL must be http(s). Upload images and files under **Admin → Media

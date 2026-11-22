@@ -25,7 +25,6 @@ class TypeRole(StrEnum):
 
 class Layout(StrEnum):
     ARTICLE = "article"
-    MEDIA_FIRST = "media_first"
     GALLERY = "gallery"
 
 
@@ -179,9 +178,7 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 SUMMARY_MAX_LENGTH = 200
 
 
-EXPORT_FORMAT_VERSION = 2
-# Version 1 differs only by a `layout` type setting, which reading drops.
-READABLE_FORMAT_VERSIONS = frozenset({1, EXPORT_FORMAT_VERSION})
+EXPORT_FORMAT_VERSION = 1
 
 
 # Cache alias for rendered public pages; every content commit clears it.
@@ -340,7 +337,7 @@ class ShowcaseData(TypedDict):
 
 
 class ContentBundle(TypedDict):
-    """Everything export format v2 holds, as one value."""
+    """Everything export format v1 holds, as one value."""
 
     profile: ProfileData | None
     links: list[LinkData]
@@ -578,7 +575,7 @@ class AccountRepositoryProtocol(Protocol):
 
 
 class ContentStoreProtocol(Protocol):
-    """Export format v2 on disk: `types/`, `content/`, `assets/`."""
+    """Export format v1 on disk: `types/`, `content/`, `assets/`."""
 
     def read(self, root: Path) -> ContentBundle: ...
 

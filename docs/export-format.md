@@ -10,8 +10,7 @@ it, [`import_content`](cli.md#import_content) reads it, and the bundled demos
 are written in it. A bundle written by hand is a way to set up a new instance's
 content in a text editor and keep it in git.
 
-This page describes format version 2. Version 1 files still import: version 1
-differs only by a `layout` type setting, which the import ignores.
+This page describes format version 1.
 
 ## Layout
 
