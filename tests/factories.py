@@ -216,3 +216,27 @@ def showcase_data(title="Start here", *, entries=(), **overrides):
         "entries": [{"type": type_key, "slug": slug} for type_key, slug in entries],
         **overrides,
     }
+
+
+def admin_inline(prefix, rows=()):
+    data = {
+        f"{prefix}-TOTAL_FORMS": str(len(rows)),
+        f"{prefix}-INITIAL_FORMS": "0",
+        f"{prefix}-MIN_NUM_FORMS": "0",
+        f"{prefix}-MAX_NUM_FORMS": "1000",
+    }
+    for index, row in enumerate(rows):
+        data.update({f"{prefix}-{index}-{key}": value for key, value in row.items()})
+    return data
+
+
+def admin_errors(response):
+    form = response.context["adminform"].form
+    inlines = {
+        inline.formset.prefix: (
+            [dict(f.errors) for f in inline.formset.forms if f.errors],
+            list(inline.formset.non_form_errors()),
+        )
+        for inline in response.context["inline_admin_formsets"]
+    }
+    return dict(form.errors), inlines

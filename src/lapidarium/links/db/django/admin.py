@@ -51,8 +51,11 @@ from lapidarium.links.db.django.models import (
 from lapidarium.links.db.django.repositories import entry_type_dto
 from lapidarium.pacts.content import (
     BUILTIN_DEFAULTS,
+    FIELD_DEFAULTS,
     ROLE_BUILTINS,
+    TYPE_DEFAULTS,
     EntryStatus,
+    EntryTypeDTO,
     FieldKind,
     MetadataFitDTO,
     MetadataValidationError,
@@ -66,7 +69,7 @@ from lapidarium.pacts.content import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Iterable, Mapping, Sequence
 
     from django.contrib.admin.options import _FieldOpts, _FieldsetSpec
     from django.db.models import QuerySet
@@ -80,6 +83,7 @@ if TYPE_CHECKING:
         MetadataInput,
         MetadataValue,
         PartData,
+        SettingDefault,
     )
     from lapidarium.pacts.services import SchemaServiceProtocol, ServicesProtocol
 
@@ -103,6 +107,9 @@ if TYPE_CHECKING:
     EntryTypeFormBase = forms.ModelForm[EntryType]
     FieldDefinitionFormBase = forms.ModelForm[FieldDefinition]
     EntryFormBase = forms.ModelForm[Entry]
+    FieldDefinitionFormSetBase = forms.BaseInlineFormSet[
+        FieldDefinition, EntryType, forms.ModelForm[FieldDefinition]
+    ]
     PartFormSetBase = forms.BaseInlineFormSet[Part, Entry, forms.ModelForm[Part]]
     RelationFormSetBase = forms.BaseInlineFormSet[
         Relation, Entry, forms.ModelForm[Relation]
@@ -118,7 +125,8 @@ else:
     PartInlineBase = StackedInline
 
     EntryTypeFormBase = FieldDefinitionFormBase = EntryFormBase = forms.ModelForm
-    PartFormSetBase = RelationFormSetBase = forms.BaseInlineFormSet
+    FieldDefinitionFormSetBase = PartFormSetBase = forms.BaseInlineFormSet
+    RelationFormSetBase = forms.BaseInlineFormSet
 
 META_PREFIX = "meta_"
 ROLE_COLUMNS = tuple(BUILTIN_DEFAULTS)
@@ -253,9 +261,54 @@ class FieldDefinitionForm(FieldDefinitionFormBase):
             self.add_error("target_type", _("A relation field needs a target type."))
 
 
+# Stand-ins for the settings a form does not hold; errors about them are dropped.
+_UNSET_TYPE: Mapping[str, SettingDefault] = {
+    **TYPE_DEFAULTS,
+    "key": "",
+    "label": "",
+    "label_plural": "",
+    "route": "",
+    "tint": "#ffffff",
+}
+
+
+def _type_errors(
+    held: Mapping[str, SettingDefault | list[str]],
+    fields: Iterable[Mapping[str, SettingDefault]] = (),
+) -> dict[str, list[str]]:
+    """Errors the shared type check finds in what a form holds, by setting."""
+    planned = EntryTypeDTO.model_validate(
+        {
+            **_UNSET_TYPE,
+            **held,
+            "fields": [{**FIELD_DEFAULTS, **field} for field in fields],
+        }
+    )
+    return build_services().schema.check_type(planned)
+
+
+class FieldDefinitionFormSet(FieldDefinitionFormSetBase):
+    @override
+    def clean(self) -> None:
+        super().clean()
+        if any(self.errors):
+            return
+        fields = [
+            {"key": data["key"], "label": data["label"], "kind": data["kind"]}
+            for form in self.forms
+            if (data := form.cleaned_data) and not data.get("DELETE")
+        ]
+        # Only this formset knows the fields the save leaves, so it checks the
+        # filters; the type form reports every other setting next to its input.
+        errors = _type_errors({"list_filters": self.instance.list_filters}, fields)
+        if filters := errors.get("list_filters"):
+            raise forms.ValidationError(filters)
+
+
 class FieldDefinitionInline(FieldDefinitionInlineBase):
     model = FieldDefinition
     form = FieldDefinitionForm
+    formset = FieldDefinitionFormSet
     fk_name = "entry_type"
     extra = 0
     ordering_field = "order"
@@ -327,17 +380,16 @@ class EntryTypeForm(EntryTypeFormBase):
     def clean(self) -> None:
         super().clean()
         data = self.cleaned_data
-        if not set(data.get("required_parts", [])) <= set(
-            data.get("allowed_parts", [])
-        ):
-            self.add_error("required_parts", _("Required parts must be allowed."))
-        schema = build_services().schema
+        held = dict(data)
         if colour := data.get("colour"):
-            data["tint"] = data.get("tint") or schema.derive_tint(colour)
-            for message in schema.check_colours(colour, data["tint"]):
-                self.add_error("colour", message)
-        for message in schema.check_route(data.get("route", "")):
-            self.add_error("route", message)
+            tint = data.get("tint") or build_services().schema.derive_tint(colour)
+            held["tint"] = data["tint"] = tint
+        else:
+            held.pop("tint", None)
+        for setting, errors in _type_errors(held).items():
+            # A setting missing from `data` already has an error of its own.
+            if setting in data and setting != "list_filters":
+                self.add_error(setting, [gettext(error) for error in errors])
 
 
 @admin.register(EntryType)

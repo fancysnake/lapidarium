@@ -32,7 +32,7 @@ from lapidarium.pacts.content import (
     role_label,
 )
 from lapidarium.pacts.services import SchemaServiceProtocol
-from lapidarium.specs import CONTRAST_FLOOR, SLUG_PATTERN
+from lapidarium.specs import CONTRAST_FLOOR, SLUG_PATTERN, gettext_noop
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
@@ -123,18 +123,13 @@ def _filter_errors(entry_type: EntryTypeDTO) -> list[str]:
 def _part_errors(entry_type: EntryTypeDTO) -> list[str]:
     if set(entry_type.required_parts) <= set(entry_type.allowed_parts):
         return []
-    return ["Required parts must be allowed."]
+    return [gettext_noop("Required parts must be allowed.")]
 
 
 def type_errors(schema: SchemaServiceProtocol, entry_type: EntryTypeDTO) -> list[str]:
     """Errors in a type's own settings: key, colours, route, filters, parts."""
-    return [
-        *slug_errors("Key", entry_type.key),
-        *schema.check_colours(entry_type.colour, entry_type.tint),
-        *schema.check_route(entry_type.route),
-        *_filter_errors(entry_type),
-        *_part_errors(entry_type),
-    ]
+    by_setting = schema.check_type(entry_type)
+    return [error for errors in by_setting.values() for error in errors]
 
 
 def _role_error(role: str, *, source: EntryTypeDTO, target: EntryTypeDTO) -> str | None:
@@ -323,7 +318,17 @@ class SchemaService(SchemaServiceProtocol):
         return tint_over(colour, self._colours.background)
 
     @override
-    def check_colours(self, colour: str, tint: str) -> list[str]:
+    def check_type(self, entry_type: EntryTypeDTO) -> dict[str, list[str]]:
+        found = {
+            "key": slug_errors("Key", entry_type.key),
+            "colour": self._check_colours(entry_type.colour, entry_type.tint),
+            "route": self.check_route(entry_type.route),
+            "list_filters": _filter_errors(entry_type),
+            "required_parts": _part_errors(entry_type),
+        }
+        return {setting: errors for setting, errors in found.items() if errors}
+
+    def _check_colours(self, colour: str, tint: str) -> list[str]:
         drawn_on = (
             ("page background", self._colours.background),
             ("tint", tint),

@@ -98,10 +98,11 @@ class SchemaServiceProtocol(Protocol):
     def derive_tint(self, colour: str) -> str:
         """Mix `colour` over the page background."""
 
-    def check_colours(self, colour: str, tint: str) -> list[str]:
-        """Contrast errors for a type colour against all it is drawn on.
+    def check_type(self, entry_type: EntryTypeDTO) -> dict[str, list[str]]:
+        """Errors in a type's own settings, under the setting each is about.
 
-        That is the page background, `tint` and the surface.
+        The colour must contrast with all it is drawn on: the page background,
+        the tint and the surface.
         """
 
     def check_route(self, route: str) -> list[str]:

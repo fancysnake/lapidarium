@@ -263,22 +263,49 @@ def test_derive_tint_is_a_light_mix_with_the_background(schema):
     assert schema.derive_tint(BLACK) == "#e0e0e0"
 
 
-def test_check_colours(schema):
-    assert schema.check_colours("#6b3fa0", schema.derive_tint("#6b3fa0")) == []
-    assert schema.check_colours("#999999", "#999999") == [
-        "Contrast with the page background is 2.85:1, needs 4.5:1.",
-        "Contrast with the tint is 1.00:1, needs 4.5:1.",
-    ]
+def test_check_type_files_each_error_under_its_setting(schema):
+    entry_type = _type(required=(PartKind.VIDEO,)).model_copy(
+        update={
+            "key": "no good",
+            "tint": "#ffffff",
+            "route": "about",
+            "list_filters": ("year", "mood"),
+        }
+    )
+
+    assert schema.check_type(entry_type) == {
+        "key": ["Key 'no good' may hold only letters, digits, - and _."],
+        "route": ["/about/ belongs to the about page."],
+        "list_filters": [
+            "List filter 'mood' is neither year, tag nor one of the fields."
+        ],
+        "required_parts": ["Required parts must be allowed."],
+    }
 
 
-def test_check_colours_covers_a_surface_that_differs_from_the_background():
+def _coloured(schema, colour, *, tint=None):
+    colours = {"colour": colour, "tint": tint or schema.derive_tint(colour)}
+    return _type().model_copy(update=colours)
+
+
+def test_check_type_colour_contrast(schema):
+    assert schema.check_type(_coloured(schema, "#6b3fa0")) == {}
+    assert schema.check_type(_coloured(schema, "#999999", tint="#999999")) == {
+        "colour": [
+            "Contrast with the page background is 2.85:1, needs 4.5:1.",
+            "Contrast with the tint is 1.00:1, needs 4.5:1.",
+        ]
+    }
+
+
+def test_check_type_covers_a_surface_that_differs_from_the_background():
     schema = schema_service(
         colours=SchemeColoursDTO(background=WHITE, surface="#c0c0c0"), **URLS
     )
 
-    assert schema.check_colours("#6b3fa0", schema.derive_tint("#6b3fa0")) == [
-        "Contrast with the surface is 4.06:1, needs 4.5:1."
-    ]
+    assert schema.check_type(_coloured(schema, "#6b3fa0")) == {
+        "colour": ["Contrast with the surface is 4.06:1, needs 4.5:1."]
+    }
 
 
 @pytest.mark.parametrize(
