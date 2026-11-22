@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Protocol, TypedDict
 from pydantic import BaseModel, ConfigDict
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterable, Mapping, Sequence
     from pathlib import Path
 
     from lapidarium.pacts.site import FriendData, LinkData, ProfileData
@@ -54,6 +54,12 @@ class FieldKind(StrEnum):
         return self is not FieldKind.BOOL
 
 
+# Kinds a field can take with no setting beyond its label.
+PLAIN_FIELD_KINDS = tuple(
+    kind for kind in FieldKind if kind not in {FieldKind.CHOICE, FieldKind.RELATION}
+)
+
+
 class UrlKind(StrEnum):
     ANY_HOST = "any"
     YOUTUBE = "youtube"
@@ -89,6 +95,11 @@ class RelationRole(StrEnum):
 def role_label(role: str) -> str:
     """Readable form of a built-in role, or of a role no field defines any more."""
     return role.replace("_", " ")
+
+
+def enum_choices(members: Iterable[StrEnum]) -> list[tuple[str, str]]:
+    """Django choices for `members`, each labelled by its readable value."""
+    return [(m.value, m.value.replace("_", " ").capitalize()) for m in members]
 
 
 class ListFilter(StrEnum):
@@ -505,6 +516,9 @@ class EntryTypeRepositoryProtocol(Protocol):
 
     def containment(self) -> set[tuple[str, str]]:
         """Key pairs (type, container type) of types whose entries a part-of joins."""
+
+    def part_holders(self, type_key: str) -> dict[PartKind, int]:
+        """Entries of the type holding a part of each kind; unheld kinds are absent."""
 
     def save_all(self, types: Sequence[EntryTypeData]) -> None:
         """Create or update each by key; field lists are replaced."""

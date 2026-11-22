@@ -473,6 +473,8 @@ ignore_names = [
     # Form properties only templates read
     "starters",
     # Form fields read from cleaned_data
+    "new_field_kind",
+    "new_field_label",
     "website",
 ]
 ignore_decorators = [

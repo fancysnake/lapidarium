@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from django.core.exceptions import ValidationError
 from django.core.files.images import get_image_dimensions
@@ -26,16 +26,9 @@ from lapidarium.pacts.content import (
     PartKind,
     TypeRole,
     UrlKind,
+    enum_choices,
 )
 from lapidarium.pacts.site import BUTTON_SIZE
-
-if TYPE_CHECKING:
-    from enum import StrEnum
-
-
-def _choices(enum: type[StrEnum]) -> list[tuple[str, str]]:
-    return [(m.value, m.value.replace("_", " ").capitalize()) for m in enum]
-
 
 HEX_COLOUR = RegexValidator(r"^#[0-9a-fA-F]{6}$", _("Use #rrggbb."))
 _SHORT = 100
@@ -112,13 +105,13 @@ class EntryType(models.Model):
     role = models.CharField(
         _("role"),
         max_length=32,
-        choices=_choices(TypeRole),
+        choices=enum_choices(TypeRole),
         default=TYPE_DEFAULTS["role"],
     )
     layout = models.CharField(
         _("layout"),
         max_length=32,
-        choices=_choices(Layout),
+        choices=enum_choices(Layout),
         default=TYPE_DEFAULTS["layout"],
     )
     allowed_parts = models.JSONField(
@@ -137,7 +130,7 @@ class EntryType(models.Model):
     door_pick = models.CharField(
         _("door pick"),
         max_length=32,
-        choices=_choices(DoorPick),
+        choices=enum_choices(DoorPick),
         default=TYPE_DEFAULTS["door_pick"],
     )
     door_min_entries = models.PositiveIntegerField(
@@ -166,7 +159,7 @@ class FieldDefinition(models.Model):
     kind = models.CharField(
         _("kind"),
         max_length=32,
-        choices=_choices(FieldKind),
+        choices=enum_choices(FieldKind),
         default=FieldKind.TEXT.value,
     )
     required = models.BooleanField(_("required"), default=FIELD_DEFAULTS["required"])
@@ -176,7 +169,7 @@ class FieldDefinition(models.Model):
     url_kind = models.CharField(
         _("URL validator"),
         max_length=32,
-        choices=_choices(UrlKind),
+        choices=enum_choices(UrlKind),
         default=FIELD_DEFAULTS["url_kind"],
         help_text=_("For URL fields."),
     )
@@ -250,11 +243,11 @@ class Entry(models.Model):
     status = models.CharField(
         _("status"),
         max_length=16,
-        choices=_choices(EntryStatus),
+        choices=enum_choices(EntryStatus),
         default=EntryStatus.DRAFT.value,
     )
     outcome = models.CharField(
-        _("outcome"), max_length=16, choices=_choices(Outcome), blank=True
+        _("outcome"), max_length=16, choices=enum_choices(Outcome), blank=True
     )
     featured = models.BooleanField(_("featured"), default=False)
     hide_from_whats_new = models.BooleanField(_("hide from what's new"), default=False)
@@ -315,7 +308,7 @@ class Part(models.Model):
     kind = models.CharField(
         _("kind"),
         max_length=16,
-        choices=_choices(PartKind),
+        choices=enum_choices(PartKind),
         default=PartKind.TEXT.value,
     )
     text = models.TextField(_("text"), blank=True, help_text=_("Markdown."))
