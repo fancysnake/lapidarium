@@ -542,7 +542,7 @@ def test_the_change_form_offers_a_choice_field_its_own_kind_and_the_plain_ones(s
     form = response.context["form"]
     rows = form.field_rows
 
-    assert [[bound.name for bound in row] for row in rows.values()] == [
+    assert [[bound.name for bound in row[1:]] for row in rows] == [
         ["field_system", "kind_system", "remove_system"],
         ["field_format", "kind_format", "remove_format"],
         ["field_players", "kind_players", "remove_players"],
@@ -553,6 +553,19 @@ def test_the_change_form_offers_a_choice_field_its_own_kind_and_the_plain_ones(s
         "choice",
         *plain,
     ]
+
+
+def test_the_change_form_lists_a_field_labelled_values(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    EntryType.objects.get(key="session").fields.filter(key="players").update(
+        key="values", label="Values"
+    )
+
+    response = site.get("/admin/panel/types/session/")
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'name="field_values"' in response.text
+    assert 'name="remove_values"' in response.text
 
 
 def test_a_field_entries_hold_values_for_is_not_removed_or_given_a_new_kind(site):
@@ -641,6 +654,16 @@ def test_the_entries_of_a_field_are_for_staff(site):
 
     assert response.status_code == HTTPStatus.FOUND
     assert response["Location"].startswith("/admin/login/")
+
+
+def test_the_entries_of_a_field_need_the_right_to_view_entries(site):
+    site.force_login(
+        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
+    )
+
+    response = site.get("/admin/panel/types/session/fields/system/")
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
 
 
 def test_the_entries_of_a_field_link_to_the_admin(site):

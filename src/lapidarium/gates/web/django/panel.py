@@ -117,6 +117,7 @@ def panel_change(request: RootRequest, key: str) -> HttpResponse:
 
 
 @staff_member_required
+@permission_required("lapidarium_db.view_entry", raise_exception=True)
 def panel_field(request: RootRequest, key: str, *, field: str) -> HttpResponse:
     """List the entries that keep a field from removal or a change of kind."""
     try:

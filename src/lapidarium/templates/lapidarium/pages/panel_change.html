@@ -26,7 +26,7 @@
         <legend class="label">{% translate "Fields" %}</legend>
         {% if form.field_rows %}
           <p>{% translate "Rename a field here at any time. Remove one, or change its kind, once no entry uses it." %}</p>
-          {% for label, kind, remove in form.field_rows.values %}
+          {% for key, label, kind, remove in form.field_rows %}
             {% include "lapidarium/components/form-field.html" with field=label %}
             {% include "lapidarium/components/form-field.html" with field=kind %}
             <label>{{ remove }} {{ remove.label }}</label>

@@ -231,12 +231,14 @@ class ChangeTypeForm(_TypeForm):
             )
 
     @property
-    def field_rows(self) -> dict[str, tuple[forms.BoundField, ...]]:
-        """The label, kind and removal inputs of each field of the type, by its key."""
-        return {
-            key: (self[_FIELD + key], self[_KIND + key], self[_REMOVE + key])
+    def field_rows(
+        self,
+    ) -> list[tuple[str, forms.BoundField, forms.BoundField, forms.BoundField]]:
+        """The key, label, kind and removal inputs of each field of the type."""
+        return [
+            (key, self[_FIELD + key], self[_KIND + key], self[_REMOVE + key])
             for key in self._labelled
-        }
+        ]
 
     def to_data(self) -> TypeChangeData:
         """Return the cleaned settings; read after `is_valid()`."""
@@ -247,9 +249,7 @@ class ChangeTypeForm(_TypeForm):
         return {
             "settings": self._settings(),
             "labels": self._labels(),
-            "kinds": {
-                key: FieldKind(data[kind.name]) for key, (_, kind, _) in rows.items()
-            },
-            "removed": [key for key, (*_, remove) in rows.items() if data[remove.name]],
+            "kinds": {key: FieldKind(data[kind.name]) for key, _, kind, _ in rows},
+            "removed": [key for key, *_, remove in rows if data[remove.name]],
             "added": {"label": label, "kind": kind} if label else None,
         }
