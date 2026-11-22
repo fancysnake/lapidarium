@@ -24,10 +24,12 @@
       {% include "lapidarium/components/form-field.html" with field=form.colour %}
       <fieldset class="form">
         <legend class="label">{% translate "Fields" %}</legend>
-        {% if form.field_labels %}
-          <p>{% translate "Rename a field here. Remove one, or change its kind, in the admin." %}</p>
-          {% for field in form.field_labels %}
-            {% include "lapidarium/components/form-field.html" %}
+        {% if form.field_rows %}
+          <p>{% translate "Rename a field here at any time. Remove one, or change its kind, once no entry uses it." %}</p>
+          {% for key, label, kind, remove in form.field_rows %}
+            {% include "lapidarium/components/form-field.html" with field=label %}
+            {% include "lapidarium/components/form-field.html" with field=kind %}
+            <label>{{ remove }} {{ remove.label }}</label>
           {% endfor %}
         {% endif %}
         {% include "lapidarium/components/form-field.html" with field=form.new_field_label %}
@@ -43,6 +45,32 @@
           <label>{{ form.door_enabled }} {{ form.door_enabled.label }}</label>
         </div>
       </details>
+      {% if in_use %}
+        <section class="notice" role="alert" aria-labelledby="in-use-title">
+          <h2 class="section-title" id="in-use-title">{% translate "Nothing is saved: entries still use these fields" %}</h2>
+          <ul>
+            {% for use in in_use %}
+              <li>
+                {% if use.field.kind == "relation" %}
+                  {% blocktranslate count counter=use.entries|length with field=use.field.label trimmed %}
+                    {{ counter }} entry links through the field “{{ field }}”.
+                  {% plural %}
+                    {{ counter }} entries link through the field “{{ field }}”.
+                  {% endblocktranslate %}
+                {% else %}
+                  {% blocktranslate count counter=use.entries|length with field=use.field.label trimmed %}
+                    {{ counter }} entry holds a value for the field “{{ field }}”.
+                  {% plural %}
+                    {{ counter }} entries hold a value for the field “{{ field }}”.
+                  {% endblocktranslate %}
+                {% endif %}
+                <a href="{% url 'panel_field' key=entry_type.key field=use.field.key %}">{% translate "See these entries" %}</a>
+              </li>
+            {% endfor %}
+          </ul>
+          <p>{% translate "Clear them in each entry first, then remove the field or change its kind." %}</p>
+        </section>
+      {% endif %}
       {% if change.effects %}
         <section class="notice" role="alert" aria-labelledby="effects-title">
           <h2 class="section-title" id="effects-title">{% translate "What this does to the entries" %}</h2>

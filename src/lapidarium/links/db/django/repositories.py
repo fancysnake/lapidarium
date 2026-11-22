@@ -67,6 +67,7 @@ if TYPE_CHECKING:
         EntryData,
         EntryTypeData,
         FieldDefinitionData,
+        MetadataValue,
         RelationData,
         ShowcaseData,
     )
@@ -264,6 +265,20 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
             .annotate(holders=Count("entry", distinct=True))
         )
         return {PartKind(row["kind"]): row["holders"] for row in held}
+
+    @override
+    def field_values(
+        self, type_key: str, field_key: str
+    ) -> list[tuple[EntryRefDTO, MetadataValue | None]]:
+        entries = Entry.objects.filter(
+            type__key=type_key, metadata__has_key=field_key
+        ).select_related("type")
+        return [(_entry_ref(entry), entry.metadata[field_key]) for entry in entries]
+
+    @override
+    def linking_entries(self, type_key: str, role: str) -> list[EntryRefDTO]:
+        entries = Entry.objects.filter(type__key=type_key, relations__role=role)
+        return [_entry_ref(e) for e in entries.distinct().select_related("type")]
 
     @override
     def save_all(self, types: Sequence[EntryTypeData]) -> None:

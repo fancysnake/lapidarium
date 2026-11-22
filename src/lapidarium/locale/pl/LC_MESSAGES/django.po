@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:11+0100\n"
+"POT-Creation-Date: 2026-11-22 11:53+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -68,6 +68,14 @@ msgstr "Zostaw puste, aby nie dodawać pola."
 
 msgid "Kind of the new field"
 msgstr "Rodzaj nowego pola"
+
+#, python-format
+msgid "Kind of “%(field)s”"
+msgstr "Rodzaj pola „%(field)s”"
+
+#, python-format
+msgid "Remove “%(field)s”"
+msgstr "Usuń „%(field)s”"
 
 msgid "That was a lot of tries in a short time. Please wait a while and try again."
 msgstr "To dużo prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie."
@@ -933,11 +941,36 @@ msgstr "Wróć do panelu treści"
 msgid "Fields"
 msgstr "Pola"
 
-msgid "Rename a field here. Remove one, or change its kind, in the admin."
-msgstr "Tutaj zmienisz nazwę pola. Usuniesz je albo zmienisz jego rodzaj w panelu administracyjnym."
+msgid "Rename a field here at any time. Remove one, or change its kind, once no entry uses it."
+msgstr "Nazwę pola zmienisz tutaj w każdej chwili. Usuniesz je albo zmienisz jego rodzaj, gdy żaden wpis go nie używa."
 
 msgid "Advanced"
 msgstr "Zaawansowane"
+
+msgid "Nothing is saved: entries still use these fields"
+msgstr "Nic nie zapisano: wpisy nadal używają tych pól"
+
+#, python-format
+msgid "%(counter)s entry links through the field “%(field)s”."
+msgid_plural "%(counter)s entries link through the field “%(field)s”."
+msgstr[0] "%(counter)s wpis ma powiązanie przez pole „%(field)s”."
+msgstr[1] "%(counter)s wpisy mają powiązania przez pole „%(field)s”."
+msgstr[2] "%(counter)s wpisów ma powiązania przez pole „%(field)s”."
+msgstr[3] "%(counter)s wpisu ma powiązania przez pole „%(field)s”."
+
+#, python-format
+msgid "%(counter)s entry holds a value for the field “%(field)s”."
+msgid_plural "%(counter)s entries hold a value for the field “%(field)s”."
+msgstr[0] "%(counter)s wpis ma wartość w polu „%(field)s”."
+msgstr[1] "%(counter)s wpisy mają wartość w polu „%(field)s”."
+msgstr[2] "%(counter)s wpisów ma wartość w polu „%(field)s”."
+msgstr[3] "%(counter)s wpisu ma wartość w polu „%(field)s”."
+
+msgid "See these entries"
+msgstr "Zobacz te wpisy"
+
+msgid "Clear them in each entry first, then remove the field or change its kind."
+msgstr "Najpierw wyczyść je w każdym wpisie, potem usuń pole albo zmień jego rodzaj."
 
 msgid "What this does to the entries"
 msgstr "Co ta zmiana zrobi z wpisami"
@@ -990,6 +1023,24 @@ msgstr "Podgląd"
 
 msgid "Save"
 msgstr "Zapisz"
+
+msgid "Entries that use the field:"
+msgstr "Wpisy, które używają pola:"
+
+msgid "A field that entries link through cannot be removed or change its kind. Remove these links in each entry first."
+msgstr "Pola, przez które wpisy mają powiązania, nie da się usunąć ani zmienić jego rodzaju. Najpierw usuń te powiązania w każdym wpisie."
+
+msgid "A field that holds values cannot be removed or change its kind. Clear the value in each entry first."
+msgstr "Pola, które ma wartości, nie da się usunąć ani zmienić jego rodzaju. Najpierw wyczyść wartość w każdym wpisie."
+
+msgid "Back to the type"
+msgstr "Wróć do typu"
+
+msgid "draft"
+msgstr "szkic"
+
+msgid "No entry uses this field. It can be removed or change its kind."
+msgstr "Żaden wpis nie używa tego pola. Można je usunąć albo zmienić jego rodzaj."
 
 msgid "New type"
 msgstr "Nowy rodzaj"

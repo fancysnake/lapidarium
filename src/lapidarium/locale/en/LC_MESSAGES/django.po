@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:11+0100\n"
+"POT-Creation-Date: 2026-11-22 11:53+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -67,6 +67,14 @@ msgid "Leave blank to add none."
 msgstr ""
 
 msgid "Kind of the new field"
+msgstr ""
+
+#, python-format
+msgid "Kind of “%(field)s”"
+msgstr ""
+
+#, python-format
+msgid "Remove “%(field)s”"
 msgstr ""
 
 msgid "That was a lot of tries in a short time. Please wait a while and try again."
@@ -927,10 +935,31 @@ msgstr ""
 msgid "Fields"
 msgstr ""
 
-msgid "Rename a field here. Remove one, or change its kind, in the admin."
+msgid "Rename a field here at any time. Remove one, or change its kind, once no entry uses it."
 msgstr ""
 
 msgid "Advanced"
+msgstr ""
+
+msgid "Nothing is saved: entries still use these fields"
+msgstr ""
+
+#, python-format
+msgid "%(counter)s entry links through the field “%(field)s”."
+msgid_plural "%(counter)s entries link through the field “%(field)s”."
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "%(counter)s entry holds a value for the field “%(field)s”."
+msgid_plural "%(counter)s entries hold a value for the field “%(field)s”."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "See these entries"
+msgstr ""
+
+msgid "Clear them in each entry first, then remove the field or change its kind."
 msgstr ""
 
 msgid "What this does to the entries"
@@ -973,6 +1002,24 @@ msgid "Preview"
 msgstr ""
 
 msgid "Save"
+msgstr ""
+
+msgid "Entries that use the field:"
+msgstr ""
+
+msgid "A field that entries link through cannot be removed or change its kind. Remove these links in each entry first."
+msgstr ""
+
+msgid "A field that holds values cannot be removed or change its kind. Clear the value in each entry first."
+msgstr ""
+
+msgid "Back to the type"
+msgstr ""
+
+msgid "draft"
+msgstr ""
+
+msgid "No entry uses this field. It can be removed or change its kind."
 msgstr ""
 
 msgid "New type"
