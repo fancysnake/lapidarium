@@ -58,6 +58,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- A public page opens when a stored value no longer fits its field, for example
+  a number left in a field changed to a url. Entry pages, lists and the home
+  page leave such a value out; the admin still shows it for re-entry.
 - `/healthz/` answers `503` while the database is unreachable, so a container
   that lost its database reports unhealthy. The image runs the check itself;
   compose files no longer wire their own.

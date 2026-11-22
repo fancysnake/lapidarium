@@ -98,6 +98,15 @@ _CLEANERS: Mapping[FieldKind, Callable[[_Given, FieldDefinitionDTO], MetadataVal
 }
 
 
+def value_fits(field: FieldDefinitionDTO, value: MetadataValue) -> bool:
+    """Return whether stored `value` still fits `field`, whose kind may have changed."""
+    try:
+        _CLEANERS[field.kind](value, field)
+    except TypeError, ValueError:
+        return False
+    return True
+
+
 def validate_metadata(
     entry_type: EntryTypeDTO, values: Mapping[str, MetadataInput]
 ) -> Metadata:

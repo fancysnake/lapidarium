@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, override
 
+from lapidarium.mills.metadata import value_fits
 from lapidarium.pacts.catalogue import (
     CardDTO,
     DetailDTO,
@@ -178,7 +179,8 @@ class Catalogue:
                         )
                     )
                 continue
-            if (value := entry.metadata.get(field.key)) not in _BLANK:
+            value = entry.metadata.get(field.key)
+            if value is not None and str(value) and value_fits(field, value):
                 facts.append(
                     FactDTO(label=field.label, kind=field.kind, value=value, refs=())
                 )

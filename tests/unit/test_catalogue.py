@@ -129,6 +129,20 @@ def test_catalogue_blank_values_are_no_facts():
     assert Catalogue([SESSION], [entry]).card(entry).facts == ()
 
 
+def test_catalogue_values_that_no_longer_fit_their_field_are_no_facts():
+    fields = (
+        field_dto("link", FieldKind.URL, show_on_card=True),
+        field_dto("played", FieldKind.DATE, show_on_card=True),
+        field_dto("players", FieldKind.NUMBER, show_on_card=True),
+    )
+    entry_type = type_dto(fields=fields)
+    entry = entry_dto(metadata={"link": 5, "played": "spring 2024", "players": 4})
+
+    assert Catalogue([entry_type], [entry]).card(entry).facts == (
+        FactDTO(label="Players", kind=FieldKind.NUMBER, value=4, refs=()),
+    )
+
+
 def test_catalogue_relation_fields_list_published_targets():
     session = entry_dto("moose")
     song = entry_dto(
