@@ -10,6 +10,8 @@ from lapidarium.mills.content import (
     PageClearingImportService,
 )
 from lapidarium.pacts.content import (
+    BUILTIN_DEFAULTS,
+    ROLE_BUILTINS,
     BundleValidationError,
     ContentSummaryDTO,
     EntryDTO,
@@ -298,6 +300,29 @@ def test_export_leaves_out_builtins_the_role_does_not_use(repos):
     (entry,) = repos.store.write.call_args.args[1]["entries"]
     assert not schema_service().check_builtins(TypeRole.THING, entry)
     assert entry["date"] == dt.date(2026, 3, 14)
+
+
+@pytest.mark.parametrize("role", TypeRole)
+def test_export_keeps_exactly_the_builtins_the_role_uses(repos, role):
+    filled = {
+        "date": dt.date(2026, 3, 14),
+        "start_at": NOW,
+        "end_at": NOW,
+        "location": "Kraków",
+        "is_online": True,
+        "outcome": "Shipped",
+    }
+    repos.types.list_all.return_value = [_type_dto().model_copy(update={"role": role})]
+    repos.entries.list_published.return_value = [_entry_dto().model_copy(update=filled)]
+
+    _export_service(repos).export(ROOT)
+
+    (entry,) = repos.store.write.call_args.args[1]["entries"]
+    used = ROLE_BUILTINS[role]
+    assert {key: entry[key] for key in filled} == {
+        key: value if key in used else BUILTIN_DEFAULTS[key]
+        for key, value in filled.items()
+    }
 
 
 def test_export_refuses_a_published_link_to_a_draft(repos):

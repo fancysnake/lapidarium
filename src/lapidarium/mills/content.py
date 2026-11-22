@@ -5,14 +5,13 @@ from __future__ import annotations
 import io
 from collections import Counter
 from functools import partial
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, cast, override
 
 from PIL import Image
 
 from lapidarium.mills.metadata import validate_metadata
 from lapidarium.mills.schema import slug_errors, type_errors, url_errors
 from lapidarium.pacts.content import (
-    ROLE_BUILTINS,
     BundleValidationError,
     ContentBundle,
     ContentSummaryDTO,
@@ -29,6 +28,7 @@ from lapidarium.pacts.content import (
     ShowcaseData,
     ShowcaseDTO,
     TypeRole,
+    unused_builtins,
 )
 from lapidarium.pacts.services import (
     ContentExportServiceProtocol,
@@ -62,23 +62,22 @@ type _EntryKey = tuple[str, str]
 
 def entry_to_data(entry: EntryDTO, role: TypeRole) -> EntryData:
     """Entry as export data, built-ins the role does not use left empty."""
-    used = ROLE_BUILTINS[role]
-    return {
+    data: EntryData = {
         "type": entry.type_key,
         "slug": entry.slug,
         "title": entry.title,
         "summary": entry.summary,
-        "date": entry.date if "date" in used else None,
-        "start_at": entry.start_at if "start_at" in used else None,
-        "end_at": entry.end_at if "end_at" in used else None,
-        "location": entry.location if "location" in used else "",
-        "is_online": entry.is_online and "is_online" in used,
+        "date": entry.date,
+        "start_at": entry.start_at,
+        "end_at": entry.end_at,
+        "location": entry.location,
+        "is_online": entry.is_online,
         "external_url": entry.external_url,
         "status": entry.status,
         "featured": entry.featured,
         "hide_from_whats_new": entry.hide_from_whats_new,
         "license": entry.license,
-        "outcome": entry.outcome if "outcome" in used else "",
+        "outcome": entry.outcome,
         "cover": entry.cover.path if entry.cover else "",
         "tags": list(entry.tags),
         "metadata": dict(entry.metadata),
@@ -107,6 +106,8 @@ def entry_to_data(entry: EntryDTO, role: TypeRole) -> EntryData:
         "created_at": entry.created_at,
         "updated_at": entry.updated_at,
     }
+    data.update(cast("EntryData", unused_builtins(role)))
+    return data
 
 
 def type_to_data(entry_type: EntryTypeDTO) -> EntryTypeData:
