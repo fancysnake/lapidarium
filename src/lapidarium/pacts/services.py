@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
     from lapidarium.pacts.outreach import ContactData
     from lapidarium.pacts.purposes import (
+        FieldUseDTO,
         MechanicDTO,
         NewTypeData,
         PurposeDTO,
@@ -224,10 +225,19 @@ class TypeChangeServiceProtocol(Protocol):
     def entry_type(self, key: str) -> EntryTypeDTO:
         """Return the type, or raise `NotFoundError`."""
 
+    def field_use(self, key: str, field_key: str) -> FieldUseDTO:
+        """Return the type's field with the entries that use it.
+
+        An entry uses a relation field when it links through it, and any other
+        field when it holds a value there; a blank and a switch left off are
+        no value. Raises `NotFoundError`.
+        """
+
     def plan_change(self, key: str, data: TypeChangeData) -> TypeChangeDTO:
         """Return what `change` would save and do to entries, saving nothing.
 
-        Raises `NotFoundError` or `TypeValidationError`.
+        Raises `NotFoundError`, `TypeValidationError`, or `FieldsInUseError` when
+        a field to remove or to change the kind of is still in use.
         """
 
     def change(self, key: str, data: TypeChangeData, *, consent: str) -> None:
@@ -235,7 +245,8 @@ class TypeChangeServiceProtocol(Protocol):
 
         A change with no effects has a blank one.
 
-        Raises `NotFoundError`, `TypeValidationError` or `ConsentNeededError`.
+        Raises `NotFoundError`, `TypeValidationError`, `FieldsInUseError` or
+        `ConsentNeededError`.
         """
 
 

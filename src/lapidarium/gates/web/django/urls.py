@@ -11,7 +11,12 @@ from lapidarium.gates.web.django.health import healthz
 from lapidarium.gates.web.django.home import home
 from lapidarium.gates.web.django.lists import listing
 from lapidarium.gates.web.django.newsletter import newsletter
-from lapidarium.gates.web.django.panel import panel, panel_change, panel_new
+from lapidarium.gates.web.django.panel import (
+    panel,
+    panel_change,
+    panel_field,
+    panel_new,
+)
 from lapidarium.gates.web.django.search import search
 from lapidarium.gates.web.django.theme_preview import theme_preview
 from lapidarium.gates.web.django.whats_new import whats_new
@@ -25,6 +30,11 @@ urlpatterns = [
         f"{settings.ADMIN_URL}panel/types/<slug:key>/",
         panel_change,
         name="panel_change",
+    ),
+    path(
+        f"{settings.ADMIN_URL}panel/types/<slug:key>/fields/<slug:field>/",
+        panel_field,
+        name="panel_field",
     ),
     path(settings.ADMIN_URL, admin.site.urls),
     path("healthz/", healthz, name="healthz"),

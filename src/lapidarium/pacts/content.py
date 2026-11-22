@@ -526,6 +526,17 @@ class EntryTypeRepositoryProtocol(Protocol):
     def part_holders(self, type_key: str) -> dict[PartKind, int]:
         """Entries of the type holding a part of each kind; unheld kinds are absent."""
 
+    def field_values(
+        self, type_key: str, field_key: str
+    ) -> list[tuple[EntryRefDTO, MetadataValue | None]]:
+        """Entries of the type with the metadata key, each with what it stores there.
+
+        Newest first.
+        """
+
+    def linking_entries(self, type_key: str, role: str) -> list[EntryRefDTO]:
+        """Entries of the type with an outgoing link of the role, newest first."""
+
     def save_all(self, types: Sequence[EntryTypeData]) -> None:
         """Create or update each by key; field lists are replaced."""
 

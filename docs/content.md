@@ -79,8 +79,21 @@ starting point: the type does not remember it.
 
 To change a type, follow **Change** on its card in the panel. The form holds
 the same settings as the create form, except the key. It also renames the
-type's fields and adds one field per save; a choice or relation field, a
-removed field and a changed kind stay in the admin. **Preview** lists what the
+type's fields, removes them, changes their kind and adds one field per save.
+A new choice or relation field stays in the admin, and so does a change of
+kind to either of them.
+
+A rename is always safe: entries keep their values. The panel refuses to
+remove a field or change its kind while entries use it, because each of those
+entries would lose its value on the next save. An entry uses a field when it
+holds a value for it; a blank and a switch left off are no value. An entry
+uses a relation field when it links through it. The refusal says how many
+entries use the field and links to a page that lists them. Clear the value or
+remove the link in each entry, then save the change again. Removing a field
+also removes it from the type's list filters. The admin does not check any of
+this.
+
+**Preview** lists what the
 change does to the entries the type already has, with how many:
 
 | Change | Effect on entries |

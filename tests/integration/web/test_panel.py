@@ -5,7 +5,7 @@ from http import HTTPStatus
 import pytest
 from django.contrib.auth import get_user_model
 
-from lapidarium.links.db.django.models import EntryType
+from lapidarium.links.db.django.models import Entry, EntryType
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
 
@@ -272,6 +272,9 @@ _SESSION = {
     "field_system": "System",
     "field_format": "Format",
     "field_players": "Gracze",
+    "kind_system": "text",
+    "kind_format": "choice",
+    "kind_players": "text",
     "new_field_label": "",
     "new_field_kind": "text",
     "allowed_parts": ["text", "video", "image", "audio"],
@@ -334,6 +337,12 @@ def test_the_change_form_opens_on_the_settings_of_the_type(site):
         "field_system": "System",
         "field_format": "Format",
         "field_players": "Gracze",
+        "kind_system": "text",
+        "remove_system": None,
+        "kind_format": "choice",
+        "remove_format": None,
+        "kind_players": "text",
+        "remove_players": None,
     }
     assert [field.name for field in form.field_labels] == [
         "field_system",
@@ -524,3 +533,149 @@ def test_change_asks_again_for_what_the_form_cannot_read(site):
     assert response.status_code == HTTPStatus.OK
     assert set(response.context["form"].errors) == {"field_system", "new_field_kind"}
     assert EntryType.objects.get(key="session").label == "Sesja"
+
+
+def test_the_change_form_offers_a_choice_field_its_own_kind_and_the_plain_ones(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.get("/admin/panel/types/session/")
+    form = response.context["form"]
+    rows = form.field_rows
+
+    assert [[bound.name for bound in row] for row in rows.values()] == [
+        ["field_system", "kind_system", "remove_system"],
+        ["field_format", "kind_format", "remove_format"],
+        ["field_players", "kind_players", "remove_players"],
+    ]
+    plain = ["text", "long_text", "url", "date", "number", "bool"]
+    assert [kind for kind, _ in form.fields["kind_system"].choices] == plain
+    assert [kind for kind, _ in form.fields["kind_format"].choices] == [
+        "choice",
+        *plain,
+    ]
+
+
+def test_a_field_entries_hold_values_for_is_not_removed_or_given_a_new_kind(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    for action in ("save", "preview"):
+        response = site.post(
+            "/admin/panel/types/session/",
+            {
+                **_SESSION,
+                "label": "Gra",
+                "remove_system": "on",
+                "kind_players": "long_text",
+                action: "1",
+            },
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.context["change"] is None
+        assert response.context["form"].errors == {}
+        assert [
+            (use.field.key, [entry.slug for entry in use.entries])
+            for use in response.context["in_use"]
+        ] == [
+            ("system", ["bal-w-zamku", "ucieczka-przed-kosmicznym-losiem"]),
+            ("players", ["bal-w-zamku", "ucieczka-przed-kosmicznym-losiem"]),
+        ]
+        assert "2 entries hold a value for the field “System”." in response.text
+        assert 'href="/admin/panel/types/session/fields/system/"' in response.text
+    unchanged = EntryType.objects.get(key="session")
+    assert unchanged.label == "Sesja"
+    assert list(unchanged.fields.values_list("key", "kind")) == [
+        ("system", "text"),
+        ("format", "choice"),
+        ("players", "text"),
+    ]
+
+
+def test_a_field_no_entry_holds_a_value_for_is_removed_or_given_a_new_kind(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    for entry in Entry.objects.filter(type__key="session"):
+        entry.metadata = {"players": entry.metadata["players"], "system": ""}
+        entry.save()
+
+    response = site.post(
+        "/admin/panel/types/session/",
+        {**_SESSION, "remove_system": "on", "kind_format": "text", "save": "1"},
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    changed = EntryType.objects.get(key="session")
+    assert changed.list_filters == ["year", "tag", "format"]
+    assert list(changed.fields.values_list("key", "kind", "choices")) == [
+        ("format", "text", []),
+        ("players", "text", []),
+    ]
+
+
+def test_a_relation_field_entries_link_through_is_not_removed(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    form = site.get("/admin/panel/types/song/").context["form"]
+    shown = {name: form[name].value() for name in form.fields}
+
+    response = site.post(
+        "/admin/panel/types/song/",
+        {
+            **{name: value for name, value in shown.items() if value},
+            "remove_inspired_by": "on",
+            "save": "1",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert [
+        (use.field.key, [entry.slug for entry in use.entries])
+        for use in response.context["in_use"]
+    ] == [("inspired_by", ["ballada-o-losiu"])]
+    assert "1 entry links through the field “Zainspirowana przez”." in response.text
+    assert EntryType.objects.get(key="song").fields.filter(key="inspired_by").exists()
+    page = site.get("/admin/panel/types/song/fields/inspired_by/")
+    assert "Remove these links in each entry first." in page.text
+
+
+def test_the_entries_of_a_field_are_for_staff(site):
+    response = site.get("/admin/panel/types/session/fields/system/")
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"].startswith("/admin/login/")
+
+
+def test_the_entries_of_a_field_link_to_the_admin(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    Entry.objects.filter(slug="bal-w-zamku").update(status="draft")
+
+    response = site.get("/admin/panel/types/session/fields/system/")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.context["type_key"] == "session"
+    use = response.context["use"]
+    assert (use.field.key, [(e.slug, e.status) for e in use.entries]) == (
+        "system",
+        [("bal-w-zamku", "draft"), ("ucieczka-przed-kosmicznym-losiem", "published")],
+    )
+    assert response.context["entries_admin"] == "/admin/lapidarium_db/entry/"
+    assert 'href="/admin/lapidarium_db/entry/?q=bal-w-zamku"' in response.text
+    assert "(draft)" in response.text
+    assert 'href="/admin/panel/types/session/"' in response.text
+
+
+def test_a_field_no_entry_uses_says_so(site):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+    Entry.objects.filter(type__key="session").update(metadata={})
+
+    response = site.get("/admin/panel/types/session/fields/system/")
+
+    assert response.context["use"].entries == ()
+    assert "No entry uses this field." in response.text
+
+
+@pytest.mark.parametrize("path", ("saga/fields/system", "session/fields/mood"))
+def test_an_unknown_field_has_no_entries_page(site, path):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.get(f"/admin/panel/types/{path}/")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND

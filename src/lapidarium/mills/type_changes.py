@@ -9,11 +9,15 @@ from lapidarium.pacts.content import (
     PLAIN_FIELD_KINDS,
     EntryTypeDTO,
     FieldDefinitionDTO,
+    FieldKind,
     NotFoundError,
     SettingDefault,
+    UrlKind,
 )
 from lapidarium.pacts.purposes import (
     ConsentNeededError,
+    FieldsInUseError,
+    FieldUseDTO,
     NewFieldData,
     TypeChangeData,
     TypeChangeDTO,
@@ -30,6 +34,7 @@ if TYPE_CHECKING:
         EntryTypeData,
         EntryTypeRepositoryProtocol,
         FieldDefinitionData,
+        MetadataValue,
     )
 
 
@@ -37,6 +42,12 @@ def _find(types: Iterable[EntryTypeDTO], key: str) -> EntryTypeDTO:
     if (found := next((t for t in types if t.key == key), None)) is None:
         raise NotFoundError(key)
     return found
+
+
+def _kind_errors(kind: FieldKind) -> list[str]:
+    if kind in PLAIN_FIELD_KINDS:
+        return []
+    return [f"A {kind} field needs settings only the admin has."]
 
 
 def _added_field(
@@ -52,12 +63,56 @@ def _added_field(
         "kind": new["kind"],
     }
     added = FieldDefinitionDTO.model_validate(settings)
-    errors: list[str] = []
+    errors = _kind_errors(added.kind)
     if added.key in taken:
-        errors.append(f"A field with the key {added.key!r} already exists.")
-    if added.kind not in PLAIN_FIELD_KINDS:
-        errors.append(f"A {added.kind} field needs settings only the admin has.")
+        errors.insert(0, f"A field with the key {added.key!r} already exists.")
     return field_to_data(added), errors
+
+
+def _kept_field(
+    field: FieldDefinitionDTO, data: TypeChangeData
+) -> tuple[FieldDefinitionData, list[str]]:
+    """Return `field` under the label and kind `data` gives it, and what is wrong."""
+    kept: FieldDefinitionData = {
+        **field_to_data(field),
+        "label": data["labels"][field.key],
+    }
+    if (kind := data["kinds"][field.key]) == field.kind:
+        return kept, []
+    # Settings of the old kind mean nothing to the new one.
+    changed: FieldDefinitionData = {
+        **kept,
+        "kind": kind,
+        "choices": [],
+        "url_kind": UrlKind.ANY_HOST,
+        "target_type": "",
+    }
+    return changed, _kind_errors(kind)
+
+
+def _planned_fields(
+    current: EntryTypeDTO, data: TypeChangeData
+) -> tuple[list[FieldDefinitionData], list[str]]:
+    """Return the fields `data` leaves the type with, and what is wrong with them."""
+    removed = data["removed"]
+    fields: list[FieldDefinitionData] = []
+    errors: list[str] = []
+    for field in current.fields:
+        if field.key not in removed:
+            kept, wrong = _kept_field(field, data)
+            fields.append(kept)
+            errors += wrong
+    if (new := data["added"]) is not None:
+        added, wrong = _added_field(new, {f["key"] for f in fields})
+        errors += wrong
+        if added is not None:
+            fields.append(added)
+    return fields, errors
+
+
+def _holds(value: MetadataValue | None) -> bool:
+    """Whether a stored value is one to lose; a switch left off is not."""
+    return value is not None and value is not False and bool(str(value))
 
 
 class TypeChangeService(TypeChangeServiceProtocol):
@@ -72,19 +127,18 @@ class TypeChangeService(TypeChangeServiceProtocol):
         return _find(self._types.list_all(), key)
 
     @override
+    def field_use(self, key: str, field_key: str) -> FieldUseDTO:
+        fields = self.entry_type(key).fields
+        if (field := next((f for f in fields if f.key == field_key), None)) is None:
+            raise NotFoundError(field_key)
+        return self._use(key, field)
+
+    @override
     def plan_change(self, key: str, data: TypeChangeData) -> TypeChangeDTO:
         existing = self._types.list_all()
         current = _find(existing, key)
         stored = type_to_data(current)
-        fields: list[FieldDefinitionData] = [
-            {**field, "label": data["labels"][field["key"]]}
-            for field in stored["fields"]
-        ]
-        errors: list[str] = []
-        if (new := data["added"]) is not None:
-            added, errors = _added_field(new, {f["key"] for f in fields})
-            if added is not None:
-                fields.append(added)
+        fields, errors = _planned_fields(current, data)
         colour = data["settings"]["colour"]
         changes: EntryTypeData = {
             **stored,
@@ -95,6 +149,10 @@ class TypeChangeService(TypeChangeServiceProtocol):
                 if colour == current.colour
                 else self._schema.derive_tint(colour)
             ),
+            # A filter on a removed field has nothing left to offer.
+            "list_filters": [
+                f for f in stored["list_filters"] if f not in data["removed"]
+            ],
             "fields": fields,
         }
         changed = EntryTypeDTO.model_validate(changes)
@@ -105,8 +163,26 @@ class TypeChangeService(TypeChangeServiceProtocol):
             *type_clashes(changed, others),
         ]:
             raise TypeValidationError(errors)
+        if uses := self._lost_uses(current, changed):
+            raise FieldsInUseError(uses)
         effects = self._effects(current, changed)
         return TypeChangeDTO(entry_type=changed, effects=effects)
+
+    def _lost_uses(
+        self, current: EntryTypeDTO, changed: EntryTypeDTO
+    ) -> list[FieldUseDTO]:
+        """Return the uses of the fields `changed` drops or gives another kind."""
+        kinds = {field.key: field.kind for field in changed.fields}
+        lossy = (f for f in current.fields if kinds.get(f.key) != f.kind)
+        return [use for f in lossy if (use := self._use(current.key, f)).entries]
+
+    def _use(self, type_key: str, field: FieldDefinitionDTO) -> FieldUseDTO:
+        if field.kind == FieldKind.RELATION:
+            entries = self._types.linking_entries(type_key, field.key)
+        else:
+            stored = self._types.field_values(type_key, field.key)
+            entries = [entry for entry, value in stored if _holds(value)]
+        return FieldUseDTO(field=field, entries=tuple(entries))
 
     @override
     def change(self, key: str, data: TypeChangeData, *, consent: str) -> None:

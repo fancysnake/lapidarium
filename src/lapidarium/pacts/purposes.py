@@ -5,7 +5,14 @@ from typing import TYPE_CHECKING, TypedDict
 
 from pydantic import BaseModel, ConfigDict
 
-from lapidarium.pacts.content import EntryTypeDTO, FieldKind, PartKind, TypeRole
+from lapidarium.pacts.content import (
+    EntryRefDTO,
+    EntryTypeDTO,
+    FieldDefinitionDTO,
+    FieldKind,
+    PartKind,
+    TypeRole,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -64,10 +71,16 @@ class NewFieldData(TypedDict):
 
 
 class TypeChangeData(TypedDict):
-    """New settings for a type; `labels` maps the key of each field to its label."""
+    """New settings for a type.
+
+    `labels` and `kinds` map the key of each field to its label and kind;
+    `removed` holds the keys of the fields to drop.
+    """
 
     settings: TypeSettingsData
     labels: dict[str, str]
+    kinds: dict[str, FieldKind]
+    removed: list[str]
     added: NewFieldData | None
 
 
@@ -146,3 +159,20 @@ class ConsentNeededError(Exception):
     def __init__(self, change: TypeChangeDTO) -> None:
         super().__init__(change.consent)
         self.change = change
+
+
+class FieldUseDTO(BaseModel):
+    """A field, and the entries holding a value for it or linking through it."""
+
+    model_config = ConfigDict(frozen=True)
+
+    field: FieldDefinitionDTO
+    entries: tuple[EntryRefDTO, ...]
+
+
+class FieldsInUseError(Exception):
+    """A change that removes fields entries still use, or changes their kind."""
+
+    def __init__(self, uses: Sequence[FieldUseDTO]) -> None:
+        super().__init__(", ".join(use.field.key for use in uses))
+        self.uses = tuple(uses)

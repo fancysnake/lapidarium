@@ -54,6 +54,7 @@ from tests.factories import (
     part_data,
     png,
     profile_data,
+    ref_dto,
     showcase_data,
     type_data,
 )
@@ -515,3 +516,42 @@ def test_part_holders_count_entries_of_one_type_per_kind_once():
         PartKind.LINK: 1,
     }
     assert EntryTypeRepository().part_holders("saga") == {}
+
+
+def test_field_values_pair_entries_of_one_type_with_what_they_store_under_a_key():
+    fields = [field_data("system"), field_data("live", FieldKind.BOOL)]
+    EntryTypeRepository().save_all(
+        [type_data(fields=fields), type_data("event", fields=fields)]
+    )
+    EntryRepository().save(entry_data(metadata={"system": "Mothership"}))
+    EntryRepository().save(entry_data("elk", metadata={"live": False}))
+    EntryRepository().save(entry_data("fair", "event", metadata={"system": "Dread"}))
+
+    assert EntryTypeRepository().field_values("session", "system") == [
+        (ref_dto("moose"), "Mothership")
+    ]
+    assert EntryTypeRepository().field_values("session", "live") == [
+        (ref_dto("elk"), False)
+    ]
+    assert EntryTypeRepository().field_values("session", "players") == []
+
+
+def test_linking_entries_are_those_of_one_type_with_a_link_of_the_role_once():
+    EntryTypeRepository().save_all([type_data(), type_data("event")])
+    for entry in (entry_data(), entry_data("elk"), entry_data("fair", "event")):
+        EntryRepository().save(entry)
+    to_elk = {"target_type": "session", "target_slug": "elk"}
+    to_fair = {"target_type": "event", "target_slug": "fair"}
+    EntryRepository().set_relations(
+        "session",
+        "moose",
+        relations=[{"role": "related", **to_elk}, {"role": "related", **to_fair}],
+    )
+    EntryRepository().set_relations(
+        "event", "fair", relations=[{"role": "related", **to_elk}]
+    )
+
+    assert EntryTypeRepository().linking_entries("session", "related") == [
+        ref_dto("moose")
+    ]
+    assert EntryTypeRepository().linking_entries("session", "part_of") == []

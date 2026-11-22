@@ -30,6 +30,8 @@ _MESSAGE_MAX_LENGTH = 5000
 _NAME_MAX_LENGTH = 100
 _PART_CHOICES = enum_choices(PartKind)
 _FIELD = "field_"
+_KIND = "kind_"
+_REMOVE = "remove_"
 
 
 class HoneypotForm(forms.Form):
@@ -214,13 +216,40 @@ class ChangeTypeForm(_TypeForm):
             labels={field.key: field.label for field in entry_type.fields},
             labels_required=True,
         )
+        for field in entry_type.fields:
+            # A choice or relation field keeps its kind, or takes a plain one.
+            kinds = dict.fromkeys((field.kind, *PLAIN_FIELD_KINDS))
+            named = {"field": field.label}
+            self.fields[_KIND + field.key] = forms.ChoiceField(
+                label=_("Kind of “%(field)s”") % named,
+                choices=enum_choices(kinds),
+                initial=field.kind.value,
+                widget=forms.Select(attrs={"class": "input"}),
+            )
+            self.fields[_REMOVE + field.key] = forms.BooleanField(
+                label=_("Remove “%(field)s”") % named, required=False
+            )
+
+    @property
+    def field_rows(self) -> dict[str, tuple[forms.BoundField, ...]]:
+        """The label, kind and removal inputs of each field of the type, by its key."""
+        return {
+            key: (self[_FIELD + key], self[_KIND + key], self[_REMOVE + key])
+            for key in self._labelled
+        }
 
     def to_data(self) -> TypeChangeData:
         """Return the cleaned settings; read after `is_valid()`."""
-        label = self.cleaned_data["new_field_label"]
-        kind = FieldKind(self.cleaned_data["new_field_kind"])
+        data = self.cleaned_data
+        label = data["new_field_label"]
+        kind = FieldKind(data["new_field_kind"])
+        rows = self.field_rows
         return {
             "settings": self._settings(),
             "labels": self._labels(),
+            "kinds": {
+                key: FieldKind(data[kind.name]) for key, (_, kind, _) in rows.items()
+            },
+            "removed": [key for key, (*_, remove) in rows.items() if data[remove.name]],
             "added": {"label": label, "kind": kind} if label else None,
         }

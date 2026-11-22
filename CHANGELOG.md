@@ -31,6 +31,9 @@ All notable changes to this project are documented here. The format follows
 - The content panel changes a type: the same form renames fields and adds one,
   lists how many entries a change moves, strips of a page or leaves unsavable,
   and saves only after the owner agrees to those effects.
+- The content panel removes a field and changes its kind. It refuses both
+  while entries hold a value for the field or link through it, says how many
+  do, and links to a page that lists them.
 - Import refuses a type whose required parts are not all allowed, as the admin
   does.
 

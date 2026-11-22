@@ -5,9 +5,7 @@ import pytest
 from lapidarium.mills.content import type_to_data
 from lapidarium.mills.purposes import PurposeService
 from lapidarium.pacts.content import FieldKind, NotFoundError, PartKind, TypeRole
-from lapidarium.pacts.purposes import (
-    TypeValidationError,
-)
+from lapidarium.pacts.purposes import TypeValidationError
 from lapidarium.specs import MECHANIC_NAMES, PURPOSES
 from tests.factories import schema_service, type_dto
 
