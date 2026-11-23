@@ -123,10 +123,15 @@ def test_catalogue_card_shows_card_fields_with_values():
     )
 
 
+def _facts(entry_type, entry):
+    catalogue = Catalogue([entry_type], [entry])
+    return catalogue.card(catalogue.get(entry.type_key, entry.slug)).facts
+
+
 def test_catalogue_blank_values_are_no_facts():
     entry = entry_dto(metadata={"system": ""})
 
-    assert Catalogue([SESSION], [entry]).card(entry).facts == ()
+    assert _facts(SESSION, entry) == ()
 
 
 def test_catalogue_values_that_no_longer_fit_their_field_are_no_facts():
@@ -138,7 +143,7 @@ def test_catalogue_values_that_no_longer_fit_their_field_are_no_facts():
     entry_type = type_dto(fields=fields)
     entry = entry_dto(metadata={"link": 5, "played": "spring 2024", "players": 4})
 
-    assert Catalogue([entry_type], [entry]).card(entry).facts == (
+    assert _facts(entry_type, entry) == (
         FactDTO(label="Players", kind=FieldKind.NUMBER, value=4, refs=()),
     )
 
@@ -405,6 +410,26 @@ def test_listing_filters_offer_values_present_and_apply_the_selected():
         FilterDTO(key="system", label="System", options=("Mothership",), selected=""),
     )
     assert [c.entry.slug for c in listing.cards] == ["b", "a"]
+    assert listing.total == 2
+
+
+def test_listing_filters_offer_no_value_that_no_longer_fits_its_field():
+    session = type_dto(
+        route="sessions",
+        list_filters=["format"],
+        fields=(field_dto("format", FieldKind.CHOICE, choices=("one-shot",)),),
+    )
+    entries = [
+        entry_dto("a", metadata={"format": "one-shot"}),
+        entry_dto("b", metadata={"format": "convention"}),
+    ]
+    service, _ = _service(types=[session], entries=entries)
+
+    listing = service.listing("sessions", filters={"format": "convention"}, page=1)
+
+    assert listing.filters == (
+        FilterDTO(key="format", label="Format", options=("one-shot",), selected=""),
+    )
     assert listing.total == 2
 
 

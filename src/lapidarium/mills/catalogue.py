@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, override
 
-from lapidarium.mills.metadata import value_fits
+from lapidarium.mills.metadata import fitted_metadata
 from lapidarium.pacts.catalogue import (
     CardDTO,
     DetailDTO,
@@ -57,7 +57,6 @@ if TYPE_CHECKING:
     )
 
 type _Key = tuple[str, str]
-_BLANK = frozenset({None, ""})
 _PLAYED = frozenset({PartKind.AUDIO, PartKind.VIDEO})
 
 
@@ -122,7 +121,15 @@ def _filter_value(entry: EntryDTO, key: str) -> tuple[str, ...]:
             return entry.tags
         case _:
             value = entry.metadata.get(key)
-            return () if value in _BLANK else (str(value),)
+            return () if value is None else (str(value),)
+
+
+def _fitted(entry: EntryDTO, entry_type: EntryTypeDTO) -> EntryDTO:
+    """Return `entry` with the stored values that no longer fit their field left out."""
+    update: dict[str, object] = {
+        "metadata": fitted_metadata(entry_type, entry.metadata)
+    }
+    return entry.model_copy(update=update)
 
 
 class Catalogue:
@@ -132,7 +139,11 @@ class Catalogue:
         self, types: Sequence[EntryTypeDTO], entries: Sequence[EntryDTO]
     ) -> None:
         self.types = {t.key: t for t in types}
-        self.entries = [e for e in entries if e.type_key in self.types]
+        self.entries = [
+            _fitted(e, self.types[e.type_key])
+            for e in entries
+            if e.type_key in self.types
+        ]
         self._by_key = {_key(e): e for e in self.entries}
         self._backlinks: dict[_Key, list[tuple[str, EntryDTO]]] = {}
         for entry in self.entries:
@@ -179,8 +190,7 @@ class Catalogue:
                         )
                     )
                 continue
-            value = entry.metadata.get(field.key)
-            if value is not None and str(value) and value_fits(field, value):
+            if (value := entry.metadata.get(field.key)) is not None:
                 facts.append(
                     FactDTO(label=field.label, kind=field.kind, value=value, refs=())
                 )

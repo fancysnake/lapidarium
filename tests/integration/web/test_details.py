@@ -197,13 +197,20 @@ def test_a_page_opens_when_a_value_no_longer_fits_its_field(site):
     FieldDefinition.objects.filter(entry_type__key="session", key="players").update(
         kind="url", show_on_card=True
     )
+    EntryType.objects.filter(key="session").update(list_filters=["players"])
     entry = Entry.objects.get(slug="bal-w-zamku")
     entry.metadata["players"] = 5
     entry.save()
 
     detail = site.get("/sesje/bal-w-zamku/")
     listing = site.get("/sesje/")
+    home = site.get("/")
 
     assert detail.status_code == HTTPStatus.OK
     assert "Gracze" not in [f.label for f in detail.context["detail"].panel]
     assert listing.status_code == HTTPStatus.OK
+    shown = listing.context["listing"]
+    card = next(c for c in shown.cards if c.entry.slug == entry.slug)
+    assert "Gracze" not in [f.label for f in card.facts]
+    assert shown.filters[0].options == ()
+    assert home.status_code == HTTPStatus.OK

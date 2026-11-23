@@ -98,13 +98,28 @@ _CLEANERS: Mapping[FieldKind, Callable[[_Given, FieldDefinitionDTO], MetadataVal
 }
 
 
-def value_fits(field: FieldDefinitionDTO, value: MetadataValue) -> bool:
-    """Return whether stored `value` still fits `field`, whose kind may have changed."""
+def fit_value(
+    field: FieldDefinitionDTO, value: MetadataValue | None
+) -> MetadataFitDTO | None:
+    """Run stored `value` through `field`'s kind; `None` if there is nothing to fit."""
+    if field.kind not in _CLEANERS or value is None or not str(value):
+        return None
     try:
-        _CLEANERS[field.kind](value, field)
-    except TypeError, ValueError:
-        return False
-    return True
+        return MetadataFitDTO(value=_CLEANERS[field.kind](value, field))
+    except (TypeError, ValueError) as exc:
+        return MetadataFitDTO(misfit=str(exc))
+
+
+def fitted_metadata(
+    entry_type: EntryTypeDTO, stored: Mapping[str, MetadataValue]
+) -> Metadata:
+    """Return the stored values that fit their field, cleaned; the rest are left out."""
+    fitted: Metadata = {}
+    for field in entry_type.fields:
+        fit = fit_value(field, stored.get(field.key))
+        if fit is not None and not fit.misfit and fit.value is not None:
+            fitted[field.key] = fit.value
+    return fitted
 
 
 def validate_metadata(
@@ -142,13 +157,6 @@ class MetadataService(MetadataServiceProtocol):
     ) -> dict[str, MetadataFitDTO]:
         fits: dict[str, MetadataFitDTO] = {}
         for field in entry_type.fields:
-            value = stored.get(field.key)
-            if field.kind not in _CLEANERS or value is None or not str(value):
-                continue
-            try:
-                fits[field.key] = MetadataFitDTO(
-                    value=_CLEANERS[field.kind](value, field)
-                )
-            except (TypeError, ValueError) as exc:
-                fits[field.key] = MetadataFitDTO(misfit=str(exc))
+            if (fit := fit_value(field, stored.get(field.key))) is not None:
+                fits[field.key] = fit
         return fits
