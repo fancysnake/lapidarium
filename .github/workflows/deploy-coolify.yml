@@ -53,8 +53,7 @@ jobs:
       - name: Build Coolify env payload and validate with varlock
         env:
           # Same for every instance, so hardcoded rather than configured in
-          # the GitHub Environment. Not left to the settings.py defaults: the
-          # payload drops empty keys, so Coolify would keep any stale value.
+          # the GitHub Environment.
           ENV: production
           DEBUG: 'false'
           # Non-sensitive config: GitHub Environment variables.
@@ -98,15 +97,17 @@ jobs:
           # tests/integration/docs/test_configuration_page.py pins it to the
           # schema.
           #
-          # Dropping empty values keeps the bulk-env upsert from clearing a
-          # value Coolify already stores. Piped, never printed: resolved
-          # secrets stay out of the run log. is_literal stops Coolify expanding
-          # a `$` inside a value, which a secret key or password may hold.
+          # settings.py reads an empty value as a value, not as "use the
+          # default", so an empty key is never sent: the sync step deletes it
+          # from Coolify instead. Piped, never printed: resolved secrets stay
+          # out of the run log. is_literal stops Coolify expanding a `$`
+          # inside a value, which a secret key or password may hold.
           "$varlock" load --path env/schema.env --format json \
-            | jq '[to_entries[]
-                   | select(.value != null and .value != "")
-                   | {key: .key, value: (.value | tostring),
-                      is_preview: false, is_literal: true}]' \
+            | jq 'to_entries
+                  | map(select(.value != null and .value != "")) as $set
+                  | {data: $set | map({key, value: (.value | tostring),
+                                       is_preview: false, is_literal: true}),
+                     cleared: (map(.key) - ($set | map(.key)))}' \
             > "$RUNNER_TEMP/envs.json"
 
       - name: Sync env, pin image tag, deploy on Coolify and wait
@@ -131,8 +132,19 @@ jobs:
           }
           api="$COOLIFY_URL/api/v1"
           # Output is discarded so values never reach the run log.
-          jq '{data: .}' "$RUNNER_TEMP/envs.json" \
+          jq '{data}' "$RUNNER_TEMP/envs.json" \
             | coolify -X PATCH --data @- "$api/applications/$APP_UUID/envs/bulk" > /dev/null
+          # Only keys the schema declares and this run resolved empty: a
+          # variable the operator added in Coolify stays. Preview copies stay
+          # too; the upsert above never writes them.
+          coolify "$api/applications/$APP_UUID/envs" \
+            | jq -r --slurpfile payload "$RUNNER_TEMP/envs.json" \
+                '.[] | select((.is_preview | not)
+                              and (.key | IN($payload[0].cleared[])))
+                     | .uuid' \
+            | while read -r env_uuid; do
+                coolify -X DELETE "$api/applications/$APP_UUID/envs/$env_uuid" > /dev/null
+              done
           # Pinning the commit's own tag (not `latest`) makes rollback a
           # re-run of the calling workflow on an older commit.
           jq -n --arg tag "$IMAGE_TAG" '{docker_registry_image_tag: $tag}' \
