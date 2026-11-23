@@ -122,7 +122,8 @@ jobs:
           # would leave Coolify holding the new env or pinned tag with no
           # deploy running, for the next unrelated redeploy to ship silently.
           # The PATCHes are idempotent; a duplicate trigger redeploys the
-          # same pinned image.
+          # same pinned image. A DELETE is not: its retry meets a 404, so the
+          # delete loop below checks the list before it gives up.
           coolify() {
             curl -fsS --connect-timeout 10 --max-time 30 \
               --retry 3 --retry-all-errors \
@@ -143,7 +144,9 @@ jobs:
                               and (.key | IN($payload[0].cleared[])))
                      | .uuid' \
             | while read -r env_uuid; do
-                coolify -X DELETE "$api/applications/$APP_UUID/envs/$env_uuid" > /dev/null
+                coolify -X DELETE "$api/applications/$APP_UUID/envs/$env_uuid" > /dev/null \
+                  || coolify "$api/applications/$APP_UUID/envs" \
+                  | jq -e --arg id "$env_uuid" 'all(.[]; .uuid != $id)' > /dev/null
               done
           # Pinning the commit's own tag (not `latest`) makes rollback a
           # re-run of the calling workflow on an older commit.

@@ -6,16 +6,13 @@ workflow exports it to varlock.
 
 import re
 
-import yaml
-
 from lapidarium.edges import settings
+from tests.deploy_workflow import PAYLOAD_STEP, deploy_steps
 from tests.env_docs import EXTERNAL, REQUIRED, default
 from tests.paths import REPO
 
 PAGE = REPO / "docs" / "configuration.md"
 SCHEMA = REPO / "env" / "schema.env"
-WORKFLOW = REPO / ".github" / "workflows" / "deploy-coolify.yml"
-PAYLOAD_STEP = "Build Coolify env payload and validate with varlock"
 ROW = re.compile(r"^\| `([A-Z_]+)` \| ([^|]+?) \|", re.MULTILINE)
 KEY = re.compile(r"^([A-Z_]+)=", re.MULTILINE)
 
@@ -45,9 +42,4 @@ def test_schema_declares_every_variable():
 
 
 def test_deploy_workflow_exports_every_variable():
-    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["deploy"][
-        "steps"
-    ]
-    payload = next(step for step in steps if step.get("name") == PAYLOAD_STEP)
-
-    assert payload["env"].keys() == _variables()
+    assert deploy_steps()[PAYLOAD_STEP]["env"].keys() == _variables()

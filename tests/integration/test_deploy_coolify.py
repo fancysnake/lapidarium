@@ -4,17 +4,21 @@ import json
 import os
 import subprocess
 
-import yaml
-
+from tests.deploy_workflow import PAYLOAD_STEP, SYNC_STEP, deploy_steps
 from tests.paths import REPO
 
-WORKFLOW = REPO / ".github" / "workflows" / "deploy-coolify.yml"
-PAYLOAD_STEP = "Build Coolify env payload and validate with varlock"
-SYNC_STEP = "Sync env, pin image tag, deploy on Coolify and wait"
 API = "https://coolify.test/api/v1/applications/app-1"
 SECRET = "resolved-secret-key-value"
+# What GitHub supplies at least: the smallest set varlock accepts.
+REQUIRED_SETTINGS = {
+    "SECRET_KEY": SECRET,
+    "ALLOWED_HOSTS": "example.com",
+    "DATABASE_URL": "postgres://user:pass@db:5432/lapidarium",
+}
 
-# Logs `<method> <url>`, keeps each request body, answers as Coolify does.
+# Logs `<method> <url>`, keeps each request body, answers as Coolify does. A
+# DELETE removes the variable; with `lose-reply` present, curl then fails as it
+# does when the reply is lost and the retry meets a 404.
 FAKE_CURL = """#!/usr/bin/env bash
 method=GET
 url="${!#}"
@@ -25,22 +29,22 @@ while [ $# -gt 1 ]; do
   esac
   shift
 done
-echo "$method $1" >> "$FAKE_DIR/calls.log"
-case "$method $1" in
+echo "$method $url" >> "$FAKE_DIR/calls.log"
+case "$method $url" in
   "GET "*/envs) cat "$FAKE_DIR/stored.json" ;;
+  "DELETE "*)
+    jq --arg id "${url##*/}" 'map(select(.uuid != $id))' "$FAKE_DIR/stored.json" \
+      > "$FAKE_DIR/kept.json"
+    mv "$FAKE_DIR/kept.json" "$FAKE_DIR/stored.json"
+    if [ -e "$FAKE_DIR/lose-reply" ]; then exit 22; fi ;;
   "POST "*) echo '{"deployments": [{"deployment_uuid": "d1"}]}' ;;
   "GET "*/deployments/d1) echo '{"status": "finished"}' ;;
 esac
 """
 
 
-def _deploy(tmp_path, stored, **github_environment):
-    steps = {
-        step.get("name"): step
-        for step in yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"][
-            "deploy"
-        ]["steps"]
-    }
+def _deploy(tmp_path, stored, *, lose_delete_reply=False):
+    steps = deploy_steps()
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     (fake_bin / "curl").write_text(FAKE_CURL, encoding="utf-8")
@@ -48,6 +52,8 @@ def _deploy(tmp_path, stored, **github_environment):
     for tool in fake_bin.iterdir():
         tool.chmod(0o755)
     (tmp_path / "stored.json").write_text(json.dumps(stored), encoding="utf-8")
+    if lose_delete_reply:
+        (tmp_path / "lose-reply").touch()
     env = os.environ | {
         "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
         "RUNNER_TEMP": str(tmp_path),
@@ -56,9 +62,12 @@ def _deploy(tmp_path, stored, **github_environment):
         "COOLIFY_TOKEN": "token",
         "APP_UUID": "app-1",
         "IMAGE_TAG": "sha-1",
-        # GitHub exports a variable the Environment lacks as an empty string.
-        **dict.fromkeys(steps[PAYLOAD_STEP]["env"], ""),
-        **github_environment,
+        # GitHub exports a variable the Environment lacks as an empty string;
+        # the values the workflow fixes itself stay as written.
+        **{
+            key: REQUIRED_SETTINGS.get(key, "") if value.startswith("${{") else value
+            for key, value in steps[PAYLOAD_STEP]["env"].items()
+        },
     }
     output = ""
     for name in (PAYLOAD_STEP, SYNC_STEP):
@@ -85,14 +94,7 @@ def test_a_variable_emptied_in_github_is_deleted_from_coolify(tmp_path):
         {"uuid": "outside-schema", "key": "OPERATOR_OWN", "is_preview": False},
     ]
 
-    calls, sent, output = _deploy(
-        tmp_path,
-        stored,
-        ENV="production",
-        SECRET_KEY=SECRET,
-        ALLOWED_HOSTS="example.com",
-        DATABASE_URL="postgres://user:pass@db:5432/lapidarium",
-    )
+    calls, sent, output = _deploy(tmp_path, stored)
 
     assert [call for call in calls if call.startswith("DELETE")] == [
         f"DELETE {API}/envs/emptied"
@@ -100,6 +102,7 @@ def test_a_variable_emptied_in_github_is_deleted_from_coolify(tmp_path):
     assert sent.keys() == {"data"}
     assert {item["key"] for item in sent["data"]} == {
         "ENV",
+        "DEBUG",
         "SECRET_KEY",
         "ALLOWED_HOSTS",
         "DATABASE_URL",
@@ -110,12 +113,18 @@ def test_a_variable_emptied_in_github_is_deleted_from_coolify(tmp_path):
 
 def test_a_deploy_with_nothing_stored_to_clear_deletes_nothing(tmp_path):
     calls, _, _ = _deploy(
-        tmp_path,
-        [{"uuid": "still-set", "key": "ALLOWED_HOSTS", "is_preview": False}],
-        ENV="production",
-        SECRET_KEY=SECRET,
-        ALLOWED_HOSTS="example.com",
-        DATABASE_URL="postgres://user:pass@db:5432/lapidarium",
+        tmp_path, [{"uuid": "still-set", "key": "ALLOWED_HOSTS", "is_preview": False}]
     )
 
     assert not [call for call in calls if call.startswith("DELETE")]
+
+
+def test_a_delete_whose_reply_was_lost_does_not_stop_the_deploy(tmp_path):
+    calls, _, _ = _deploy(
+        tmp_path,
+        [{"uuid": "emptied", "key": "SITE_NAME", "is_preview": False}],
+        lose_delete_reply=True,
+    )
+
+    assert f"DELETE {API}/envs/emptied" in calls
+    assert "POST https://coolify.test/api/v1/deploy?uuid=app-1" in calls
