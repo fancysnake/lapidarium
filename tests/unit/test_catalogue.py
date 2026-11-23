@@ -123,10 +123,48 @@ def test_catalogue_card_shows_card_fields_with_values():
     )
 
 
+def _facts(entry_type, entry):
+    catalogue = Catalogue([entry_type], [entry])
+    return catalogue.card(catalogue.get(entry.type_key, entry.slug)).facts
+
+
 def test_catalogue_blank_values_are_no_facts():
     entry = entry_dto(metadata={"system": ""})
 
-    assert Catalogue([SESSION], [entry]).card(entry).facts == ()
+    assert _facts(SESSION, entry) == ()
+
+
+def test_catalogue_text_of_only_whitespace_is_no_fact():
+    entry = entry_dto(metadata={"system": " \t "})
+
+    assert _facts(SESSION, entry) == ()
+
+
+def test_catalogue_zero_and_no_stay_facts():
+    fields = (
+        field_dto("players", FieldKind.NUMBER, show_on_card=True),
+        field_dto("online", FieldKind.BOOL, show_on_card=True),
+    )
+    entry = entry_dto(metadata={"players": 0, "online": False})
+
+    assert _facts(type_dto(fields=fields), entry) == (
+        FactDTO(label="Players", kind=FieldKind.NUMBER, value=0, refs=()),
+        FactDTO(label="Online", kind=FieldKind.BOOL, value=False, refs=()),
+    )
+
+
+def test_catalogue_values_that_no_longer_fit_their_field_are_no_facts():
+    fields = (
+        field_dto("link", FieldKind.URL, show_on_card=True),
+        field_dto("played", FieldKind.DATE, show_on_card=True),
+        field_dto("players", FieldKind.NUMBER, show_on_card=True),
+    )
+    entry_type = type_dto(fields=fields)
+    entry = entry_dto(metadata={"link": 5, "played": "spring 2024", "players": 4})
+
+    assert _facts(entry_type, entry) == (
+        FactDTO(label="Players", kind=FieldKind.NUMBER, value=4, refs=()),
+    )
 
 
 def test_catalogue_relation_fields_list_published_targets():
@@ -391,6 +429,26 @@ def test_listing_filters_offer_values_present_and_apply_the_selected():
         FilterDTO(key="system", label="System", options=("Mothership",), selected=""),
     )
     assert [c.entry.slug for c in listing.cards] == ["b", "a"]
+    assert listing.total == 2
+
+
+def test_listing_filters_offer_no_value_that_no_longer_fits_its_field():
+    session = type_dto(
+        route="sessions",
+        list_filters=["format"],
+        fields=(field_dto("format", FieldKind.CHOICE, choices=("one-shot",)),),
+    )
+    entries = [
+        entry_dto("a", metadata={"format": "one-shot"}),
+        entry_dto("b", metadata={"format": "convention"}),
+    ]
+    service, _ = _service(types=[session], entries=entries)
+
+    listing = service.listing("sessions", filters={"format": "convention"}, page=1)
+
+    assert listing.filters == (
+        FilterDTO(key="format", label="Format", options=("one-shot",), selected=""),
+    )
     assert listing.total == 2
 
 
