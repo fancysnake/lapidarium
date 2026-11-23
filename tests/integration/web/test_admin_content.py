@@ -1,11 +1,10 @@
-"""Admin for content types and entries: dynamic forms, inlines, graph integrity."""
+"""Admin for entries: dynamic forms, inlines, graph integrity."""
 
 from http import HTTPStatus
 
 import pytest
 from django.contrib.auth import get_user_model
 
-from lapidarium import inits
 from lapidarium.links.db.django.models import (
     Entry,
     EntryType,
@@ -13,24 +12,13 @@ from lapidarium.links.db.django.models import (
     Relation,
     Showcase,
 )
+from tests.factories import admin_errors, admin_inline
 
 TYPES = "/admin/lapidarium_db/entrytype/"
 ENTRIES = "/admin/lapidarium_db/entry/"
 SHOWCASES = "/admin/lapidarium_db/showcase/"
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
-
-
-def _inline(prefix, rows=()):
-    data = {
-        f"{prefix}-TOTAL_FORMS": str(len(rows)),
-        f"{prefix}-INITIAL_FORMS": "0",
-        f"{prefix}-MIN_NUM_FORMS": "0",
-        f"{prefix}-MAX_NUM_FORMS": "1000",
-    }
-    for index, row in enumerate(rows):
-        data.update({f"{prefix}-{index}-{key}": value for key, value in row.items()})
-    return data
 
 
 def _part(kind="text", order=0, **values):
@@ -56,54 +44,10 @@ def _entry(*, parts=(), relations=(), **values):
         "summary": "One sentence.",
         "status": "draft",
         **values,
-        **_inline("parts", parts),
-        **_inline("relations", relations),
-        **_inline("syndication"),
+        **admin_inline("parts", parts),
+        **admin_inline("relations", relations),
+        **admin_inline("syndication"),
     }
-
-
-def _type(**values):
-    return {
-        "label": "Talk",
-        "label_plural": "Talks",
-        "key": "talk",
-        "route": "talks",
-        "order": "0",
-        "role": "thing",
-        "colour": "#6b3fa0",
-        "tint": "",
-        "icon": "",
-        "allowed_parts": ["text"],
-        "door_pick": "latest",
-        "door_min_entries": "1",
-        **values,
-        **_inline("fields", values.pop("fields", ())),
-    }
-
-
-def _field(key, kind, **values):
-    return {
-        "key": key,
-        "label": key.title(),
-        "kind": kind,
-        "choices": "",
-        "url_kind": "any",
-        "target_type": "",
-        "order": "0",
-        **values,
-    }
-
-
-def _errors(response):
-    form = response.context["adminform"].form
-    inlines = {
-        inline.formset.prefix: (
-            [dict(f.errors) for f in inline.formset.forms if f.errors],
-            list(inline.formset.non_form_errors()),
-        )
-        for inline in response.context["inline_admin_formsets"]
-    }
-    return dict(form.errors), inlines
 
 
 # Sidebar
@@ -144,141 +88,6 @@ def test_sidebar_hides_what_staff_may_not_see(client):
 
     items = response.context["sidebar_navigation"][0]["items"]
     assert [item["has_permission"] for item in items] == [False, False]
-
-
-# Content types
-
-
-def test_type_gets_a_derived_tint_and_its_fields(admin):
-    response = admin.post(
-        f"{TYPES}add/",
-        _type(
-            required_parts=["text"],
-            fields=[
-                _field("event", "text"),
-                _field("format", "choice", choices="talk, workshop"),
-            ],
-        ),
-    )
-
-    assert response.status_code == HTTPStatus.FOUND
-    talk = EntryType.objects.get(key="talk")
-    assert talk.tint == "#ede8f4"
-    assert talk.allowed_parts == ["text"]
-    assert list(talk.fields.values_list("key", "choices")) == [
-        ("event", []),
-        ("format", ["talk", "workshop"]),
-    ]
-
-
-def test_type_refuses_low_contrast_and_unallowed_required_parts(admin):
-    response = admin.post(
-        f"{TYPES}add/",
-        _type(
-            colour="#999999",
-            required_parts=["video"],
-            fields=[_field("format", "choice"), _field("inspired_by", "relation")],
-        ),
-    )
-
-    form_errors, inlines = _errors(response)
-    assert form_errors == {
-        "colour": [
-            "Contrast with the page background is 2.85:1, needs 4.5:1.",
-            "Contrast with the tint is 2.57:1, needs 4.5:1.",
-        ],
-        "required_parts": ["Required parts must be allowed."],
-    }
-    assert inlines["fields"] == (
-        [
-            {"choices": ["A choice field needs choices."]},
-            {"target_type": ["A relation field needs a target type."]},
-        ],
-        [],
-    )
-
-
-@pytest.mark.usefixtures("demo")
-def test_type_change_offers_its_own_fields_as_list_filters(admin):
-    session = EntryType.objects.get(key="session")
-
-    response = admin.get(f"{TYPES}{session.pk}/change/")
-
-    form = response.context["adminform"].form
-    assert form.fields["list_filters"].choices == [
-        ("year", "Year"),
-        ("tag", "Tag"),
-        ("system", "System"),
-        ("format", "Format"),
-        ("players", "Gracze"),
-    ]
-    assert form.initial["list_filters"] == ["year", "tag", "system", "format"]
-
-
-def _talk():
-    return EntryType.objects.create(
-        key="talk", label="Talk", label_plural="Talks", route="t", colour="#6b3fa0"
-    )
-
-
-def test_type_change_has_no_dark_colour_without_a_dark_scheme(admin):
-    response = admin.get(f"{TYPES}{_talk().pk}/change/")
-
-    field = _readonly(response, "dark_colour")
-    assert field.contents() == "—"
-
-
-def test_type_change_shows_the_derived_dark_colour(
-    *, admin, settings, monkeypatch, layered_theme
-):
-    settings.THEME_STATIC_DIRS = (
-        ("themes/base", settings.ENGINE_THEMES / "base"),
-        ("themes/dusk", layered_theme),
-    )
-    monkeypatch.setattr(inits, "PROCESS", inits.Process())
-
-    response = admin.get(f"{TYPES}{_talk().pk}/change/")
-
-    field = _readonly(response, "dark_colour")
-    assert "#997bbd" in field.contents()
-
-
-def _readonly(response, name):
-    return next(
-        field
-        for fieldset in response.context["adminform"]
-        for line in fieldset
-        for field in line
-        if field.is_readonly and field.field["name"] == name
-    )
-
-
-@pytest.mark.usefixtures("demo")
-def test_type_with_entries_keeps_its_role(admin):
-    event = EntryType.objects.get(key="event")
-    url = f"{TYPES}{event.pk}/change/"
-
-    page = admin.get(url)
-    response = admin.post(
-        url, _type(label="Event", key="event", route=event.route, role="thing")
-    )
-
-    assert "role" not in page.context["adminform"].form.fields
-    assert "role is fixed once it has entries." in page.content.decode()
-    assert response.status_code == HTTPStatus.FOUND
-    event.refresh_from_db()
-    assert (event.label, event.role) == ("Event", "calendar")
-
-
-def test_type_without_entries_changes_its_role(admin):
-    admin.post(f"{TYPES}add/", _type())
-    talk = EntryType.objects.get(key="talk")
-
-    response = admin.post(f"{TYPES}{talk.pk}/change/", _type(role="calendar"))
-
-    assert response.status_code == HTTPStatus.FOUND
-    talk.refresh_from_db()
-    assert talk.role == "calendar"
 
 
 # Adding entries
@@ -381,7 +190,7 @@ def test_add_checks_role_builtins_metadata_and_slug(admin):
         _entry(slug="pyrkon-2027", start_at_0="", meta_role=""),
     )
 
-    form_errors, _ = _errors(response)
+    form_errors, _ = admin_errors(response)
     assert form_errors == {
         "start_at": ["This field is required."],
         "meta_role": ["This field is required."],
@@ -399,7 +208,7 @@ def test_add_checks_parts_against_the_type(admin):
         ),
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["parts"] == (
         [
             {"__all__": ["A video part needs a URL."]},
@@ -416,7 +225,7 @@ def test_add_checks_allowed_and_required_part_kinds(admin):
         _entry(parts=[_part("link", url="https://example.com")]),
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["parts"] == (
         [],
         ["Sesja does not allow link parts.", "Sesja needs at least one text part."],
@@ -447,7 +256,7 @@ def test_published_entries_link_to_published_containers_only(admin):
         ),
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["relations"] == (
         [
             {"to_entry": ["A published entry cannot link to a draft."]},
@@ -472,7 +281,7 @@ def test_required_relation_fields_need_a_link(admin):
         _entry(parts=[_part("audio", url="https://soundcloud.com/x/y")]),
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["relations"] == (
         [],
         ["Link at least one entry as: Zainspirowana przez."],
@@ -491,7 +300,7 @@ def test_a_broken_link_is_not_reported_as_a_missing_role(admin):
         ),
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["relations"] == ([{"to_entry": ["This field is required."]}], [])
 
 
@@ -684,7 +493,7 @@ def test_change_refuses_self_links(admin):
         f"{ENTRIES}{saga.pk}/change/", _saga_form(saga, _relation(saga))
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["relations"] == (
         [{"__all__": ["An entry cannot link to itself."]}],
         [],
@@ -702,7 +511,7 @@ def test_change_refuses_container_loops(admin):
         f"{ENTRIES}{saga.pk}/change/", _saga_form(saga, _relation(initiative))
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["relations"] == (
         [{"to_entry": ["That makes a loop of containers."]}],
         [],
@@ -748,7 +557,7 @@ def test_change_keeps_a_role_no_longer_defined_until_it_is_replaced(admin, targe
     response = admin.post(f"{ENTRIES}{song.pk}/change/", _stored_link(song))
 
     message = "Unknown relation role 'inspired_by'."
-    assert _errors(response)[1]["relations"] == ([{"role": [message]}], [])
+    assert admin_errors(response)[1]["relations"] == ([{"role": [message]}], [])
     assert song.relations.get().role == "inspired_by"
 
 
@@ -773,7 +582,7 @@ def test_change_refuses_a_role_it_does_not_offer(admin):
     data = _stored_link(song, role="sequel_of")
     response = admin.post(f"{ENTRIES}{song.pk}/change/", data)
 
-    assert list(_errors(response)[1]["relations"][0][0]) == ["role"]
+    assert list(admin_errors(response)[1]["relations"][0][0]) == ["role"]
     assert song.relations.get().role == "inspired_by"
 
 
@@ -793,7 +602,7 @@ def test_unpublishing_refuses_entries_published_ones_link_to(admin):
         ),
     )
 
-    form_errors, _ = _errors(response)
+    form_errors, _ = admin_errors(response)
     assert form_errors == {
         "status": ["Published entries link here; unlink them first."]
     }
@@ -859,44 +668,6 @@ def test_feature_and_unfeature(admin):
 # Form rules
 
 
-@pytest.mark.parametrize(
-    "case",
-    (
-        ("about", "/about/ belongs to the about page."),
-        ("admin", "/admin/ belongs to the admin."),
-        ("static", "/static/ belongs to static files."),
-    ),
-)
-def test_type_refuses_a_route_already_taken(admin, case):
-    route, error = case
-    response = admin.post(f"{TYPES}add/", _type(route=route))
-
-    form_errors, _ = _errors(response)
-    assert form_errors == {"route": [error]}
-    assert not EntryType.objects.filter(key="talk").exists()
-
-
-def test_type_list_flags_types_on_a_taken_route(admin):
-    EntryType.objects.create(
-        key="find", label="Find", label_plural="Finds", route="search"
-    )
-    EntryType.objects.create(
-        key="talk", label="Talk", label_plural="Talks", route="talks"
-    )
-
-    content = admin.get(TYPES).content.decode()
-
-    assert content.count("<strong>⚠") == 1
-    assert "search <strong>⚠ /search/ belongs to the search page.</strong>" in content
-
-
-def test_type_refuses_a_malformed_colour(admin):
-    response = admin.post(f"{TYPES}add/", _type(colour="red"))
-
-    form_errors, _ = _errors(response)
-    assert form_errors == {"colour": ["Use #rrggbb."]}
-
-
 def test_metadata_meaning_is_checked_after_its_format(admin):
     entry_type = EntryType.objects.create(
         key="repo", label="Repo", label_plural="Repos", route="r"
@@ -913,7 +684,7 @@ def test_metadata_meaning_is_checked_after_its_format(admin):
         f"{ENTRIES}add/?type=repo", _entry(meta_source="https://gitlab.com/x/y")
     )
 
-    form_errors, _ = _errors(response)
+    form_errors, _ = admin_errors(response)
     assert form_errors == {"meta_source": ["Enter a GitHub address."]}
 
 
@@ -940,7 +711,7 @@ def test_part_format_errors_come_before_part_kind_rules(admin):
         _entry(meta_format="one-shot", parts=[_part("video", url="not a url")]),
     )
 
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["parts"] == ([{"url": ["Enter a valid URL."]}], [])
 
 
@@ -958,7 +729,7 @@ def test_showcase_keeps_its_entries_in_order(admin):
             "title": "Start here",
             "intro": "",
             "order": "0",
-            **_inline(
+            **admin_inline(
                 "items",
                 [{"entry": game.pk, "order": "1"}, {"entry": song.pk, "order": "0"}],
             ),
@@ -984,7 +755,7 @@ def test_showcase_refuses_the_same_entry_twice(admin):
             "title": "Twice",
             "intro": "",
             "order": "0",
-            **_inline(
+            **admin_inline(
                 "items",
                 [{"entry": song.pk, "order": "0"}, {"entry": song.pk, "order": "1"}],
             ),
@@ -992,6 +763,6 @@ def test_showcase_refuses_the_same_entry_twice(admin):
     )
 
     assert response.status_code == HTTPStatus.OK
-    _, inlines = _errors(response)
+    _, inlines = admin_errors(response)
     assert inlines["items"][1] == ["Please correct the duplicate data for entry."]
     assert not Showcase.objects.filter(title="Twice").exists()
