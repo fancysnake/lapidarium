@@ -117,7 +117,7 @@ def fitted_metadata(
     fitted: Metadata = {}
     for field in entry_type.fields:
         fit = fit_value(field, stored.get(field.key))
-        if fit is not None and not fit.misfit and fit.value is not None:
+        if fit is not None and not fit.misfit and fit.value not in {None, ""}:
             fitted[field.key] = fit.value
     return fitted
 

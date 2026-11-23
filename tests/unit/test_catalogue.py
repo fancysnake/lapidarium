@@ -134,6 +134,25 @@ def test_catalogue_blank_values_are_no_facts():
     assert _facts(SESSION, entry) == ()
 
 
+def test_catalogue_text_of_only_whitespace_is_no_fact():
+    entry = entry_dto(metadata={"system": " \t "})
+
+    assert _facts(SESSION, entry) == ()
+
+
+def test_catalogue_zero_and_no_stay_facts():
+    fields = (
+        field_dto("players", FieldKind.NUMBER, show_on_card=True),
+        field_dto("online", FieldKind.BOOL, show_on_card=True),
+    )
+    entry = entry_dto(metadata={"players": 0, "online": False})
+
+    assert _facts(type_dto(fields=fields), entry) == (
+        FactDTO(label="Players", kind=FieldKind.NUMBER, value=0, refs=()),
+        FactDTO(label="Online", kind=FieldKind.BOOL, value=False, refs=()),
+    )
+
+
 def test_catalogue_values_that_no_longer_fit_their_field_are_no_facts():
     fields = (
         field_dto("link", FieldKind.URL, show_on_card=True),
