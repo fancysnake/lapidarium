@@ -67,10 +67,29 @@ and the admin shows them read-only.
 ### The demo, as a worked example
 
 The `ttrpg` demo (`import_content --demo ttrpg`) is a game master's site built
-on this model. Sessions, songs, games, memes, articles and events are `thing` and
-`calendar` types; a campaign is an outcome container that sessions are part
-of; an initiative is a timespan container. Load it locally and read its types
-in the admin to see each setting in use.
+on this model, with its content in Polish.
+
+<figure class="diagram">
+--8<-- "docs/assets/example-site.svg"
+<figcaption>The demo's entries, grouped by mechanic. Each band names the
+purposes that run on it; each arrow is a link between two entries.</figcaption>
+</figure>
+
+A mechanic is a type's role under the name the content panel gives it: pieces
+of work (`thing`), events (`calendar`), projects (`container_outcome`),
+activities (`container_timespan`) and sections (`container_section`). A
+purpose is what the owner wants to show, and each purpose runs on one mechanic.
+
+Read the left column from the top. *Sesje science fiction* is a craft, so it
+is an activity: it started in 2021 and has no end. It holds *Kampania
+Mothership*, a project that finished. The project holds a session, which is a
+piece of work. A song is *inspired by* that session and a meme is *related* to
+it. The game *Krótkie nogi* is part of nothing, because every level is
+optional.
+
+Each type stores its mechanic, not its purpose. The diagram calls the demo's
+initiative a craft because that is the purpose it fits best. Load the demo
+locally and read its types in the panel to see each setting in use.
 
 ## Principles
 

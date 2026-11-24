@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 810" width="720" height="810" role="img" aria-label="The ttrpg demo site, its entries grouped by mechanic. Activities: Sesje science fiction, a craft. Projects: the campaigns Kampania Mothership, part of that craft, and Klątwa Strahda. Pieces of work: two sessions, each part of one campaign; a song inspired by a session; a meme related to the same session; a game; an article. Events: the convention Pyrkon 2027, related to the game. Sections: the wiki section Prowadzenie, which the article is part of." font-size="12" fill="currentColor">
+  <desc>The ttrpg demo site, its entries grouped by mechanic. Activities: Sesje science fiction, a craft. Projects: the campaigns Kampania Mothership, part of that craft, and Klątwa Strahda. Pieces of work: two sessions, each part of one campaign; a song inspired by a session; a meme related to the same session; a game; an article. Events: the convention Pyrkon 2027, related to the game. Sections: the wiki section Prowadzenie, which the article is part of.</desc>
+  <defs>
+    <marker id="es-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g stroke="currentColor" stroke-width="1.25" fill="currentColor" fill-opacity="0.04">
+    <rect x="20" y="20" width="330" height="120" rx="8"/>
+    <rect x="20" y="176" width="680" height="120" rx="8"/>
+    <rect x="20" y="332" width="680" height="284" rx="8"/>
+    <rect x="20" y="652" width="330" height="138" rx="8"/>
+    <rect x="370" y="652" width="330" height="138" rx="8"/>
+  </g>
+  <rect x="370" y="20" width="330" height="120" rx="8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-dasharray="6 5"/>
+  <g font-size="11" font-weight="600" letter-spacing="0.08em">
+    <text x="32" y="40">ACTIVITIES</text>
+    <text x="32" y="196">PROJECTS</text>
+    <text x="32" y="352">PIECES OF WORK</text>
+    <text x="32" y="672">EVENTS</text>
+    <text x="382" y="672">SECTIONS</text>
+    <text x="382" y="40" opacity="0.7">HOW TO READ THIS</text>
+  </g>
+  <g font-size="11" opacity="0.8">
+    <text x="32" y="56">last for a time: a start, maybe an end</text>
+    <text x="32" y="71">purposes: job · volunteering · craft · skill</text>
+    <text x="32" y="212">work towards a result</text>
+    <text x="32" y="227">purpose: project</text>
+    <text x="32" y="368">finished things, each on its own page</text>
+    <text x="32" y="383">purpose: piece of work</text>
+    <text x="32" y="688">happen on a date</text>
+    <text x="32" y="703">purpose: event</text>
+    <text x="382" y="688">group pages; nothing ends them</text>
+    <text x="382" y="703">purpose: section</text>
+    <text x="32" y="778">also Copernicon 2026 and Otwarte sesje online</text>
+  </g>
+  <g font-size="11">
+    <text x="382" y="58">Each band is one mechanic and names its purposes.</text>
+    <text x="382" y="76">Each box is one entry: its title, then its type.</text>
+    <text x="382" y="94"><tspan font-weight="600">part of</tspan> — the entry belongs to a container</text>
+    <text x="382" y="110"><tspan font-weight="600">related</tspan> — a loose link, shown on both pages</text>
+    <text x="382" y="126"><tspan font-weight="600">inspired by</tspan> — a relation field of the song type</text>
+  </g>
+  <g stroke-width="1" fill-opacity="0.16" style="fill: var(--lapidarium-cyan, #00b8d4); stroke: var(--lapidarium-cyan, #00b8d4)">
+    <rect x="32" y="82" width="306" height="46" rx="4"/>
+    <rect x="32" y="238" width="306" height="46" rx="4"/>
+    <rect x="382" y="238" width="306" height="46" rx="4"/>
+    <rect x="32" y="394" width="306" height="46" rx="4"/>
+    <rect x="382" y="394" width="306" height="46" rx="4"/>
+    <rect x="32" y="476" width="306" height="46" rx="4"/>
+    <rect x="382" y="476" width="306" height="46" rx="4"/>
+    <rect x="32" y="558" width="306" height="46" rx="4"/>
+    <rect x="382" y="558" width="306" height="46" rx="4"/>
+    <rect x="32" y="714" width="306" height="46" rx="4"/>
+    <rect x="382" y="714" width="306" height="46" rx="4"/>
+  </g>
+  <g font-size="13" font-weight="600">
+    <text x="44" y="101">Sesje science fiction</text>
+    <text x="44" y="257">Kampania Mothership</text>
+    <text x="394" y="257">Klątwa Strahda</text>
+    <text x="44" y="413">Ucieczka przed kosmicznym łosiem</text>
+    <text x="394" y="413">Bal w zamku Ravenloft</text>
+    <text x="44" y="495">Ballada o łosiu</text>
+    <text x="394" y="495">Nikt nie słyszy, jak ryczysz</text>
+    <text x="44" y="577">Krótkie nogi</text>
+    <text x="394" y="577">Jak prowadzić one-shoty</text>
+    <text x="44" y="733">Pyrkon 2027</text>
+    <text x="394" y="733">Prowadzenie</text>
+  </g>
+  <g font-size="11">
+    <text x="44" y="118"><tspan font-weight="600">Inicjatywa</tspan> · a craft, since 2021</text>
+    <text x="44" y="274"><tspan font-weight="600">Projekt</tspan> · a campaign, finished</text>
+    <text x="394" y="274"><tspan font-weight="600">Projekt</tspan> · a campaign, ongoing</text>
+    <text x="44" y="430"><tspan font-weight="600">Sesja</tspan> · a game session</text>
+    <text x="394" y="430"><tspan font-weight="600">Sesja</tspan> · a game session</text>
+    <text x="44" y="512"><tspan font-weight="600">Piosenka</tspan> · a song</text>
+    <text x="394" y="512"><tspan font-weight="600">Mem</tspan> · a meme</text>
+    <text x="44" y="594"><tspan font-weight="600">Gra</tspan> · a game</text>
+    <text x="394" y="594"><tspan font-weight="600">Artykuł</tspan> · an article</text>
+    <text x="44" y="750"><tspan font-weight="600">Wydarzenie</tspan> · a convention, 11–13 June 2027</text>
+    <text x="394" y="750"><tspan font-weight="600">Dział wiki</tspan> · a wiki section</text>
+  </g>
+  <g stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#es-arrow)">
+    <line x1="300" y1="238" x2="300" y2="132"/>
+    <line x1="300" y1="394" x2="300" y2="288"/>
+    <line x1="650" y1="394" x2="650" y2="288"/>
+    <line x1="120" y1="476" x2="120" y2="444"/>
+    <line x1="400" y1="476" x2="322" y2="444"/>
+    <line x1="300" y1="714" x2="300" y2="608"/>
+    <line x1="650" y1="604" x2="650" y2="710"/>
+  </g>
+  <g font-size="11">
+    <text x="308" y="162">part of</text>
+    <text x="308" y="318">part of</text>
+    <text x="642" y="318" text-anchor="end">part of</text>
+    <text x="128" y="463">inspired by</text>
+    <text x="378" y="458">related</text>
+    <text x="308" y="638">related</text>
+    <text x="642" y="638" text-anchor="end">part of</text>
+  </g>
+</svg>
