@@ -10,7 +10,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.utils import timezone
@@ -745,12 +745,21 @@ class EntryAdmin(EntryAdminBase):
     @override
     def get_urls(self) -> list[URLPattern]:
         # A new entry needs its type first; without one, offer the choice.
+        view = self.admin_site.admin_view
         add = path(
-            "add/",
-            self.admin_site.admin_view(self.add_or_choose_view),
-            name="lapidarium_db_entry_add",
+            "add/", view(self.add_or_choose_view), name="lapidarium_db_entry_add"
         )
-        return [add, *super().get_urls()]
+        # The content panel knows a type by its key; the type filter takes its id.
+        entries = path(
+            "", view(self.entries_of_type_view), name="lapidarium_db_entry_changelist"
+        )
+        return [add, entries, *super().get_urls()]
+
+    def entries_of_type_view(self, request: HttpRequest) -> HttpResponse:
+        if key := request.GET.get("type"):
+            entry_type = get_object_or_404(EntryType, key=key)
+            return redirect(f"{request.path}?type__id__exact={entry_type.pk}")
+        return self.changelist_view(request)
 
     def add_or_choose_view(self, request: HttpRequest) -> HttpResponse:
         if EntryType.objects.filter(key=request.GET.get("type", "")).exists():

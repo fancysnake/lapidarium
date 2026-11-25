@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-22 13:31+0100\n"
+"POT-Creation-Date: 2026-11-25 22:44+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -162,9 +162,6 @@ msgid "Tag"
 msgstr ""
 
 msgid "list filters"
-msgstr ""
-
-msgid "Required parts must be allowed."
 msgstr ""
 
 msgid "Behaviour"
@@ -584,6 +581,9 @@ msgstr ""
 msgid "external items"
 msgstr ""
 
+msgid "Required parts must be allowed."
+msgstr ""
+
 msgid "Pieces of work"
 msgstr ""
 
@@ -893,6 +893,9 @@ msgstr ""
 msgid "The type is created."
 msgstr ""
 
+msgid "Add its first entry"
+msgstr ""
+
 msgid "The type is changed."
 msgstr ""
 
@@ -906,6 +909,9 @@ msgid "Part of:"
 msgstr ""
 
 msgid "Holds:"
+msgstr ""
+
+msgid "Add an entry"
 msgstr ""
 
 msgid "Change"

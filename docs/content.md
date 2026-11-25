@@ -68,14 +68,18 @@ migration.
 **Admin → Content panel** (`<ADMIN_URL>panel/`) shows the types by what they
 are for: pieces of work, events, projects, activities and sections. Each type
 lists its entry count, the types its entries are part of, and the types it
-holds.
+holds. The entry count opens the type's entries in the admin, and **Add an
+entry** opens the admin's form for a new entry of that type.
 
 To create a type, pick a purpose in the panel, such as a job, a craft or a
 section. The form opens on the purpose's suggested names, address and fields.
 **Preview** shows what the type will be before **Create** saves it. Settings a
 purpose rarely needs (the key, the parts an entry may or must hold, the menu,
 single-entry pages, the home page door) sit under **Advanced**. A purpose is a
-starting point: the type does not remember it.
+starting point: the type does not remember it. Once the type is created, the
+panel offers **Add its first entry**. A type is a kind of thing; each thing is
+an entry. For a craft such as songwriting, create the type "Craft", then add
+"Songwriting" as an entry.
 
 To change a type, follow **Change** on its card in the panel. The form holds
 the same settings as the create form, except the key. It also renames the

@@ -30,12 +30,16 @@ def _add_errors(form: Form, error: TypeValidationError) -> None:
 
 @staff_member_required
 def panel(request: RootRequest) -> HttpResponse:
+    mechanics = request.services.purposes.overview()
+    types = (use.entry_type for mechanic in mechanics for use in mechanic.types)
     return render_page(
         request,
         "lapidarium/pages/panel.html",
-        mechanics=request.services.purposes.overview(),
+        mechanics=mechanics,
         types_admin=reverse("admin:lapidarium_db_entrytype_changelist"),
-        created="created" in request.GET,
+        entries_admin=reverse("admin:lapidarium_db_entry_changelist"),
+        entry_add=reverse("admin:lapidarium_db_entry_add"),
+        created=next((t for t in types if t.key == request.GET.get("created")), None),
         changed="changed" in request.GET,
     )
 
@@ -61,7 +65,7 @@ def panel_new(request: RootRequest, purpose: str) -> HttpResponse:
             _add_errors(form, exc)
         else:
             if creating:
-                return HttpResponseRedirect(reverse("panel") + "?created=1")
+                return HttpResponseRedirect(f"{reverse('panel')}?created={preview.key}")
     return render_page(
         request,
         "lapidarium/pages/panel_new.html",
