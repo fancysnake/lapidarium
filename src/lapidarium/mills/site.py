@@ -57,12 +57,5 @@ class SiteService(SiteServiceProtocol):
 
     @override
     def change_profile(self, data: ProfileTextData) -> None:
-        current = self._profile.get()
-        self._profile.save(
-            {
-                **data,
-                "photo": current.photo.path if current and current.photo else "",
-                "button": current.button.path if current and current.button else "",
-            }
-        )
+        self._profile.save_texts(data)
         self._pages.clear()

@@ -143,6 +143,29 @@ def test_choosing_a_type_needs_permission_to_add(client):
 
 
 @pytest.mark.usefixtures("demo")
+def test_an_entry_opens_by_its_type_and_address(admin):
+    entry = Entry.objects.get(type__key="session", slug="bal-w-zamku")
+
+    response = admin.get(f"{ENTRIES}open/session/bal-w-zamku/")
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"] == f"{ENTRIES}{entry.pk}/change/"
+
+
+@pytest.mark.usefixtures("demo")
+@pytest.mark.parametrize("path", ("song/bal-w-zamku", "session/nope", "nope/x"))
+def test_an_unknown_entry_does_not_open(admin, path):
+    assert admin.get(f"{ENTRIES}open/{path}/").status_code == HTTPStatus.NOT_FOUND
+
+
+def test_opening_an_entry_is_for_staff(client):
+    response = client.get(f"{ENTRIES}open/session/bal-w-zamku/")
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"].startswith("/admin/login/")
+
+
+@pytest.mark.usefixtures("demo")
 def test_add_saves_metadata_relations_and_search_text(admin):
     session = Entry.objects.get(slug="bal-w-zamku")
     project = Entry.objects.get(slug="klatwa-strahda")

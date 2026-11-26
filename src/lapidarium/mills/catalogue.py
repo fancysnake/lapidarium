@@ -112,6 +112,20 @@ def newest_first(entries: Iterable[EntryDTO]) -> list[EntryDTO]:
     return sorted(entries, key=_age, reverse=True)
 
 
+def page_of[T](
+    items: list[T], *, page: int, size: int, label: str
+) -> tuple[list[T], int]:
+    """Return page `page` of `items` and the page count; an empty list has one page.
+
+    Raises `NotFoundError` naming `label` for a page outside that count.
+    """
+    pages = max(math.ceil(len(items) / size), 1)
+    if not 1 <= page <= pages:
+        msg = f"{label} page {page}"
+        raise NotFoundError(msg)
+    return items[(page - 1) * size : page * size], pages
+
+
 def _filter_value(entry: EntryDTO, key: str) -> tuple[str, ...]:
     match key:
         case ListFilter.YEAR:
@@ -364,11 +378,7 @@ class CatalogueService(CatalogueServiceProtocol):
             upcoming = self._upcoming(entries)
         shown_upcoming = {_key(e) for e in upcoming}
         rest = newest_first(e for e in entries if _key(e) not in shown_upcoming)
-        pages = max(math.ceil(len(rest) / PAGE_SIZE), 1)
-        if not 1 <= page <= pages:
-            msg = f"{route} page {page}"
-            raise NotFoundError(msg)
-        shown = rest[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
+        shown, pages = page_of(rest, page=page, size=PAGE_SIZE, label=route)
         return ListingDTO(
             entry_type=entry_type,
             filters=offered,

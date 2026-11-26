@@ -21,7 +21,7 @@ All notable changes to this project are documented here. The format follows
 - `container_section` role: a container with no outcome and no dates, such as a wiki
   section or a set of docs. Sections stay off the about-page timeline. The
   demos' wiki section and doc set are now sections.
-- Content panel at `<ADMIN_URL>panel/`, linked from the admin sidebar: staff see
+- Content panel at `/panel/`, linked from the admin sidebar: staff see
   the types grouped as pieces of work, events, projects, activities and
   sections, each with its entry count, the types its entries are part of and
   the types it holds.
@@ -44,8 +44,8 @@ All notable changes to this project are documented here. The format follows
   otherwise. A type's list is a grid while every entry holds only images.
 - The export format is version 2. Version 1 files still import; their
   `layout` type setting is ignored.
-- The content panel is at `/panel/`, not under `ADMIN_URL`, and every staff
-  account can use all of it. No type can take the route `panel`.
+- Every staff account can use all of the content panel. No type can take the
+  route `panel`.
 - The content panel has its own look, which no theme changes, and four pages.
   Desk has a button for each type, the drafts, the latest changes and the
   coming events. All entries lists every entry, with filters by type and

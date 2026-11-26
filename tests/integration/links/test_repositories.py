@@ -150,6 +150,31 @@ def test_saving_the_profile_again_updates_the_one_row():
     assert ProfileRepository().get().photo is None
 
 
+def _texts(**overrides):
+    data = profile_data(**overrides)
+    return {key: value for key, value in data.items() if key not in {"photo", "button"}}
+
+
+def test_saving_the_profile_texts_leaves_its_images():
+    photo = MediaAsset.objects.create(file=ContentFile(png((4, 4)), name="p.png"))
+    button = MediaAsset.objects.create(file=ContentFile(png(BUTTON_SIZE), name="b.png"))
+    Profile.objects.create(name="Mira", photo=photo, button=button)
+
+    ProfileRepository().save_texts(_texts(name="Mira K.", bio="Hi"))
+
+    profile = Profile.objects.get()
+    assert (profile.name, profile.bio) == ("Mira K.", "Hi")
+    assert (profile.photo, profile.button) == (photo, button)
+
+
+def test_saving_the_profile_texts_starts_a_profile_without_images():
+    ProfileRepository().save_texts(_texts(tagline="Games"))
+
+    profile = Profile.objects.get()
+    assert (profile.name, profile.tagline) == ("Mira", "Games")
+    assert (profile.photo, profile.button) == (None, None)
+
+
 def test_no_profile_yet():
     assert ProfileRepository().get() is None
 

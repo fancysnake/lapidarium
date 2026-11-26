@@ -1,8 +1,8 @@
 """The entries as the content panel lists them, drafts among them."""
 
-import math
 from typing import TYPE_CHECKING, override
 
+from lapidarium.mills.catalogue import page_of
 from lapidarium.pacts.content import EntryStatus, NotFoundError, RelationRole
 from lapidarium.pacts.editing import DeskDTO, EntryListDTO, EntryRowDTO, TypeCountDTO
 from lapidarium.pacts.services import EditingServiceProtocol
@@ -48,30 +48,35 @@ class EditingService(EditingServiceProtocol):
             total=len(rows),
         )
 
+    def _matching(
+        self, types: list[EntryTypeDTO], *, type_key: str, query: str
+    ) -> tuple[EntryTypeDTO | None, list[EntryRowDTO]]:
+        """Return the chosen type and its rows with `query` in the title."""
+        entry_type = next((t for t in types if t.key == type_key), None)
+        if type_key and entry_type is None:
+            raise NotFoundError(type_key)
+        rows = self._rows(types)
+        if entry_type is not None:
+            rows = [r for r in rows if r.entry_type.key == type_key]
+        if needle := query.strip().casefold():
+            rows = [r for r in rows if needle in r.entry.title.casefold()]
+        return entry_type, rows
+
     @override
     def entries(
         self, *, type_key: str, status: EntryStatus | None, query: str, page: int
     ) -> EntryListDTO:
         types = self._types.list_all()
-        rows = self._rows(types)
-        counts = self._types.entry_counts()
-        entry_type = next((t for t in types if t.key == type_key), None)
-        if type_key and entry_type is None:
-            raise NotFoundError(type_key)
-        if entry_type is not None:
-            rows = [r for r in rows if r.entry_type.key == type_key]
-        if needle := query.strip().casefold():
-            rows = [r for r in rows if needle in r.entry.title.casefold()]
+        entry_type, rows = self._matching(types, type_key=type_key, query=query)
+        # The status buttons count every status, so the counts come first.
         published = sum(r.entry.status == EntryStatus.PUBLISHED for r in rows)
         total = len(rows)
         if status is not None:
             rows = [r for r in rows if r.entry.status == status]
-        pages = max(math.ceil(len(rows) / PANEL_PAGE_SIZE), 1)
-        if not 1 <= page <= pages:
-            msg = f"entries page {page}"
-            raise NotFoundError(msg)
+        shown, pages = page_of(rows, page=page, size=PANEL_PAGE_SIZE, label="entries")
+        counts = self._types.entry_counts()
         return EntryListDTO(
-            rows=tuple(rows[(page - 1) * PANEL_PAGE_SIZE : page * PANEL_PAGE_SIZE]),
+            rows=tuple(shown),
             types=tuple(
                 TypeCountDTO(entry_type=t, entries=counts[t.key]) for t in types
             ),

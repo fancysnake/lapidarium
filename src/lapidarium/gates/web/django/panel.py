@@ -36,32 +36,28 @@ def panel(request: RootRequest) -> HttpResponse:
         desk=services.content.editing.desk(),
         mechanics=services.purposes.overview(),
         upcoming=services.catalogue.upcoming(),
-        entries_admin=reverse("admin:lapidarium_db_entry_changelist"),
         entry_add=reverse("admin:lapidarium_db_entry_add"),
     )
 
 
 @staff_member_required
 def panel_entries(request: RootRequest) -> HttpResponse:
-    page = request.GET.get("page", "1")
-    status = request.GET.get("status", "")
-    if not page.isdigit() or status not in {"", *EntryStatus}:
+    if (status := request.GET.get("status", "")) not in {"", *EntryStatus}:
         raise Http404
+    try:
+        page = int(request.GET.get("page", "1"))
+    except ValueError as exc:
+        raise Http404 from exc
     try:
         entries = request.services.content.editing.entries(
             type_key=request.GET.get("type", ""),
             status=EntryStatus(status) if status else None,
             query=request.GET.get("q", ""),
-            page=int(page),
+            page=page,
         )
     except NotFoundError as exc:
         raise Http404 from exc
-    return render_page(
-        request,
-        "lapidarium/pages/panel_entries.html",
-        entries=entries,
-        entries_admin=reverse("admin:lapidarium_db_entry_changelist"),
-    )
+    return render_page(request, "lapidarium/pages/panel_entries.html", entries=entries)
 
 
 @staff_member_required
@@ -105,6 +101,7 @@ def panel_new(request: RootRequest, purpose: str) -> HttpResponse:
     return render_page(
         request,
         "lapidarium/pages/panel_new.html",
+        section="structure",
         purpose=chosen,
         form=form,
         preview=preview,
@@ -148,6 +145,7 @@ def panel_change(request: RootRequest, key: str) -> HttpResponse:
     return render_page(
         request,
         "lapidarium/pages/panel_change.html",
+        section="structure",
         entry_type=entry_type,
         form=form,
         change=change,
@@ -165,9 +163,9 @@ def panel_field(request: RootRequest, key: str, *, field: str) -> HttpResponse:
     return render_page(
         request,
         "lapidarium/pages/panel_field.html",
+        section="structure",
         type_key=key,
         use=use,
-        entries_admin=reverse("admin:lapidarium_db_entry_changelist"),
     )
 
 

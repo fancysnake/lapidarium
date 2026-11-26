@@ -1,11 +1,12 @@
 """The content panel: staff see the site's types grouped by what they are for."""
 
+import re
 from http import HTTPStatus
 
 import pytest
 from django.contrib.auth import get_user_model
 
-from lapidarium.links.db.django.models import Entry, EntryType, Profile
+from lapidarium.links.db.django.models import Entry, EntryType
 from lapidarium.specs import DESK_RECENT
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("media_root")]
@@ -58,7 +59,7 @@ def test_the_desk_offers_every_type_and_lists_drafts_and_what_is_coming(site):
         response.text
     )
     assert (
-        'href="/admin/lapidarium_db/entry/?type=session&amp;q=bal-w-zamku">'
+        'href="/admin/lapidarium_db/entry/open/session/bal-w-zamku/">'
         "Bal w zamku Ravenloft</a>"
     ) in response.text
     assert 'aria-current="page">Desk</a>' in response.text
@@ -105,7 +106,7 @@ def test_the_entries_list_every_entry_with_its_container(site):
     row = next(row for row in entries.rows if row.entry.slug == "bal-w-zamku")
     assert [container.type_key for container in row.containers] == ["project"]
     assert (
-        'href="/admin/lapidarium_db/entry/?type=session&amp;q=bal-w-zamku">'
+        'href="/admin/lapidarium_db/entry/open/session/bal-w-zamku/">'
         "Bal w zamku Ravenloft</a>"
     ) in response.text
     assert "1 draft is not on the site yet." in response.text
@@ -145,7 +146,16 @@ def test_the_entries_say_when_nothing_matches(site):
 
 
 @pytest.mark.parametrize(
-    "query", ("type=ghost", "status=lost", "page=two", "page=9", "page=0")
+    "query",
+    (
+        "type=ghost",
+        "status=lost",
+        "page=two",
+        "page=9",
+        "page=0",
+        "page=%C2%B2",
+        pytest.param(f"page={'9' * 5000}", id="page=5000-digits"),
+    ),
 )
 def test_the_entries_have_no_page_for_what_they_cannot_read(site, query):
     site.force_login(
@@ -298,6 +308,30 @@ _VOLUNTEERING = {
     "in_menu": "on",
     "has_detail_page": "on",
 }
+
+
+# How the menu marks Structure on each page: the page itself, or a page in it.
+_STRUCTURE_MARK = {
+    "/panel/structure/": "page",
+    "/panel/new/volunteering/": "true",
+    "/panel/types/session/": "true",
+    "/panel/types/session/fields/system/": "true",
+    "/panel/site/": None,
+}
+
+
+@pytest.mark.parametrize("path", _STRUCTURE_MARK)
+def test_the_menu_marks_structure_on_the_type_pages(site, path):
+    site.force_login(get_user_model().objects.create_superuser("c", password="pw"))
+
+    response = site.get(path)
+
+    item = re.search(
+        r'href="/panel/structure/"\s*(?:aria-current="(\w+)")?>Structure</a>',
+        response.text,
+    )
+    assert item
+    assert item.group(1) == _STRUCTURE_MARK[path]
 
 
 def test_the_new_type_form_is_for_staff(browser):
@@ -875,8 +909,9 @@ def test_the_entries_of_a_field_link_to_the_admin(site):
         "system",
         [("bal-w-zamku", "draft"), ("ucieczka-przed-kosmicznym-losiem", "published")],
     )
-    assert response.context["entries_admin"] == "/admin/lapidarium_db/entry/"
-    assert 'href="/admin/lapidarium_db/entry/?q=bal-w-zamku"' in response.text
+    assert 'href="/admin/lapidarium_db/entry/open/session/bal-w-zamku/"' in (
+        response.text
+    )
     assert "(draft)" in response.text
     assert 'href="/panel/types/session/"' in response.text
 
@@ -898,86 +933,3 @@ def test_an_unknown_field_has_no_entries_page(site, path):
     response = site.get(f"/panel/types/{path}/")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
-
-
-_PROFILE = {
-    "name": "Mira K.",
-    "handle": "@mira",
-    "tagline": "Games and songs.",
-    "bio": "Hello.",
-    "email": "",
-    "friends_title": "Znajomi",
-    "friends_intro": "",
-}
-
-
-def test_the_site_page_is_for_staff(site):
-    response = site.get("/panel/site/")
-
-    assert response.status_code == HTTPStatus.FOUND
-    assert response["Location"].startswith("/admin/login/")
-
-
-def test_the_site_page_opens_on_the_profile(site):
-    site.force_login(
-        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
-    )
-    profile = Profile.objects.get()
-
-    response = site.get("/panel/site/")
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.context["saved"] is False
-    assert response.context["form"].initial == {
-        "name": profile.name,
-        "handle": profile.handle,
-        "tagline": profile.tagline,
-        "bio": profile.bio,
-        "email": profile.email,
-        "friends_title": profile.friends_title,
-        "friends_intro": profile.friends_intro,
-    }
-    assert 'aria-current="page">Site</a>' in response.text
-    assert ">Admin</a>" not in response.text
-
-
-def test_the_site_page_of_an_empty_site_opens_blank(browser):
-    browser.force_login(get_user_model().objects.create_superuser("c", password="pw"))
-
-    response = browser.get("/panel/site/")
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.context["form"].initial == {}
-    assert '<a href="/admin/">Admin</a>' in response.text
-
-
-def test_the_site_page_saves_the_texts_and_keeps_the_photo(site):
-    site.force_login(
-        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
-    )
-    before = Profile.objects.get()
-
-    response = site.post("/panel/site/", _PROFILE)
-
-    assert response.status_code == HTTPStatus.FOUND
-    assert response["Location"] == "/panel/site/?saved=1"
-    after = Profile.objects.get()
-    assert {key: getattr(after, key) for key in _PROFILE} == _PROFILE
-    assert (after.photo_id, after.button_id) == (before.photo_id, before.button_id)
-    saved = site.get(response["Location"])
-    assert saved.context["saved"] is True
-    assert "The profile is saved." in saved.text
-    assert "Mira K." in site.get("/about/").text
-
-
-def test_the_site_page_keeps_the_form_when_it_cannot_read_it(site):
-    site.force_login(
-        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
-    )
-    name = Profile.objects.get().name
-
-    response = site.post("/panel/site/", {**_PROFILE, "name": "", "email": "nope"})
-
-    assert response.status_code == HTTPStatus.OK
-    assert set(response.context["form"].errors) == {"name", "email"}
-    assert Profile.objects.get().name == name

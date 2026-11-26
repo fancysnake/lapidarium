@@ -16,11 +16,6 @@ if TYPE_CHECKING:
 BUTTON_SIZE = (88, 31)
 
 
-# The longest name and the longest line the store keeps.
-SHORT_LENGTH = 100
-LONG_LENGTH = 255
-
-
 class ProfileTextData(TypedDict):
     """What the content panel edits of the profile; the images stay as they are."""
 
@@ -116,6 +111,8 @@ class ProfileRepositoryProtocol(Protocol):
     def list_links(self) -> list[LinkDTO]: ...
 
     def save(self, data: ProfileData) -> None: ...
+
+    def save_texts(self, data: ProfileTextData) -> None: ...
 
     def replace_links(self, links: Sequence[LinkData]) -> None: ...
 

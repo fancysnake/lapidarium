@@ -20,7 +20,7 @@
       <ul>
         {% for entry in use.entries %}
           <li>
-            <a href="{{ entries_admin }}?q={{ entry.slug|urlencode }}">{{ entry.title }}</a>
+            <a href="{% url 'admin:lapidarium_db_entry_open' type_key=entry.type_key slug=entry.slug %}">{{ entry.title }}</a>
             {% if entry.status == "draft" %}({% translate "draft" %}){% endif %}
           </li>
         {% endfor %}

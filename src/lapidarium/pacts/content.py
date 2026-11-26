@@ -176,6 +176,9 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 }
 
 
+# The longest name and the longest line the store keeps.
+SHORT_LENGTH = 100
+LONG_LENGTH = 255
 SUMMARY_MAX_LENGTH = 200
 
 

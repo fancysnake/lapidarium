@@ -84,6 +84,11 @@ own look, which no theme changes, and four pages:
 
 A superuser also gets an **Admin** link in the panel's header.
 
+The panel's entry buttons and titles open the admin, which checks the
+account's permissions. A button for a new entry needs the permission to add
+entries. An entry's title needs the permission to view or change entries.
+Without that permission, the admin shows a "forbidden" page.
+
 To create a type, pick a purpose in the panel, such as a job, a craft or a
 section. The form opens on the purpose's suggested names, address and fields.
 **Preview** shows what the type will be before **Create** saves it. Settings a

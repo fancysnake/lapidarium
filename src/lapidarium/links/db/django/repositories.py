@@ -70,7 +70,7 @@ if TYPE_CHECKING:
         RelationData,
         ShowcaseData,
     )
-    from lapidarium.pacts.site import FriendData, LinkData, ProfileData
+    from lapidarium.pacts.site import FriendData, LinkData, ProfileData, ProfileTextData
 
 
 def field_dto(field: FieldDefinition) -> FieldDefinitionDTO:
@@ -503,6 +503,13 @@ class ProfileRepository(ProfileRepositoryProtocol):
             Profile.objects.filter(pk=profile.pk).update(**values)
         else:
             Profile.objects.create(**values)
+
+    @override
+    def save_texts(self, data: ProfileTextData) -> None:
+        if profile := Profile.objects.first():
+            Profile.objects.filter(pk=profile.pk).update(**data)
+        else:
+            Profile.objects.create(**data)
 
     @override
     def replace_links(self, links: Sequence[LinkData]) -> None:

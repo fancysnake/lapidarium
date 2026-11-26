@@ -74,7 +74,7 @@
               <tr data-type="{{ row.entry_type.key }}">
                 <td>
                   <a class="panel-list__title"
-                     href="{{ entries_admin }}?type={{ row.entry_type.key|urlencode }}&amp;q={{ row.entry.slug|urlencode }}">{{ row.entry.title }}</a>
+                     href="{% url 'admin:lapidarium_db_entry_open' type_key=row.entry_type.key slug=row.entry.slug %}">{{ row.entry.title }}</a>
                 </td>
                 <td>{% include "lapidarium/components/type-label.html" with entry_type=row.entry_type %}</td>
                 <td class="panel-muted">

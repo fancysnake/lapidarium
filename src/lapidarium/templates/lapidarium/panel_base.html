@@ -1,19 +1,16 @@
-{% extends "lapidarium/base.html" %}
+{% extends "lapidarium/skeleton.html" %}
 {% load i18n static %}
-{% block meta %}
+{% block head %}
   <meta name="robots" content="noindex">
-{% endblock meta %}
-{% block stylesheets %}
   <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'lapidarium/css/panel.css' %}">
-{% endblock stylesheets %}
-{% block type_colours %}
   <style>
+    {# 12% is TINT_MIX, the share derive_tint mixes; the panel mixes into its own surface. #}
     {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {% if entry_type.tint %}{{ entry_type.tint }}{% else %}color-mix(in srgb, var(--type-color) 12%, var(--color-surface)){% endif %}; }
     {% endfor %}
   </style>
-{% endblock type_colours %}
-{% block header %}
+{% endblock head %}
+{% block body %}
   <header class="panel-header">
     <div class="panel-header__inner">
       <a class="panel-brand" href="{% url 'panel' %}">
@@ -35,7 +32,7 @@
           </li>
           <li>
             <a href="{% url 'panel_structure' %}"
-               {% if current_page == "panel_structure" %}aria-current="page"{% elif current_page != "panel" and current_page != "panel_entries" and current_page != "panel_site" %}aria-current="true"{% endif %}>{% translate "Structure" %}</a>
+               {% if current_page == "panel_structure" %}aria-current="page"{% elif section == "structure" %}aria-current="true"{% endif %}>{% translate "Structure" %}</a>
           </li>
           <li>
             <a href="{% url 'panel_site' %}"
@@ -56,6 +53,6 @@
       </div>
     </div>
   </header>
-{% endblock header %}
-{% block footer %}
-{% endblock footer %}
+  {% block main %}
+  {% endblock main %}
+{% endblock body %}

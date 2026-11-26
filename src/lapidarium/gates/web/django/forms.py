@@ -4,13 +4,14 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from lapidarium.pacts.content import (
+    LONG_LENGTH,
     PLAIN_FIELD_KINDS,
+    SHORT_LENGTH,
     TYPE_DEFAULTS,
     FieldKind,
     PartKind,
     enum_choices,
 )
-from lapidarium.pacts.site import LONG_LENGTH, SHORT_LENGTH
 from lapidarium.pacts.theme import HEX_COLOUR
 
 if TYPE_CHECKING:

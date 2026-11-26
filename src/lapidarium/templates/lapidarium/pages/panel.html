@@ -33,12 +33,7 @@
           {% if desk.drafts %}
             <ul class="panel-list">
               {% for row in desk.drafts %}
-                <li class="panel-list__row" data-type="{{ row.entry_type.key }}">
-                  {% include "lapidarium/components/type-label.html" with entry_type=row.entry_type %}
-                  <a class="panel-list__title"
-                     href="{{ entries_admin }}?type={{ row.entry_type.key|urlencode }}&amp;q={{ row.entry.slug|urlencode }}">{{ row.entry.title }}</a>
-                  <time class="panel-list__when" datetime="{{ row.entry.updated_at|date:'c' }}">{{ row.entry.updated_at|date:"DATE_FORMAT" }}</time>
-                </li>
+                {% include "lapidarium/components/panel-row.html" %}
               {% endfor %}
             </ul>
           {% else %}
@@ -57,12 +52,7 @@
           {% if desk.published %}
             <ul class="panel-list">
               {% for row in desk.published %}
-                <li class="panel-list__row" data-type="{{ row.entry_type.key }}">
-                  {% include "lapidarium/components/type-label.html" with entry_type=row.entry_type %}
-                  <a class="panel-list__title"
-                     href="{{ entries_admin }}?type={{ row.entry_type.key|urlencode }}&amp;q={{ row.entry.slug|urlencode }}">{{ row.entry.title }}</a>
-                  <time class="panel-list__when" datetime="{{ row.entry.updated_at|date:'c' }}">{{ row.entry.updated_at|date:"DATE_FORMAT" }}</time>
-                </li>
+                {% include "lapidarium/components/panel-row.html" %}
               {% endfor %}
             </ul>
           {% else %}
@@ -75,14 +65,10 @@
         {% for card in upcoming %}
           <div class="panel-card" data-type="{{ card.entry_type.key }}">
             <p class="panel-card__date">
-              {% if card.entry.start_at %}
-                <time datetime="{{ card.entry.start_at|date:'c' }}">{{ card.entry.start_at|date:"DATE_FORMAT" }}</time>
-              {% elif card.entry.date %}
-                <time datetime="{{ card.entry.date|date:'Y-m-d' }}">{{ card.entry.date|date:"DATE_FORMAT" }}</time>
-              {% endif %}
+              <time datetime="{{ card.entry.start_at|date:'c' }}">{{ card.entry.start_at|date:"DATE_FORMAT" }}</time>
             </p>
             <a class="panel-list__title"
-               href="{{ entries_admin }}?type={{ card.entry_type.key|urlencode }}&amp;q={{ card.entry.slug|urlencode }}">{{ card.entry.title }}</a>
+               href="{% url 'admin:lapidarium_db_entry_open' type_key=card.entry_type.key slug=card.entry.slug %}">{{ card.entry.title }}</a>
             <p class="panel-muted">{% translate "On the site and in the calendar feed." %}</p>
           </div>
         {% empty %}
