@@ -12,7 +12,10 @@
       </p>
     </div>
     {% if created %}
-      <p class="notice" role="status">{% translate "The type is created." %}</p>
+      <p class="notice" role="status">
+        {% translate "The type is created." %}
+        <a href="{{ entry_add }}?type={{ created|urlencode }}">{% translate "Add its first entry" %}</a>
+      </p>
     {% endif %}
     {% if changed %}
       <p class="notice" role="status">{% translate "The type is changed." %}</p>
@@ -36,11 +39,11 @@
                   <a href="{% url 'listing' route=use.entry_type.route %}">{{ use.entry_type.label_plural }}</a>
                 </h3>
                 <p class="card__meta">
-                  {% blocktranslate count counter=use.entries trimmed %}
+                  <a href="{{ entries_admin }}?type={{ use.entry_type.key|urlencode }}">{% blocktranslate count counter=use.entries trimmed %}
                     {{ counter }} entry
                   {% plural %}
                     {{ counter }} entries
-                  {% endblocktranslate %}
+                  {% endblocktranslate %}</a>
                 </p>
                 {% if use.containers %}
                   <p class="card__meta">
@@ -60,6 +63,7 @@
                     {% endfor %}
                   </p>
                 {% endif %}
+                <a href="{{ entry_add }}?type={{ use.entry_type.key|urlencode }}">{% translate "Add an entry" %}</a>
                 <a href="{% url 'panel_change' key=use.entry_type.key %}">{% translate "Change" %}</a>
                 <a href="{{ types_admin }}?key={{ use.entry_type.key|urlencode }}">{% translate "Open in the admin" %}</a>
               </li>

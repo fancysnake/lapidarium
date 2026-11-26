@@ -58,13 +58,12 @@ def test_sidebar_lists_content_types_then_site_records(admin):
     response = admin.get("/admin/")
 
     groups = response.context["sidebar_navigation"]
-    session = EntryType.objects.get(key="session")
     assert [group["title"] for group in groups] == ["Content", "Library", "Site"]
     assert [item["title"] for item in groups[0]["items"]] == [
         *EntryType.objects.values_list("label_plural", flat=True),
         "All entries",
     ]
-    assert groups[0]["items"][0]["link"] == f"{ENTRIES}?type__id__exact={session.pk}"
+    assert groups[0]["items"][0]["link"] == f"{ENTRIES}?type=session"
     assert groups[0]["items"][0]["icon"] == "casino"
     assert groups[0]["items"][0]["has_permission"] is True
     assert [item["link"] for item in groups[2]["items"]] == [

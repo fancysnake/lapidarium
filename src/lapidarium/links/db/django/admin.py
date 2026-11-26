@@ -30,6 +30,7 @@ from unfold.widgets import (
     UnfoldBooleanSwitchWidget,
 )
 
+from lapidarium.links.db.django.filters import EntryTypeKeyFilter
 from lapidarium.links.db.django.models import (
     HEX_COLOUR,
     Entry,
@@ -175,7 +176,7 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
         {
             "title": entry_type.label_plural,
             "icon": entry_type.icon or "article",
-            "link": f"{entries}?type__id__exact={entry_type.pk}",
+            "link": f"{entries}?{EntryTypeKeyFilter.parameter_name}={entry_type.key}",
             "permission": _can("view_entry"),
         }
         for entry_type in EntryType.objects.all()
@@ -728,7 +729,7 @@ class EntryAdmin(EntryAdminBase):
     form = EntryForm
     inlines = (PartInline, RelationInline, SyndicationInline)
     list_display = ("title", "type", "status", "featured", "updated_at")
-    list_filter = ("type", "status", "featured", "tags")
+    list_filter = (EntryTypeKeyFilter, "status", "featured", "tags")
     list_select_related = ("type",)
     search_fields = ("title", "summary", "slug")
     autocomplete_fields = ("cover", "tags")

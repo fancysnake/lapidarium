@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-22 13:31+0100\n"
+"POT-Creation-Date: 2026-11-26 07:33+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -164,9 +164,6 @@ msgstr "Tag"
 msgid "list filters"
 msgstr "filtry listy"
 
-msgid "Required parts must be allowed."
-msgstr "Wymagane części muszą być dozwolone."
-
 msgid "Behaviour"
 msgstr "Zachowanie"
 
@@ -268,6 +265,9 @@ msgstr "Wyłącz: opublikuj stronę"
 
 msgid "The site is live."
 msgstr "Strona jest opublikowana."
+
+msgid "type"
+msgstr "rodzaj"
 
 msgid "Use #rrggbb."
 msgstr "Użyj formatu #rrggbb."
@@ -371,9 +371,6 @@ msgstr "tag"
 
 msgid "tags"
 msgstr "tagi"
-
-msgid "type"
-msgstr "rodzaj"
 
 msgid "slug"
 msgstr "slug"
@@ -587,6 +584,9 @@ msgstr "pozycja z zewnątrz"
 
 msgid "external items"
 msgstr "pozycje z zewnątrz"
+
+msgid "Required parts must be allowed."
+msgstr "Wymagane części muszą być dozwolone."
 
 msgid "Pieces of work"
 msgstr "Prace"
@@ -897,6 +897,9 @@ msgstr "Wszystkie ustawienia są w panelu administracyjnym"
 msgid "The type is created."
 msgstr "Rodzaj został utworzony."
 
+msgid "Add its first entry"
+msgstr "Dodaj pierwszy wpis"
+
 msgid "The type is changed."
 msgstr "Rodzaj został zmieniony."
 
@@ -913,6 +916,9 @@ msgstr "Część:"
 
 msgid "Holds:"
 msgstr "Zawiera:"
+
+msgid "Add an entry"
+msgstr "Dodaj wpis"
 
 msgid "Change"
 msgstr "Zmień"

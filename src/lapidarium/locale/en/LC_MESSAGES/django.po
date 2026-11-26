@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-22 13:31+0100\n"
+"POT-Creation-Date: 2026-11-26 07:33+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -164,9 +164,6 @@ msgstr ""
 msgid "list filters"
 msgstr ""
 
-msgid "Required parts must be allowed."
-msgstr ""
-
 msgid "Behaviour"
 msgstr ""
 
@@ -263,6 +260,9 @@ msgid "Turn off: publish the site"
 msgstr ""
 
 msgid "The site is live."
+msgstr ""
+
+msgid "type"
 msgstr ""
 
 msgid "Use #rrggbb."
@@ -366,9 +366,6 @@ msgid "tag"
 msgstr ""
 
 msgid "tags"
-msgstr ""
-
-msgid "type"
 msgstr ""
 
 msgid "slug"
@@ -582,6 +579,9 @@ msgid "external item"
 msgstr ""
 
 msgid "external items"
+msgstr ""
+
+msgid "Required parts must be allowed."
 msgstr ""
 
 msgid "Pieces of work"
@@ -893,6 +893,9 @@ msgstr ""
 msgid "The type is created."
 msgstr ""
 
+msgid "Add its first entry"
+msgstr ""
+
 msgid "The type is changed."
 msgstr ""
 
@@ -906,6 +909,9 @@ msgid "Part of:"
 msgstr ""
 
 msgid "Holds:"
+msgstr ""
+
+msgid "Add an entry"
 msgstr ""
 
 msgid "Change"
