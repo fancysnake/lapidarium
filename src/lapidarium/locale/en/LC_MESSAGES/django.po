@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 07:33+0100\n"
+"POT-Creation-Date: 2026-11-26 18:15+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -22,6 +22,36 @@ msgid "Your name"
 msgstr ""
 
 msgid "Message"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Handle"
+msgstr ""
+
+msgid "Tagline"
+msgstr ""
+
+msgid "Bio"
+msgstr ""
+
+msgid "Markdown."
+msgstr ""
+
+msgid "E-mail for the contact form"
+msgstr ""
+
+msgid "Leave blank to turn the contact form off."
+msgstr ""
+
+msgid "Heading of the friends section"
+msgstr ""
+
+msgid "“Friends” when blank."
+msgstr ""
+
+msgid "Intro of the friends section"
 msgstr ""
 
 msgid "Name of one"
@@ -434,9 +464,6 @@ msgstr ""
 msgid "text"
 msgstr ""
 
-msgid "Markdown."
-msgstr ""
-
 msgid "URL"
 msgstr ""
 
@@ -746,6 +773,12 @@ msgstr ""
 msgid "All"
 msgstr ""
 
+msgid "Draft"
+msgstr ""
+
+msgid "Published"
+msgstr ""
+
 msgid "updated"
 msgstr ""
 
@@ -881,46 +914,40 @@ msgstr ""
 msgid "Almost there: check your inbox and confirm the subscription."
 msgstr ""
 
-msgid "What this site is made of, by what each type is for."
+msgid "Desk"
 msgstr ""
 
-msgid "Pick a purpose to create a type, or a type to change it."
+msgid "Missing a kind of entry?"
 msgstr ""
 
-msgid "Every setting is in the admin"
+msgid "Add a type in Structure"
 msgstr ""
 
-msgid "The type is created."
+msgid "Drafts to finish"
 msgstr ""
 
-msgid "Add its first entry"
+msgid "No drafts. Everything you wrote is on the site."
 msgstr ""
 
-msgid "The type is changed."
+msgid "Changed lately"
 msgstr ""
 
 #, python-format
-msgid "%(counter)s entry"
-msgid_plural "%(counter)s entries"
+msgid "%(counter)s entry in all"
+msgid_plural "All %(counter)s entries"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Part of:"
+msgid "Nothing is published yet."
 msgstr ""
 
-msgid "Holds:"
+msgid "Coming up"
 msgstr ""
 
-msgid "Add an entry"
+msgid "On the site and in the calendar feed."
 msgstr ""
 
-msgid "Change"
-msgstr ""
-
-msgid "Open in the admin"
-msgstr ""
-
-msgid "No types yet."
+msgid "No event is planned."
 msgstr ""
 
 msgid "Change type"
@@ -932,7 +959,7 @@ msgstr ""
 msgid "Preview shows what a change does to the entries before anything is saved."
 msgstr ""
 
-msgid "Back to the content panel"
+msgid "Back to Structure"
 msgstr ""
 
 msgid "Fields"
@@ -1007,6 +1034,57 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
+#, python-format
+msgid "%(counter)s entry."
+msgid_plural "%(counter)s entries."
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "%(counter)s draft is not on the site yet."
+msgid_plural "%(counter)s drafts are not on the site yet."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Add an entry"
+msgstr ""
+
+msgid "Show one type"
+msgstr ""
+
+msgid "Every type"
+msgstr ""
+
+msgid "Show one status"
+msgstr ""
+
+msgid "Drafts"
+msgstr ""
+
+msgid "Find by title"
+msgstr ""
+
+msgid "Find"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Part of"
+msgstr ""
+
+msgid "Changed"
+msgstr ""
+
+msgid "No entry matches."
+msgstr ""
+
+msgid "Show every entry"
+msgstr ""
+
 msgid "Entries that use the field:"
 msgstr ""
 
@@ -1037,6 +1115,60 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
+msgid "Who the site is about"
+msgstr ""
+
+msgid "The about page, the author box under every entry and the footer read from here."
+msgstr ""
+
+msgid "The profile is saved."
+msgstr ""
+
+msgid "See the about page"
+msgstr ""
+
+msgid "Save the profile"
+msgstr ""
+
+msgid "Structure"
+msgstr ""
+
+msgid "What this site is made of"
+msgstr ""
+
+msgid "A type is a kind of entry. An activity holds projects, a project holds pieces of work, and every level is optional."
+msgstr ""
+
+msgid "The type is created."
+msgstr ""
+
+msgid "Add its first entry"
+msgstr ""
+
+msgid "The type is changed."
+msgstr ""
+
+msgid "Part of:"
+msgstr ""
+
+msgid "Holds:"
+msgstr ""
+
+#, python-format
+msgid "%(counter)s entry"
+msgid_plural "%(counter)s entries"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "No types yet."
+msgstr ""
+
+msgid "New type for"
+msgstr ""
+
+msgid "New:"
+msgstr ""
+
 msgid "Search for"
 msgstr ""
 
@@ -1063,6 +1195,21 @@ msgid "a link"
 msgstr ""
 
 msgid "Follow by RSS"
+msgstr ""
+
+msgid "panel"
+msgstr ""
+
+msgid "Panel menu"
+msgstr ""
+
+msgid "View the site"
+msgstr ""
+
+msgid "Admin"
+msgstr ""
+
+msgid "Log out"
 msgstr ""
 
 msgid "Download the recording"

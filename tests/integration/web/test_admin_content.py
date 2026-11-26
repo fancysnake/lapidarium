@@ -73,7 +73,7 @@ def test_sidebar_lists_content_types_then_site_records(admin):
         "/admin/lapidarium_db/link/",
         "/admin/lapidarium_db/friend/",
         "/admin/lapidarium_db/showcase/",
-        "/admin/panel/",
+        "/panel/",
         "/admin/theme-preview/",
     ]
 

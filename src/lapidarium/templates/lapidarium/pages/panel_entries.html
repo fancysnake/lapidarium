@@ -1,0 +1,102 @@
+{% extends "lapidarium/panel_base.html" %}
+{% load i18n %}
+{% block title %}{% translate "All entries" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="panel-main">
+    <div class="panel-section__head">
+      <div>
+        <h1 class="panel-title">
+          {% if entries.entry_type %}
+            {{ entries.entry_type.label_plural }}
+          {% else %}
+            {% translate "All entries" %}
+          {% endif %}
+        </h1>
+        <p class="panel-lead">
+          {% blocktranslate count counter=entries.total trimmed %}
+            {{ counter }} entry.
+          {% plural %}
+            {{ counter }} entries.
+          {% endblocktranslate %}
+          {% if entries.drafts %}
+            {% blocktranslate count counter=entries.drafts trimmed %}
+              {{ counter }} draft is not on the site yet.
+            {% plural %}
+              {{ counter }} drafts are not on the site yet.
+            {% endblocktranslate %}
+          {% endif %}
+        </p>
+      </div>
+      <a class="btn btn--primary" href="{% url 'panel' %}">{% translate "Add an entry" %}</a>
+    </div>
+    <nav class="type-filter" aria-label="{% translate "Show one type" %}">
+      <a class="type-filter__all"
+         href="{% querystring type=None page=None %}"
+         {% if not entries.entry_type %}aria-current="true"{% endif %}>{% translate "Every type" %}</a>
+      {% for count in entries.types %}
+        <a class="type-button type-button--small"
+           data-type="{{ count.entry_type.key }}"
+           href="{% querystring type=count.entry_type.key page=None %}"
+           {% if count.entry_type == entries.entry_type %}aria-current="true"{% endif %}>{{ count.entry_type.label_plural }} <span>{{ count.entries }}</span></a>
+      {% endfor %}
+    </nav>
+    <div class="entry-filter">
+      <nav class="entry-filter__status" aria-label="{% translate "Show one status" %}">
+        <a href="{% querystring status=None page=None %}"
+           {% if not entries.status %}aria-current="true"{% endif %}>{% translate "All" %} {{ entries.total }}</a>
+        <a href="{% querystring status='published' page=None %}"
+           {% if entries.status == "published" %}aria-current="true"{% endif %}>{% translate "Published" %} {{ entries.published }}</a>
+        <a href="{% querystring status='draft' page=None %}"
+           {% if entries.status == "draft" %}aria-current="true"{% endif %}>{% translate "Drafts" %} {{ entries.drafts }}</a>
+      </nav>
+      <form class="entry-filter__find" method="get" role="search">
+        {% if entries.entry_type %}<input type="hidden" name="type" value="{{ entries.entry_type.key }}">{% endif %}
+        {% if entries.status %}<input type="hidden" name="status" value="{{ entries.status }}">{% endif %}
+        <label for="find">{% translate "Find by title" %}</label>
+        <input class="input" id="find" type="search" name="q" value="{{ entries.query }}" autocomplete="off">
+        <button class="btn" type="submit">{% translate "Find" %}</button>
+      </form>
+    </div>
+    {% if entries.rows %}
+      <div class="panel-table">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{% translate "Title" %}</th>
+              <th scope="col">{% translate "Type" %}</th>
+              <th scope="col">{% translate "Part of" %}</th>
+              <th scope="col">{% translate "Status" %}</th>
+              <th scope="col">{% translate "Changed" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in entries.rows %}
+              <tr data-type="{{ row.entry_type.key }}">
+                <td>
+                  <a class="panel-list__title"
+                     href="{{ entries_admin }}?type={{ row.entry_type.key|urlencode }}&amp;q={{ row.entry.slug|urlencode }}">{{ row.entry.title }}</a>
+                </td>
+                <td>{% include "lapidarium/components/type-label.html" with entry_type=row.entry_type %}</td>
+                <td class="panel-muted">
+                  {% for container in row.containers %}
+                    {{ container.title }}{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+                </td>
+                <td>{% include "lapidarium/components/entry-status.html" with status=row.entry.status %}</td>
+                <td class="panel-table__when">
+                  <time datetime="{{ row.entry.updated_at|date:'c' }}">{{ row.entry.updated_at|date:"DATE_FORMAT" }}</time>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "lapidarium/components/pagination.html" with listing=entries %}
+    {% else %}
+      <p class="panel-empty">
+        {% translate "No entry matches." %}
+        <a href="{% url 'panel_entries' %}">{% translate "Show every entry" %}</a>
+      </p>
+    {% endif %}
+  </main>
+{% endblock main %}

@@ -16,6 +16,23 @@ if TYPE_CHECKING:
 BUTTON_SIZE = (88, 31)
 
 
+# The longest name and the longest line the store keeps.
+SHORT_LENGTH = 100
+LONG_LENGTH = 255
+
+
+class ProfileTextData(TypedDict):
+    """What the content panel edits of the profile; the images stay as they are."""
+
+    name: str
+    handle: str
+    tagline: str
+    bio: str
+    email: str
+    friends_title: str
+    friends_intro: str
+
+
 class ProfileData(TypedDict):
     name: str
     handle: str

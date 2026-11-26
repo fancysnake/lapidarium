@@ -3,15 +3,16 @@ from unittest.mock import MagicMock
 import pytest
 
 from lapidarium.mills.site import SiteService
+from lapidarium.pacts.content import MediaAssetDTO
 from lapidarium.pacts.site import FriendDTO, LinkDTO, TypeColourDTO
-from tests.factories import profile_dto, type_dto
+from tests.factories import profile_data, profile_dto, type_dto
 
 PROFILE = profile_dto()
 LINK = LinkDTO(platform="itch", url="https://example.itch.io", label="itch.io")
 FRIEND = FriendDTO(name="Ada", url="https://ada.example.org", button=None)
 
 
-def _service(*, types=(), profile=PROFILE, dark_colours=None):
+def _service(*, types=(), profile=PROFILE, dark_colours=None, pages=None):
     repos = MagicMock()
     repos.types.list_all.return_value = list(types)
     repos.profile.get.return_value = profile
@@ -20,7 +21,11 @@ def _service(*, types=(), profile=PROFILE, dark_colours=None):
     schema = MagicMock()
     schema.derive_dark_colour.side_effect = (dark_colours or {}).get
     return SiteService(
-        types=repos.types, profile=repos.profile, schema=schema, site_name="Lapidarium"
+        types=repos.types,
+        profile=repos.profile,
+        schema=schema,
+        pages=pages or MagicMock(),
+        site_name="Lapidarium",
     )
 
 
@@ -55,3 +60,45 @@ def test_chrome_names_the_site_when_the_profile_names_no_one(profile):
 
 def test_friends_are_those_the_profile_keeps():
     assert _service().friends() == (FRIEND,)
+
+
+def _asset(path):
+    return MediaAssetDTO(path=path, url=f"/media/{path}", alt="")
+
+
+_TEXTS = {
+    key: value
+    for key, value in profile_data().items()
+    if key not in {"photo", "button"}
+}
+
+
+@pytest.mark.parametrize(
+    ("profile", "images"),
+    (
+        (None, {"photo": "", "button": ""}),
+        (PROFILE, {"photo": "", "button": ""}),
+        (
+            profile_dto(photo=_asset("assets/mira.png"), button=_asset("assets/b.png")),
+            {"photo": "assets/mira.png", "button": "assets/b.png"},
+        ),
+    ),
+)
+def test_change_profile_saves_the_texts_keeps_the_images_and_clears_the_pages(
+    profile, images
+):
+    repo = MagicMock()
+    repo.get.return_value = profile
+    pages = MagicMock()
+    service = SiteService(
+        types=MagicMock(),
+        profile=repo,
+        schema=MagicMock(),
+        pages=pages,
+        site_name="Lapidarium",
+    )
+
+    service.change_profile(_TEXTS)
+
+    repo.save.assert_called_once_with({**_TEXTS, **images})
+    pages.clear.assert_called_once_with()

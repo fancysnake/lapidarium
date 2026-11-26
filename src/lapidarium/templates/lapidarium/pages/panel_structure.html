@@ -1,0 +1,75 @@
+{% extends "lapidarium/panel_base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Structure" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="panel-main">
+    <div>
+      <h1 class="panel-title">{% translate "What this site is made of" %}</h1>
+      <p class="panel-lead">
+        {% translate "A type is a kind of entry. An activity holds projects, a project holds pieces of work, and every level is optional." %}
+      </p>
+    </div>
+    {% if created %}
+      <p class="notice" role="status">
+        {% translate "The type is created." %}
+        <a href="{{ entry_add }}?type={{ created|urlencode }}">{% translate "Add its first entry" %}</a>
+      </p>
+    {% endif %}
+    {% if changed %}
+      <p class="notice" role="status">{% translate "The type is changed." %}</p>
+    {% endif %}
+    {% for mechanic in mechanics %}
+      <section class="mechanic" aria-labelledby="mechanic-{{ mechanic.role }}">
+        <h2 class="mechanic__name" id="mechanic-{{ mechanic.role }}">{% translate mechanic.name %}</h2>
+        <div class="mechanic__body">
+          {% if mechanic.types %}
+            <ul class="panel-list">
+              {% for use in mechanic.types %}
+                <li class="panel-list__row type-row" data-type="{{ use.entry_type.key }}">
+                  <span class="type-row__swatch" aria-hidden="true"></span>
+                  <a class="panel-list__title type-row__name"
+                     href="{% url 'panel_change' key=use.entry_type.key %}">{{ use.entry_type.label_plural }}</a>
+                  <a class="type-row__route" translate="no" href="{% url 'listing' route=use.entry_type.route %}">/{{ use.entry_type.route }}/</a>
+                  <span class="type-row__links">
+                    {% if use.containers %}
+                      <span>
+                        {% translate "Part of:" %}
+                        {% for container in use.containers %}
+                          {{ container.label_plural }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                      </span>
+                    {% endif %}
+                    {% if use.contents %}
+                      <span>
+                        {% translate "Holds:" %}
+                        {% for held in use.contents %}
+                          {{ held.label_plural }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                      </span>
+                    {% endif %}
+                  </span>
+                  <a class="type-row__count"
+                     href="{% url 'panel_entries' %}?type={{ use.entry_type.key|urlencode }}">{% blocktranslate count counter=use.entries trimmed %}
+                    {{ counter }} entry
+                  {% plural %}
+                    {{ counter }} entries
+                  {% endblocktranslate %}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="panel-empty">{% translate "No types yet." %}</p>
+          {% endif %}
+          <ul class="purposes" aria-label="{% translate "New type for" %}">
+            {% for purpose in mechanic.purposes %}
+              <li>
+                <a class="btn" href="{% url 'panel_new' purpose=purpose.key %}">{% translate "New:" %} {% translate purpose.name %}</a>
+                <span class="panel-muted">{% translate purpose.description %}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+    {% endfor %}
+  </main>
+{% endblock main %}

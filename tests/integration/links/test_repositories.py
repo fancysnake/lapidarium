@@ -463,6 +463,23 @@ def test_ensure_superuser_creates_then_resets_the_login():
 
 
 @pytest.mark.usefixtures("demo")
+def test_list_all_holds_drafts_and_puts_the_newest_change_first():
+    Entry.objects.filter(slug="bal-w-zamku").update(status="draft")
+    Entry.objects.filter(slug="krotkie-nogi").update(
+        updated_at=dt.datetime(2099, 1, 1, tzinfo=dt.UTC)
+    )
+
+    found = EntryRepository().list_all()
+
+    assert found[0].slug == "krotkie-nogi"
+    assert len(found) == Entry.objects.count()
+    assert "draft" in {entry.status for entry in found}
+    assert [entry.updated_at for entry in found] == sorted(
+        (entry.updated_at for entry in found), reverse=True
+    )
+
+
+@pytest.mark.usefixtures("demo")
 def test_search_finds_published_entries_holding_every_term():
     found = EntryRepository().search(["Tycho", "rutynowego"], limit=10)
 

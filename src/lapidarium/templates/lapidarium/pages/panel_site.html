@@ -1,0 +1,29 @@
+{% extends "lapidarium/panel_base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Site" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="panel-main">
+    <div>
+      <h1 class="panel-title">{% translate "Who the site is about" %}</h1>
+      <p class="panel-lead">
+        {% translate "The about page, the author box under every entry and the footer read from here." %}
+      </p>
+    </div>
+    {% if saved %}
+      <p class="notice" role="status">
+        {% translate "The profile is saved." %}
+        <a href="{% url 'about' %}">{% translate "See the about page" %}</a>
+      </p>
+    {% endif %}
+    <form class="form panel-form" method="post">
+      {% csrf_token %}
+      {% include "lapidarium/components/form-errors.html" with errors=form.non_field_errors %}
+      {% for field in form %}
+        {% include "lapidarium/components/form-field.html" %}
+      {% endfor %}
+      <div class="panel-form__actions">
+        <button class="btn btn--primary" type="submit">{% translate "Save the profile" %}</button>
+      </div>
+    </form>
+  </main>
+{% endblock main %}

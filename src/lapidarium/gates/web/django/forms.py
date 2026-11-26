@@ -10,6 +10,7 @@ from lapidarium.pacts.content import (
     PartKind,
     enum_choices,
 )
+from lapidarium.pacts.site import LONG_LENGTH, SHORT_LENGTH
 from lapidarium.pacts.theme import HEX_COLOUR
 
 if TYPE_CHECKING:
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
         TypeChangeData,
         TypeSettingsData,
     )
+    from lapidarium.pacts.site import ProfileDTO, ProfileTextData
 
 _MESSAGE_MAX_LENGTH = 5000
 _NAME_MAX_LENGTH = 100
@@ -58,6 +60,58 @@ class ContactForm(HoneypotForm):
 
 def _text() -> forms.TextInput:
     return forms.TextInput(attrs={"class": "input"})
+
+
+def _long_text() -> forms.Textarea:
+    return forms.Textarea(attrs={"class": "input", "rows": 7})
+
+
+class ProfileForm(forms.Form):
+    name = forms.CharField(label=_("Name"), max_length=SHORT_LENGTH, widget=_text())
+    handle = forms.CharField(
+        label=_("Handle"), max_length=SHORT_LENGTH, required=False, widget=_text()
+    )
+    tagline = forms.CharField(
+        label=_("Tagline"), max_length=LONG_LENGTH, required=False, widget=_text()
+    )
+    bio = forms.CharField(
+        label=_("Bio"), required=False, help_text=_("Markdown."), widget=_long_text()
+    )
+    email = forms.EmailField(
+        label=_("E-mail for the contact form"),
+        required=False,
+        help_text=_("Leave blank to turn the contact form off."),
+        widget=forms.EmailInput(attrs={"class": "input", "spellcheck": "false"}),
+    )
+    friends_title = forms.CharField(
+        label=_("Heading of the friends section"),
+        max_length=SHORT_LENGTH,
+        required=False,
+        help_text=_("“Friends” when blank."),
+        widget=_text(),
+    )
+    friends_intro = forms.CharField(
+        label=_("Intro of the friends section"),
+        required=False,
+        help_text=_("Markdown."),
+        widget=_long_text(),
+    )
+
+    def __init__(self, data: QueryDict | None, *, profile: ProfileDTO | None) -> None:
+        initial = profile.model_dump(include=set(self.base_fields)) if profile else {}
+        super().__init__(data, initial=initial)
+
+    def to_data(self) -> ProfileTextData:
+        cleaned = self.cleaned_data
+        return {
+            "name": cleaned["name"],
+            "handle": cleaned["handle"],
+            "tagline": cleaned["tagline"],
+            "bio": cleaned["bio"],
+            "email": cleaned["email"],
+            "friends_title": cleaned["friends_title"],
+            "friends_intro": cleaned["friends_intro"],
+        }
 
 
 def _parts(label: _StrOrPromise) -> forms.TypedMultipleChoiceField:

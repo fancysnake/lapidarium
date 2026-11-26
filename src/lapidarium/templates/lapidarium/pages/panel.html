@@ -1,78 +1,94 @@
-{% extends "lapidarium/base.html" %}
+{% extends "lapidarium/panel_base.html" %}
 {% load i18n %}
-{% block title %}{% translate "Content panel" %} · {{ site_name }}{% endblock title %}
+{% block title %}{% translate "Desk" %} · {{ site_name }}{% endblock title %}
 {% block main %}
-  <main class="container page">
-    <div>
-      <h1 class="page__title">{% translate "Content panel" %}</h1>
-      <p class="page__lead">
-        {% translate "What this site is made of, by what each type is for." %}
-        {% translate "Pick a purpose to create a type, or a type to change it." %}
-        <a href="{{ types_admin }}">{% translate "Every setting is in the admin" %}</a>
-      </p>
-    </div>
-    {% if created %}
-      <p class="notice" role="status">
-        {% translate "The type is created." %}
-        <a href="{{ entry_add }}?type={{ created|urlencode }}">{% translate "Add its first entry" %}</a>
-      </p>
-    {% endif %}
-    {% if changed %}
-      <p class="notice" role="status">{% translate "The type is changed." %}</p>
-    {% endif %}
-    {% for mechanic in mechanics %}
-      <section aria-labelledby="mechanic-{{ mechanic.role }}">
-        <h2 class="section-title" id="mechanic-{{ mechanic.role }}">{% translate mechanic.name %}</h2>
-        <ul>
-          {% for purpose in mechanic.purposes %}
-            <li>
-              <strong><a href="{% url 'panel_new' purpose=purpose.key %}">{% translate purpose.name %}</a></strong>: {% translate purpose.description %}
-            </li>
-          {% endfor %}
-        </ul>
+  <main class="panel-main">
+    <section class="desk-add" aria-labelledby="adding">
+      <h1 class="panel-title" id="adding">{% translate "What are you adding?" %}</h1>
+      {% for mechanic in mechanics %}
         {% if mechanic.types %}
-          <ul class="cards">
-            {% for use in mechanic.types %}
-              <li class="card" data-type="{{ use.entry_type.key }}">
-                {% include "lapidarium/components/type-label.html" with entry_type=use.entry_type %}
-                <h3 class="card__title">
-                  <a href="{% url 'listing' route=use.entry_type.route %}">{{ use.entry_type.label_plural }}</a>
-                </h3>
-                <p class="card__meta">
-                  <a href="{{ entries_admin }}?type={{ use.entry_type.key|urlencode }}">{% blocktranslate count counter=use.entries trimmed %}
-                    {{ counter }} entry
-                  {% plural %}
-                    {{ counter }} entries
-                  {% endblocktranslate %}</a>
-                </p>
-                {% if use.containers %}
-                  <p class="card__meta">
-                    {% translate "Part of:" %}
-                    {% for container in use.containers %}
-                      {{ container.label_plural }}
-                      {% if not forloop.last %}·{% endif %}
-                    {% endfor %}
-                  </p>
-                {% endif %}
-                {% if use.contents %}
-                  <p class="card__meta">
-                    {% translate "Holds:" %}
-                    {% for held in use.contents %}
-                      {{ held.label_plural }}
-                      {% if not forloop.last %}·{% endif %}
-                    {% endfor %}
-                  </p>
-                {% endif %}
-                <a href="{{ entry_add }}?type={{ use.entry_type.key|urlencode }}">{% translate "Add an entry" %}</a>
-                <a href="{% url 'panel_change' key=use.entry_type.key %}">{% translate "Change" %}</a>
-                <a href="{{ types_admin }}?key={{ use.entry_type.key|urlencode }}">{% translate "Open in the admin" %}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="empty">{% translate "No types yet." %}</p>
+          <div class="desk-add__group">
+            <h2 class="desk-add__label">{% translate mechanic.name %}</h2>
+            <ul class="desk-add__types">
+              {% for use in mechanic.types %}
+                <li>
+                  <a class="type-button"
+                     data-type="{{ use.entry_type.key }}"
+                     href="{{ entry_add }}?type={{ use.entry_type.key|urlencode }}">{{ use.entry_type.label }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
         {% endif %}
+      {% endfor %}
+      <p class="panel-muted">
+        {% translate "Missing a kind of entry?" %}
+        <a href="{% url 'panel_structure' %}">{% translate "Add a type in Structure" %}</a>
+      </p>
+    </section>
+    <div class="panel-columns">
+      <div class="panel-columns__main">
+        <section class="panel-section" aria-labelledby="drafts">
+          <h2 class="panel-heading" id="drafts">{% translate "Drafts to finish" %}</h2>
+          {% if desk.drafts %}
+            <ul class="panel-list">
+              {% for row in desk.drafts %}
+                <li class="panel-list__row" data-type="{{ row.entry_type.key }}">
+                  {% include "lapidarium/components/type-label.html" with entry_type=row.entry_type %}
+                  <a class="panel-list__title"
+                     href="{{ entries_admin }}?type={{ row.entry_type.key|urlencode }}&amp;q={{ row.entry.slug|urlencode }}">{{ row.entry.title }}</a>
+                  <time class="panel-list__when" datetime="{{ row.entry.updated_at|date:'c' }}">{{ row.entry.updated_at|date:"DATE_FORMAT" }}</time>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="panel-empty">{% translate "No drafts. Everything you wrote is on the site." %}</p>
+          {% endif %}
+        </section>
+        <section class="panel-section" aria-labelledby="recent">
+          <div class="panel-section__head">
+            <h2 class="panel-heading" id="recent">{% translate "Changed lately" %}</h2>
+            <a href="{% url 'panel_entries' %}">{% blocktranslate count counter=desk.total trimmed %}
+              {{ counter }} entry in all
+            {% plural %}
+              All {{ counter }} entries
+            {% endblocktranslate %}</a>
+          </div>
+          {% if desk.published %}
+            <ul class="panel-list">
+              {% for row in desk.published %}
+                <li class="panel-list__row" data-type="{{ row.entry_type.key }}">
+                  {% include "lapidarium/components/type-label.html" with entry_type=row.entry_type %}
+                  <a class="panel-list__title"
+                     href="{{ entries_admin }}?type={{ row.entry_type.key|urlencode }}&amp;q={{ row.entry.slug|urlencode }}">{{ row.entry.title }}</a>
+                  <time class="panel-list__when" datetime="{{ row.entry.updated_at|date:'c' }}">{{ row.entry.updated_at|date:"DATE_FORMAT" }}</time>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="panel-empty">{% translate "Nothing is published yet." %}</p>
+          {% endif %}
+        </section>
+      </div>
+      <section class="panel-section panel-columns__side" aria-labelledby="coming">
+        <h2 class="panel-heading" id="coming">{% translate "Coming up" %}</h2>
+        {% for card in upcoming %}
+          <div class="panel-card" data-type="{{ card.entry_type.key }}">
+            <p class="panel-card__date">
+              {% if card.entry.start_at %}
+                <time datetime="{{ card.entry.start_at|date:'c' }}">{{ card.entry.start_at|date:"DATE_FORMAT" }}</time>
+              {% elif card.entry.date %}
+                <time datetime="{{ card.entry.date|date:'Y-m-d' }}">{{ card.entry.date|date:"DATE_FORMAT" }}</time>
+              {% endif %}
+            </p>
+            <a class="panel-list__title"
+               href="{{ entries_admin }}?type={{ card.entry_type.key|urlencode }}&amp;q={{ card.entry.slug|urlencode }}">{{ card.entry.title }}</a>
+            <p class="panel-muted">{% translate "On the site and in the calendar feed." %}</p>
+          </div>
+        {% empty %}
+          <p class="panel-empty">{% translate "No event is planned." %}</p>
+        {% endfor %}
       </section>
-    {% endfor %}
+    </div>
   </main>
 {% endblock main %}

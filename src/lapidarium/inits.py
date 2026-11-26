@@ -37,6 +37,7 @@ from lapidarium.mills.content import (
     LocalSetupService,
     PageClearingImportService,
 )
+from lapidarium.mills.editing import EditingService
 from lapidarium.mills.maintenance import MaintenanceService
 from lapidarium.mills.metadata import MetadataService
 from lapidarium.mills.outreach import OutreachService
@@ -177,6 +178,11 @@ class ContentServices(ContentServicesProtocol):
         )
 
     @cached_property
+    def editing(self) -> EditingService:
+        repos = self._repositories
+        return EditingService(types=repos.entry_types, entries=repos.entries)
+
+    @cached_property
     def local_setup(self) -> LocalSetupService:
         return LocalSetupService(
             content_import=self.importer,
@@ -233,6 +239,7 @@ class Services(ServicesProtocol):
             types=repos.entry_types,
             profile=repos.profile,
             schema=self.schema,
+            pages=caches[PAGE_CACHE],
             site_name=settings.SITE_NAME,
         )
 

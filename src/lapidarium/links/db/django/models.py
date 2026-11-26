@@ -27,11 +27,11 @@ from lapidarium.pacts.content import (
     UrlKind,
     enum_choices,
 )
-from lapidarium.pacts.site import BUTTON_SIZE
+from lapidarium.pacts.site import BUTTON_SIZE, LONG_LENGTH, SHORT_LENGTH
 
 HEX_COLOUR = RegexValidator(r"^#[0-9a-fA-F]{6}$", _("Use #rrggbb."))
-_SHORT = 100
-_LONG = 255
+_SHORT = SHORT_LENGTH
+_LONG = LONG_LENGTH
 
 
 class MediaAsset(models.Model):

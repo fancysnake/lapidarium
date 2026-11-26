@@ -1,13 +1,13 @@
-{% extends "lapidarium/base.html" %}
+{% extends "lapidarium/panel_base.html" %}
 {% load i18n %}
 {% block title %}{{ use.field.label }} · {{ site_name }}{% endblock title %}
 {% block main %}
-  <main class="container page">
+  <main class="panel-main">
     <div>
-      <h1 class="page__title">
+      <h1 class="panel-title">
         {% translate "Entries that use the field:" %} {{ use.field.label }}
       </h1>
-      <p class="page__lead">
+      <p class="panel-lead">
         {% if use.field.kind == "relation" %}
           {% translate "A field that entries link through cannot be removed or change its kind. Remove these links in each entry first." %}
         {% else %}
