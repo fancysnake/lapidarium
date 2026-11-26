@@ -30,6 +30,8 @@ if TYPE_CHECKING:
     from lapidarium.pacts.site import ProfileDTO, ProfileTextData
 
 _MESSAGE_MAX_LENGTH = 5000
+# The longest address the profile column stores.
+_EMAIL_MAX_LENGTH = 254
 _NAME_MAX_LENGTH = 100
 _PART_CHOICES = enum_choices(PartKind)
 _FIELD = "field_"
@@ -80,6 +82,7 @@ class ProfileForm(forms.Form):
     )
     email = forms.EmailField(
         label=_("E-mail for the contact form"),
+        max_length=_EMAIL_MAX_LENGTH,
         required=False,
         help_text=_("Leave blank to turn the contact form off."),
         widget=forms.EmailInput(attrs={"class": "input", "spellcheck": "false"}),

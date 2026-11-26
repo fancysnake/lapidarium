@@ -91,3 +91,17 @@ def test_the_site_page_keeps_the_form_when_it_cannot_read_it(site):
     assert response.status_code == HTTPStatus.OK
     assert set(response.context["form"].errors) == {"name", "email"}
     assert Profile.objects.get().name == name
+
+
+def test_the_site_page_refuses_an_email_too_long_to_store(site):
+    site.force_login(
+        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
+    )
+    email = Profile.objects.get().email
+    too_long = "a" * 243 + "@example.com"
+
+    response = site.post("/panel/site/", {**_PROFILE, "email": too_long})
+
+    assert response.status_code == HTTPStatus.OK
+    assert set(response.context["form"].errors) == {"email"}
+    assert Profile.objects.get().email == email
