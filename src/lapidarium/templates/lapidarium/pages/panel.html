@@ -14,7 +14,7 @@
     {% if created %}
       <p class="notice" role="status">
         {% translate "The type is created." %}
-        <a href="{{ entry_add }}?type={{ created.key|urlencode }}">{% translate "Add its first entry" %}</a>
+        <a href="{{ entry_add }}?type={{ created|urlencode }}">{% translate "Add its first entry" %}</a>
       </p>
     {% endif %}
     {% if changed %}

@@ -10,7 +10,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.utils import timezone
@@ -30,6 +30,7 @@ from unfold.widgets import (
     UnfoldBooleanSwitchWidget,
 )
 
+from lapidarium.links.db.django.filters import EntryTypeKeyFilter
 from lapidarium.links.db.django.models import (
     HEX_COLOUR,
     Entry,
@@ -175,7 +176,7 @@ def sidebar_navigation(_request: HttpRequest) -> list[NavGroup]:
         {
             "title": entry_type.label_plural,
             "icon": entry_type.icon or "article",
-            "link": f"{entries}?type__id__exact={entry_type.pk}",
+            "link": f"{entries}?{EntryTypeKeyFilter.parameter_name}={entry_type.key}",
             "permission": _can("view_entry"),
         }
         for entry_type in EntryType.objects.all()
@@ -728,7 +729,7 @@ class EntryAdmin(EntryAdminBase):
     form = EntryForm
     inlines = (PartInline, RelationInline, SyndicationInline)
     list_display = ("title", "type", "status", "featured", "updated_at")
-    list_filter = ("type", "status", "featured", "tags")
+    list_filter = (EntryTypeKeyFilter, "status", "featured", "tags")
     list_select_related = ("type",)
     search_fields = ("title", "summary", "slug")
     autocomplete_fields = ("cover", "tags")
@@ -745,21 +746,12 @@ class EntryAdmin(EntryAdminBase):
     @override
     def get_urls(self) -> list[URLPattern]:
         # A new entry needs its type first; without one, offer the choice.
-        view = self.admin_site.admin_view
         add = path(
-            "add/", view(self.add_or_choose_view), name="lapidarium_db_entry_add"
+            "add/",
+            self.admin_site.admin_view(self.add_or_choose_view),
+            name="lapidarium_db_entry_add",
         )
-        # The content panel knows a type by its key; the type filter takes its id.
-        entries = path(
-            "", view(self.entries_of_type_view), name="lapidarium_db_entry_changelist"
-        )
-        return [add, entries, *super().get_urls()]
-
-    def entries_of_type_view(self, request: HttpRequest) -> HttpResponse:
-        if key := request.GET.get("type"):
-            entry_type = get_object_or_404(EntryType, key=key)
-            return redirect(f"{request.path}?type__id__exact={entry_type.pk}")
-        return self.changelist_view(request)
+        return [add, *super().get_urls()]
 
     def add_or_choose_view(self, request: HttpRequest) -> HttpResponse:
         if EntryType.objects.filter(key=request.GET.get("type", "")).exists():

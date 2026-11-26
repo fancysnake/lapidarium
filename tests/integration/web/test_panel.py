@@ -74,16 +74,31 @@ def test_the_entries_link_of_a_type_lists_that_type_only(admin):
         entry_type = EntryType.objects.create(key=key, label=key, route=key)
         Entry.objects.create(type=entry_type, slug=key, title=key)
 
-    response = admin.get("/admin/lapidarium_db/entry/?type=song", follow=True)
+    response = admin.get("/admin/lapidarium_db/entry/?type=song")
 
     assert response.status_code == HTTPStatus.OK
     assert [e.slug for e in response.context["cl"].result_list] == ["song"]
 
 
-def test_the_entries_link_of_a_type_the_site_lacks_is_not_found(admin):
+def test_the_entries_link_of_a_type_keeps_the_other_filters(admin):
+    song = EntryType.objects.create(key="song", label="song", route="song")
+    for status in ("draft", "published"):
+        Entry.objects.create(type=song, slug=status, title=status, status=status)
+
+    response = admin.get("/admin/lapidarium_db/entry/?type=song&status__exact=draft")
+
+    assert response.status_code == HTTPStatus.OK
+    assert [e.slug for e in response.context["cl"].result_list] == ["draft"]
+
+
+def test_the_entries_link_of_a_type_the_site_lacks_lists_nothing(admin):
+    song = EntryType.objects.create(key="song", label="song", route="song")
+    Entry.objects.create(type=song, slug="song", title="song")
+
     response = admin.get("/admin/lapidarium_db/entry/?type=ghost")
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.status_code == HTTPStatus.OK
+    assert not response.context["cl"].result_list
 
 
 def test_the_add_link_of_a_type_opens_the_entry_form_of_that_type(admin):
@@ -262,7 +277,7 @@ def test_create_saves_the_type_and_returns_to_the_panel(browser):
         ("organisation", "Organisation", "text")
     ]
     panel = browser.get(response["Location"])
-    assert panel.context["created"].key == "volunteering"
+    assert panel.context["created"] == "volunteering"
     assert "The type is created." in panel.text
     assert (
         '<a href="/admin/lapidarium_db/entry/add/?type=volunteering">'
