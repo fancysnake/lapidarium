@@ -176,6 +176,9 @@ FIELD_DEFAULTS: Mapping[str, SettingDefault] = {
 }
 
 
+# The longest name and the longest line the store keeps.
+SHORT_LENGTH = 100
+LONG_LENGTH = 255
 SUMMARY_MAX_LENGTH = 200
 
 
@@ -542,6 +545,9 @@ class EntryTypeRepositoryProtocol(Protocol):
 
 class EntryRepositoryProtocol(Protocol):
     def list_published(self) -> list[EntryDTO]: ...
+
+    def list_all(self) -> list[EntryDTO]:
+        """Return every entry, drafts among them, newest change first."""
 
     def search(self, terms: Sequence[str], *, limit: int) -> list[EntryDTO]:
         """Return up to `limit` published entries holding every term, ignoring case."""

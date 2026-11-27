@@ -73,7 +73,7 @@ def test_sidebar_lists_content_types_then_site_records(admin):
         "/admin/lapidarium_db/link/",
         "/admin/lapidarium_db/friend/",
         "/admin/lapidarium_db/showcase/",
-        "/admin/panel/",
+        "/panel/",
         "/admin/theme-preview/",
     ]
 
@@ -140,6 +140,29 @@ def test_choosing_a_type_needs_permission_to_add(client):
     client.force_login(user)
 
     assert client.get(f"{ENTRIES}add/").status_code == HTTPStatus.FORBIDDEN
+
+
+@pytest.mark.usefixtures("demo")
+def test_an_entry_opens_by_its_type_and_address(admin):
+    entry = Entry.objects.get(type__key="session", slug="bal-w-zamku")
+
+    response = admin.get(f"{ENTRIES}open/session/bal-w-zamku/")
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"] == f"{ENTRIES}{entry.pk}/change/"
+
+
+@pytest.mark.usefixtures("demo")
+@pytest.mark.parametrize("path", ("song/bal-w-zamku", "session/nope", "nope/x"))
+def test_an_unknown_entry_does_not_open(admin, path):
+    assert admin.get(f"{ENTRIES}open/{path}/").status_code == HTTPStatus.NOT_FOUND
+
+
+def test_opening_an_entry_is_for_staff(client):
+    response = client.get(f"{ENTRIES}open/session/bal-w-zamku/")
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"].startswith("/admin/login/")
 
 
 @pytest.mark.usefixtures("demo")

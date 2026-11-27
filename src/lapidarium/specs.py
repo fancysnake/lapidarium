@@ -27,6 +27,10 @@ SLUG_PATTERN = r"[-a-zA-Z0-9_]+"
 PAGE_SIZE = 12
 SIBLINGS_LIMIT = 5
 
+# Content panel: entries per page of the list, published entries on the desk.
+PANEL_PAGE_SIZE = 25
+DESK_RECENT = 5
+
 # "What's new": lines on the home page and on its own page. An entry edited
 # longer than UPDATE_GAP after it was added shows as updated.
 WHATS_NEW_HOME = 5

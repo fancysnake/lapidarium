@@ -1,21 +1,21 @@
-{% extends "lapidarium/base.html" %}
+{% extends "lapidarium/panel_base.html" %}
 {% load i18n %}
 {% block title %}{% translate "New type" %} · {{ site_name }}{% endblock title %}
 {% block main %}
-  <main class="container page">
+  <main class="panel-main">
     <div>
-      <h1 class="page__title">
+      <h1 class="panel-title">
         {% translate "New type:" %} {% translate purpose.name %}
       </h1>
-      <p class="page__lead">
+      <p class="panel-lead">
         {% translate purpose.description %}
-        <a href="{% url 'panel' %}">{% translate "Back to the content panel" %}</a>
+        <a href="{% url 'panel_structure' %}">{% translate "Back to Structure" %}</a>
       </p>
     </div>
     {% if preview %}
       {% include "lapidarium/components/type-preview.html" %}
     {% endif %}
-    <form class="form" method="post">
+    <form class="form panel-form" method="post">
       {% csrf_token %}
       {% include "lapidarium/components/form-errors.html" with errors=form.non_field_errors %}
       {% include "lapidarium/components/form-field.html" with field=form.label %}
@@ -42,7 +42,7 @@
           <label>{{ form.door_enabled }} {{ form.door_enabled.label }}</label>
         </div>
       </details>
-      <div>
+      <div class="panel-form__actions">
         <button class="btn" type="submit" name="preview" value="1">{% translate "Preview" %}</button>
         <button class="btn btn--primary" type="submit" name="create" value="1">{% translate "Create" %}</button>
       </div>

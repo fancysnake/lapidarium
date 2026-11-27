@@ -65,11 +65,29 @@ a repository. Each gets its own list page, its own colour, and a section in
 the admin sidebar. Types are data, so adding one needs no code and no
 migration.
 
-**Admin → Content panel** (`<ADMIN_URL>panel/`) shows the types by what they
-are for: pieces of work, events, projects, activities and sections. Each type
-lists its entry count, the types its entries are part of, and the types it
-holds. The entry count opens the type's entries in the admin, and **Add an
-entry** opens the admin's form for a new entry of that type.
+**The content panel** (`/panel/`) is open to every staff account. It has its
+own look, which no theme changes, and four pages:
+
+- **Desk** has a button for each type, the drafts, the entries changed last
+  and the coming events. A button opens the admin's form for a new entry of
+  that type.
+- **All entries** lists every entry, drafts among them. Filter the list by
+  type and by status, or find an entry by its title. A title opens the entry
+  in the admin.
+- **Structure** shows the types by what they are for: pieces of work, events,
+  projects, activities and sections. Each type lists its address, the types
+  its entries are part of, the types it holds, and its entry count, which
+  opens the type's entries in the panel.
+- **Site** holds the profile's texts: name, handle, tagline, bio, the e-mail
+  behind the contact form, and the heading and intro of the friends section.
+  The photo and the site's button change in the admin.
+
+A superuser also gets an **Admin** link in the panel's header.
+
+The panel's entry buttons and titles open the admin, which checks the
+account's permissions. A button for a new entry needs the permission to add
+entries. An entry's title needs the permission to view or change entries.
+Without that permission, the admin shows a "forbidden" page.
 
 To create a type, pick a purpose in the panel, such as a job, a craft or a
 section. The form opens on the purpose's suggested names, address and fields.
@@ -81,7 +99,7 @@ panel offers **Add its first entry**. A type is a kind of thing; each thing is
 an entry. For a craft such as songwriting, create the type "Craft", then add
 "Songwriting" as an entry.
 
-To change a type, follow **Change** on its card in the panel. The form holds
+To change a type, follow its name on the Structure page. The form holds
 the same settings as the create form, except the key. It also renames the
 type's fields, removes them, changes their kind and adds one field per save.
 A new choice or relation field stays in the admin, and so does a change of
@@ -121,7 +139,7 @@ differ from the ones you agreed to, the panel asks again.
 | Order | position in the menu, then by label |
 
 A route can't be taken: the fixed pages (`about`, `new`, `search`,
-`newsletter`, `contact`, `healthz`) and the first segment of `ADMIN_URL`,
+`newsletter`, `contact`, `healthz`, `panel`) and the first segment of `ADMIN_URL`,
 `MEDIA_URL` and `/static/` are matched first. The admin refuses such a route
 and names its owner. A type saved on one earlier is flagged in the route
 column of the type list.

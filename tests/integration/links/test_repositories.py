@@ -150,6 +150,31 @@ def test_saving_the_profile_again_updates_the_one_row():
     assert ProfileRepository().get().photo is None
 
 
+def _texts(**overrides):
+    data = profile_data(**overrides)
+    return {key: value for key, value in data.items() if key not in {"photo", "button"}}
+
+
+def test_saving_the_profile_texts_leaves_its_images():
+    photo = MediaAsset.objects.create(file=ContentFile(png((4, 4)), name="p.png"))
+    button = MediaAsset.objects.create(file=ContentFile(png(BUTTON_SIZE), name="b.png"))
+    Profile.objects.create(name="Mira", photo=photo, button=button)
+
+    ProfileRepository().save_texts(_texts(name="Mira K.", bio="Hi"))
+
+    profile = Profile.objects.get()
+    assert (profile.name, profile.bio) == ("Mira K.", "Hi")
+    assert (profile.photo, profile.button) == (photo, button)
+
+
+def test_saving_the_profile_texts_starts_a_profile_without_images():
+    ProfileRepository().save_texts(_texts(tagline="Games"))
+
+    profile = Profile.objects.get()
+    assert (profile.name, profile.tagline) == ("Mira", "Games")
+    assert (profile.photo, profile.button) == (None, None)
+
+
 def test_no_profile_yet():
     assert ProfileRepository().get() is None
 
@@ -460,6 +485,23 @@ def test_ensure_superuser_creates_then_resets_the_login():
     user = User.objects.get(username="admin")
     assert (user.is_active, user.is_staff, user.is_superuser) == (True, True, True)
     assert user.check_password("second")
+
+
+@pytest.mark.usefixtures("demo")
+def test_list_all_holds_drafts_and_puts_the_newest_change_first():
+    Entry.objects.filter(slug="bal-w-zamku").update(status="draft")
+    Entry.objects.filter(slug="krotkie-nogi").update(
+        updated_at=dt.datetime(2099, 1, 1, tzinfo=dt.UTC)
+    )
+
+    found = EntryRepository().list_all()
+
+    assert found[0].slug == "krotkie-nogi"
+    assert len(found) == Entry.objects.count()
+    assert "draft" in {entry.status for entry in found}
+    assert [entry.updated_at for entry in found] == sorted(
+        (entry.updated_at for entry in found), reverse=True
+    )
 
 
 @pytest.mark.usefixtures("demo")

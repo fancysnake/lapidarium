@@ -155,6 +155,7 @@ _FIXED_PAGES: Mapping[str, str] = {
     "newsletter": "the newsletter page",
     "contact": "the contact page",
     "healthz": "the health probe",
+    "panel": "the content panel",
 }
 
 

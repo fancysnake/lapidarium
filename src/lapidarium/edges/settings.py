@@ -245,7 +245,7 @@ UNFOLD = {
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
-        "navigation": "lapidarium.links.db.django.admin.sidebar_navigation",
+        "navigation": "lapidarium.links.db.django.sidebar.sidebar_navigation",
     },
 }
 

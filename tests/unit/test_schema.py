@@ -315,6 +315,7 @@ def test_check_type_covers_a_surface_that_differs_from_the_background():
         ("about", ["/about/ belongs to the about page."]),
         ("new", ["/new/ belongs to the what's new page."]),
         ("healthz", ["/healthz/ belongs to the health probe."]),
+        ("panel", ["/panel/ belongs to the content panel."]),
         ("back-office", ["/back-office/ belongs to the admin."]),
         ("media", ["/media/ belongs to uploads."]),
         ("cdn", []),

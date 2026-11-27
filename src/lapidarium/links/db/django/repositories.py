@@ -70,7 +70,7 @@ if TYPE_CHECKING:
         RelationData,
         ShowcaseData,
     )
-    from lapidarium.pacts.site import FriendData, LinkData, ProfileData
+    from lapidarium.pacts.site import FriendData, LinkData, ProfileData, ProfileTextData
 
 
 def field_dto(field: FieldDefinition) -> FieldDefinitionDTO:
@@ -295,25 +295,30 @@ class EntryTypeRepository(EntryTypeRepositoryProtocol):
             )
 
 
-def _published() -> QuerySet[Entry]:
-    return (
-        Entry.objects.filter(status=EntryStatus.PUBLISHED)
-        .select_related("type", "cover")
-        .prefetch_related(
-            "tags",
-            "syndication",
-            Prefetch("parts", queryset=Part.objects.select_related("asset")),
-            Prefetch(
-                "relations", queryset=Relation.objects.select_related("to_entry__type")
-            ),
-        )
+def _entries() -> QuerySet[Entry]:
+    return Entry.objects.select_related("type", "cover").prefetch_related(
+        "tags",
+        "syndication",
+        Prefetch("parts", queryset=Part.objects.select_related("asset")),
+        Prefetch(
+            "relations", queryset=Relation.objects.select_related("to_entry__type")
+        ),
     )
+
+
+def _published() -> QuerySet[Entry]:
+    return _entries().filter(status=EntryStatus.PUBLISHED)
 
 
 class EntryRepository(EntryRepositoryProtocol):
     @override
     def list_published(self) -> list[EntryDTO]:
         entries = _published().order_by("type__order", "type__key", "slug")
+        return [_entry_dto(entry) for entry in entries]
+
+    @override
+    def list_all(self) -> list[EntryDTO]:
+        entries = _entries().order_by("-updated_at", "type__key", "slug")
         return [_entry_dto(entry) for entry in entries]
 
     @override
@@ -498,6 +503,13 @@ class ProfileRepository(ProfileRepositoryProtocol):
             Profile.objects.filter(pk=profile.pk).update(**values)
         else:
             Profile.objects.create(**values)
+
+    @override
+    def save_texts(self, data: ProfileTextData) -> None:
+        if profile := Profile.objects.first():
+            Profile.objects.filter(pk=profile.pk).update(**data)
+        else:
+            Profile.objects.create(**data)
 
     @override
     def replace_links(self, links: Sequence[LinkData]) -> None:

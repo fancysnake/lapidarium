@@ -14,8 +14,11 @@ from lapidarium.gates.web.django.newsletter import newsletter
 from lapidarium.gates.web.django.panel import (
     panel,
     panel_change,
+    panel_entries,
     panel_field,
     panel_new,
+    panel_site,
+    panel_structure,
 )
 from lapidarium.gates.web.django.search import search
 from lapidarium.gates.web.django.theme_preview import theme_preview
@@ -24,17 +27,14 @@ from lapidarium.gates.web.django.whats_new import whats_new
 # Fixed pages first: every other first segment is a content type's route.
 urlpatterns = [
     path(f"{settings.ADMIN_URL}theme-preview/", theme_preview, name="theme_preview"),
-    path(f"{settings.ADMIN_URL}panel/", panel, name="panel"),
-    path(f"{settings.ADMIN_URL}panel/new/<slug:purpose>/", panel_new, name="panel_new"),
+    path("panel/", panel, name="panel"),
+    path("panel/entries/", panel_entries, name="panel_entries"),
+    path("panel/structure/", panel_structure, name="panel_structure"),
+    path("panel/site/", panel_site, name="panel_site"),
+    path("panel/new/<slug:purpose>/", panel_new, name="panel_new"),
+    path("panel/types/<slug:key>/", panel_change, name="panel_change"),
     path(
-        f"{settings.ADMIN_URL}panel/types/<slug:key>/",
-        panel_change,
-        name="panel_change",
-    ),
-    path(
-        f"{settings.ADMIN_URL}panel/types/<slug:key>/fields/<slug:field>/",
-        panel_field,
-        name="panel_field",
+        "panel/types/<slug:key>/fields/<slug:field>/", panel_field, name="panel_field"
     ),
     path(settings.ADMIN_URL, admin.site.urls),
     path("healthz/", healthz, name="healthz"),

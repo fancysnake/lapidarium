@@ -8,9 +8,13 @@ from lapidarium.pacts.services import SiteServiceProtocol
 from lapidarium.pacts.site import SiteDTO, TypeColourDTO
 
 if TYPE_CHECKING:
-    from lapidarium.pacts.content import EntryTypeRepositoryProtocol
+    from lapidarium.pacts.content import EntryTypeRepositoryProtocol, PageCacheProtocol
     from lapidarium.pacts.services import SchemaServiceProtocol
-    from lapidarium.pacts.site import FriendDTO, ProfileRepositoryProtocol
+    from lapidarium.pacts.site import (
+        FriendDTO,
+        ProfileRepositoryProtocol,
+        ProfileTextData,
+    )
 
 
 class SiteService(SiteServiceProtocol):
@@ -20,11 +24,13 @@ class SiteService(SiteServiceProtocol):
         types: EntryTypeRepositoryProtocol,
         profile: ProfileRepositoryProtocol,
         schema: SchemaServiceProtocol,
+        pages: PageCacheProtocol,
         site_name: str,
     ) -> None:
         self._types = types
         self._profile = profile
         self._schema = schema
+        self._pages = pages
         self._site_name = site_name
 
     @override
@@ -48,3 +54,8 @@ class SiteService(SiteServiceProtocol):
     @override
     def friends(self) -> tuple[FriendDTO, ...]:
         return tuple(self._profile.list_friends())
+
+    @override
+    def change_profile(self, data: ProfileTextData) -> None:
+        self._profile.save_texts(data)
+        self._pages.clear()
