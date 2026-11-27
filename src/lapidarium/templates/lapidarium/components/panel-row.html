@@ -1,0 +1,6 @@
+<li class="panel-list__row" data-type="{{ row.entry_type.key }}">
+  {% include "lapidarium/components/type-label.html" with entry_type=row.entry_type %}
+  <a class="panel-list__title"
+     href="{% url 'admin:lapidarium_db_entry_open' type_key=row.entry_type.key slug=row.entry.slug %}">{{ row.entry.title }}</a>
+  <time class="panel-list__when" datetime="{{ row.entry.updated_at|date:'c' }}">{{ row.entry.updated_at|date:"DATE_FORMAT" }}</time>
+</li>

@@ -1,21 +1,21 @@
-{% extends "lapidarium/base.html" %}
+{% extends "lapidarium/panel_base.html" %}
 {% load i18n %}
 {% block title %}{% translate "Change type" %} · {{ site_name }}{% endblock title %}
 {% block main %}
-  <main class="container page">
+  <main class="panel-main">
     <div>
-      <h1 class="page__title">
+      <h1 class="panel-title">
         {% translate "Change type:" %} {{ entry_type.label_plural }}
       </h1>
-      <p class="page__lead">
+      <p class="panel-lead">
         {% translate "Preview shows what a change does to the entries before anything is saved." %}
-        <a href="{% url 'panel' %}">{% translate "Back to the content panel" %}</a>
+        <a href="{% url 'panel_structure' %}">{% translate "Back to Structure" %}</a>
       </p>
     </div>
     {% if change %}
       {% include "lapidarium/components/type-preview.html" with preview=change.entry_type %}
     {% endif %}
-    <form class="form" method="post">
+    <form class="form panel-form" method="post">
       {% csrf_token %}
       {% include "lapidarium/components/form-errors.html" with errors=form.non_field_errors %}
       {% include "lapidarium/components/form-field.html" with field=form.label %}
@@ -27,9 +27,11 @@
         {% if form.field_rows %}
           <p>{% translate "Rename a field here at any time. Remove one, or change its kind, once no entry uses it." %}</p>
           {% for key, label, kind, remove in form.field_rows %}
-            {% include "lapidarium/components/form-field.html" with field=label %}
-            {% include "lapidarium/components/form-field.html" with field=kind %}
-            <label>{{ remove }} {{ remove.label }}</label>
+            <div class="field-row">
+              {% include "lapidarium/components/form-field.html" with field=label %}
+              {% include "lapidarium/components/form-field.html" with field=kind %}
+              <label>{{ remove }} {{ remove.label }}</label>
+            </div>
           {% endfor %}
         {% endif %}
         {% include "lapidarium/components/form-field.html" with field=form.new_field_label %}
@@ -117,7 +119,7 @@
           </label>
         </section>
       {% endif %}
-      <div>
+      <div class="panel-form__actions">
         <button class="btn" type="submit" name="preview" value="1">{% translate "Preview" %}</button>
         <button class="btn btn--primary" type="submit" name="save" value="1">{% translate "Save" %}</button>
       </div>

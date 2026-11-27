@@ -16,6 +16,8 @@ from django.utils.translation import gettext_lazy as _
 from lapidarium.pacts.content import (
     DEFAULT_PARTS,
     FIELD_DEFAULTS,
+    LONG_LENGTH,
+    SHORT_LENGTH,
     SUMMARY_MAX_LENGTH,
     TYPE_DEFAULTS,
     DoorPick,
@@ -30,15 +32,13 @@ from lapidarium.pacts.content import (
 from lapidarium.pacts.site import BUTTON_SIZE
 
 HEX_COLOUR = RegexValidator(r"^#[0-9a-fA-F]{6}$", _("Use #rrggbb."))
-_SHORT = 100
-_LONG = 255
 
 
 class MediaAsset(models.Model):
     file = models.FileField(_("file"), upload_to="assets/%Y/%m/", unique=True)
     alt = models.CharField(
         _("alt text"),
-        max_length=_LONG * 2,
+        max_length=LONG_LENGTH * 2,
         blank=True,
         help_text=_("Required for images; for memes, transcribe the text."),
     )
@@ -73,12 +73,12 @@ def web_button(pk: int) -> None:
 
 
 class EntryType(models.Model):
-    key = models.SlugField(_("key"), max_length=_SHORT, unique=True)
-    label = models.CharField(_("label"), max_length=_SHORT)
-    label_plural = models.CharField(_("plural label"), max_length=_SHORT)
+    key = models.SlugField(_("key"), max_length=SHORT_LENGTH, unique=True)
+    label = models.CharField(_("label"), max_length=SHORT_LENGTH)
+    label_plural = models.CharField(_("plural label"), max_length=SHORT_LENGTH)
     route = models.SlugField(
         _("route"),
-        max_length=_SHORT,
+        max_length=SHORT_LENGTH,
         unique=True,
         help_text=_("URL segment of the list, in the site language."),
     )
@@ -97,7 +97,7 @@ class EntryType(models.Model):
         help_text=_("Light background; derived from the colour when blank."),
     )
     icon = models.CharField(
-        _("icon"), max_length=_SHORT, blank=True, default=TYPE_DEFAULTS["icon"]
+        _("icon"), max_length=SHORT_LENGTH, blank=True, default=TYPE_DEFAULTS["icon"]
     )
     order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
     in_menu = models.BooleanField(_("in menu"), default=TYPE_DEFAULTS["in_menu"])
@@ -116,7 +116,7 @@ class EntryType(models.Model):
     )
     door_label = models.CharField(
         _("door label"),
-        max_length=_SHORT,
+        max_length=SHORT_LENGTH,
         blank=True,
         default=TYPE_DEFAULTS["door_label"],
     )
@@ -147,8 +147,8 @@ class FieldDefinition(models.Model):
     entry_type = models.ForeignKey(
         EntryType, on_delete=models.CASCADE, related_name="fields"
     )
-    key = models.SlugField(_("key"), max_length=_SHORT)
-    label = models.CharField(_("label"), max_length=_SHORT)
+    key = models.SlugField(_("key"), max_length=SHORT_LENGTH)
+    label = models.CharField(_("label"), max_length=SHORT_LENGTH)
     kind = models.CharField(
         _("kind"),
         max_length=32,
@@ -198,7 +198,7 @@ class FieldDefinition(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(_("name"), max_length=_SHORT, unique=True)
+    name = models.CharField(_("name"), max_length=SHORT_LENGTH, unique=True)
 
     class Meta:
         ordering: ClassVar = ["name"]
@@ -216,8 +216,8 @@ class Entry(models.Model):
         related_name="entries",
         verbose_name=_("type"),
     )
-    slug = models.SlugField(_("slug"), max_length=_LONG)
-    title = models.CharField(_("title"), max_length=_LONG)
+    slug = models.SlugField(_("slug"), max_length=LONG_LENGTH)
+    title = models.CharField(_("title"), max_length=LONG_LENGTH)
     summary = models.CharField(
         _("summary"),
         max_length=SUMMARY_MAX_LENGTH,
@@ -226,7 +226,7 @@ class Entry(models.Model):
     date = models.DateField(_("date"), null=True, blank=True)
     start_at = models.DateTimeField(_("starts"), null=True, blank=True)
     end_at = models.DateTimeField(_("ends"), null=True, blank=True)
-    location = models.CharField(_("location"), max_length=_LONG, blank=True)
+    location = models.CharField(_("location"), max_length=LONG_LENGTH, blank=True)
     is_online = models.BooleanField(_("online"), default=False)
     external_url = models.URLField(
         _("external page"),
@@ -244,7 +244,7 @@ class Entry(models.Model):
     )
     featured = models.BooleanField(_("featured"), default=False)
     hide_from_whats_new = models.BooleanField(_("hide from what's new"), default=False)
-    license = models.CharField(_("license"), max_length=_SHORT, blank=True)
+    license = models.CharField(_("license"), max_length=SHORT_LENGTH, blank=True)
     cover = models.ForeignKey(
         MediaAsset,
         on_delete=models.SET_NULL,
@@ -314,7 +314,7 @@ class Part(models.Model):
         related_name="parts",
         verbose_name=_("file"),
     )
-    caption = models.CharField(_("caption"), max_length=_LONG, blank=True)
+    caption = models.CharField(_("caption"), max_length=LONG_LENGTH, blank=True)
     options = models.JSONField(_("options"), default=dict, blank=True)
 
     class Meta:
@@ -336,7 +336,7 @@ class Relation(models.Model):
         related_name="backlinks",
         verbose_name=_("entry"),
     )
-    role = models.SlugField(_("role"), max_length=_SHORT)
+    role = models.SlugField(_("role"), max_length=SHORT_LENGTH)
     order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
 
     class Meta:
@@ -362,7 +362,7 @@ class SyndicationLink(models.Model):
     entry = models.ForeignKey(
         Entry, on_delete=models.CASCADE, related_name="syndication"
     )
-    platform = models.CharField(_("platform"), max_length=_SHORT)
+    platform = models.CharField(_("platform"), max_length=SHORT_LENGTH)
     url = models.URLField(_("URL"))
 
     class Meta:
@@ -377,9 +377,9 @@ class SyndicationLink(models.Model):
 class Profile(models.Model):
     """Singleton: the person the site is about."""
 
-    name = models.CharField(_("name"), max_length=_SHORT)
-    handle = models.CharField(_("handle"), max_length=_SHORT, blank=True)
-    tagline = models.CharField(_("tagline"), max_length=_LONG, blank=True)
+    name = models.CharField(_("name"), max_length=SHORT_LENGTH)
+    handle = models.CharField(_("handle"), max_length=SHORT_LENGTH, blank=True)
+    tagline = models.CharField(_("tagline"), max_length=LONG_LENGTH, blank=True)
     photo = models.ForeignKey(
         MediaAsset,
         on_delete=models.SET_NULL,
@@ -402,7 +402,7 @@ class Profile(models.Model):
     )
     friends_title = models.CharField(
         _("friends title"),
-        max_length=_SHORT,
+        max_length=SHORT_LENGTH,
         blank=True,
         help_text=_("Heading of the friends section; “Friends” when blank."),
     )
@@ -430,7 +430,7 @@ class Maintenance(models.Model):
     )
     title = models.CharField(
         _("title"),
-        max_length=_SHORT,
+        max_length=SHORT_LENGTH,
         blank=True,
         help_text=_(
             "The heading above the reason; when blank, there is none"
@@ -454,9 +454,9 @@ class Maintenance(models.Model):
 
 
 class Link(models.Model):
-    platform = models.CharField(_("platform"), max_length=_SHORT)
+    platform = models.CharField(_("platform"), max_length=SHORT_LENGTH)
     url = models.URLField(_("URL"))
-    label = models.CharField(_("label"), max_length=_SHORT)
+    label = models.CharField(_("label"), max_length=SHORT_LENGTH)
     order = models.PositiveIntegerField(_("order"), default=TYPE_DEFAULTS["order"])
 
     class Meta:
@@ -471,7 +471,7 @@ class Link(models.Model):
 class Friend(models.Model):
     """A site the owner recommends, unlike a `Link`, which is the owner's own."""
 
-    name = models.CharField(_("name"), max_length=_SHORT)
+    name = models.CharField(_("name"), max_length=SHORT_LENGTH)
     url = models.URLField(_("URL"))
     button = models.ForeignKey(
         MediaAsset,
@@ -495,7 +495,7 @@ class Friend(models.Model):
 
 
 class Showcase(models.Model):
-    title = models.CharField(_("title"), max_length=_SHORT)
+    title = models.CharField(_("title"), max_length=SHORT_LENGTH)
     intro = models.TextField(_("intro"), blank=True, help_text=_("Markdown."))
     hidden = models.BooleanField(
         _("hidden"), default=False, help_text=_("Kept, but not on the home page.")
@@ -537,9 +537,9 @@ class ShowcaseItem(models.Model):
 
 
 class ExternalItem(models.Model):
-    source = models.CharField(_("source"), max_length=_SHORT)
-    external_id = models.CharField(_("external id"), max_length=_LONG)
-    title = models.CharField(_("title"), max_length=_LONG)
+    source = models.CharField(_("source"), max_length=SHORT_LENGTH)
+    external_id = models.CharField(_("external id"), max_length=LONG_LENGTH)
+    title = models.CharField(_("title"), max_length=LONG_LENGTH)
     url = models.URLField(_("URL"))
     published_at = models.DateTimeField(_("published"))
     thumbnail_url = models.URLField(_("thumbnail"), blank=True)

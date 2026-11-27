@@ -1,0 +1,58 @@
+{% extends "lapidarium/skeleton.html" %}
+{% load i18n static %}
+{% block head %}
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="{% static 'lapidarium/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'lapidarium/css/panel.css' %}">
+  <style>
+    {# 12% is TINT_MIX, the share derive_tint mixes; the panel mixes into its own surface. #}
+    {% for entry_type in site.types %}[data-type="{{ entry_type.key }}"] { --type-color: {{ entry_type.colour }}; --type-tint: {% if entry_type.tint %}{{ entry_type.tint }}{% else %}color-mix(in srgb, var(--type-color) 12%, var(--color-surface)){% endif %}; }
+    {% endfor %}
+  </style>
+{% endblock head %}
+{% block body %}
+  <header class="panel-header">
+    <div class="panel-header__inner">
+      <a class="panel-brand" href="{% url 'panel' %}">
+        <svg aria-hidden="true" width="26" height="26" viewBox="0 0 26 26">
+          <path d="M5 9 L12 3 L21 6 L23 16 L16 23 L6 21 L3 14 Z" />
+        </svg>
+        <span class="panel-brand__name">{{ site_name }}</span>
+        <span class="panel-brand__what">{% translate "panel" %}</span>
+      </a>
+      <nav class="panel-nav" aria-label="{% translate "Panel menu" %}">
+        <ul>
+          <li>
+            <a href="{% url 'panel' %}"
+               {% if current_page == "panel" %}aria-current="page"{% endif %}>{% translate "Desk" %}</a>
+          </li>
+          <li>
+            <a href="{% url 'panel_entries' %}"
+               {% if current_page == "panel_entries" %}aria-current="page"{% endif %}>{% translate "All entries" %}</a>
+          </li>
+          <li>
+            <a href="{% url 'panel_structure' %}"
+               {% if current_page == "panel_structure" %}aria-current="page"{% elif section == "structure" %}aria-current="true"{% endif %}>{% translate "Structure" %}</a>
+          </li>
+          <li>
+            <a href="{% url 'panel_site' %}"
+               {% if current_page == "panel_site" %}aria-current="page"{% endif %}>{% translate "Site" %}</a>
+          </li>
+        </ul>
+      </nav>
+      <div class="panel-header__user">
+        <a href="{% url 'home' %}">{% translate "View the site" %}</a>
+        {% if request.user.is_superuser %}
+          <a href="{% url 'admin:index' %}">{% translate "Admin" %}</a>
+        {% endif %}
+        <span>{{ request.user.get_username }}</span>
+        <form method="post" action="{% url 'admin:logout' %}">
+          {% csrf_token %}
+          <button class="panel-link" type="submit">{% translate "Log out" %}</button>
+        </form>
+      </div>
+    </div>
+  </header>
+  {% block main %}
+  {% endblock main %}
+{% endblock body %}

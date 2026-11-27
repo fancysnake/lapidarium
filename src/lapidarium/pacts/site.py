@@ -16,6 +16,18 @@ if TYPE_CHECKING:
 BUTTON_SIZE = (88, 31)
 
 
+class ProfileTextData(TypedDict):
+    """What the content panel edits of the profile; the images stay as they are."""
+
+    name: str
+    handle: str
+    tagline: str
+    bio: str
+    email: str
+    friends_title: str
+    friends_intro: str
+
+
 class ProfileData(TypedDict):
     name: str
     handle: str
@@ -99,6 +111,8 @@ class ProfileRepositoryProtocol(Protocol):
     def list_links(self) -> list[LinkDTO]: ...
 
     def save(self, data: ProfileData) -> None: ...
+
+    def save_texts(self, data: ProfileTextData) -> None: ...
 
     def replace_links(self, links: Sequence[LinkData]) -> None: ...
 

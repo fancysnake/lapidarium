@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 07:33+0100\n"
+"POT-Creation-Date: 2026-11-26 18:15+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -23,6 +23,36 @@ msgstr "Twoje imię"
 
 msgid "Message"
 msgstr "Wiadomość"
+
+msgid "Name"
+msgstr "Imię i nazwisko"
+
+msgid "Handle"
+msgstr "Pseudonim"
+
+msgid "Tagline"
+msgstr "Hasło"
+
+msgid "Bio"
+msgstr "Bio"
+
+msgid "Markdown."
+msgstr "Markdown."
+
+msgid "E-mail for the contact form"
+msgstr "E-mail formularza kontaktowego"
+
+msgid "Leave blank to turn the contact form off."
+msgstr "Zostaw puste, aby wyłączyć formularz kontaktowy."
+
+msgid "Heading of the friends section"
+msgstr "Nagłówek sekcji przyjaciół"
+
+msgid "“Friends” when blank."
+msgstr "Gdy puste: „Przyjaciele”."
+
+msgid "Intro of the friends section"
+msgstr "Wstęp sekcji przyjaciół"
 
 msgid "Name of one"
 msgstr "Nazwa jednego"
@@ -438,9 +468,6 @@ msgstr "Kończy się, zanim się zaczyna."
 msgid "text"
 msgstr "tekst"
 
-msgid "Markdown."
-msgstr "Markdown."
-
 msgid "URL"
 msgstr "adres"
 
@@ -750,6 +777,12 @@ msgstr "Ścieżka"
 msgid "All"
 msgstr "Wszystkie"
 
+msgid "Draft"
+msgstr "Szkic"
+
+msgid "Published"
+msgstr "Opublikowany"
+
 msgid "updated"
 msgstr "zaktualizowano"
 
@@ -885,49 +918,43 @@ msgstr "powrót do"
 msgid "Almost there: check your inbox and confirm the subscription."
 msgstr "Prawie gotowe: sprawdź skrzynkę i potwierdź zapis."
 
-msgid "What this site is made of, by what each type is for."
-msgstr "Z czego składa się ta strona, według tego, do czego służy każdy rodzaj."
+msgid "Desk"
+msgstr "Biurko"
 
-msgid "Pick a purpose to create a type, or a type to change it."
-msgstr "Wybierz cel, aby utworzyć rodzaj, albo rodzaj, aby go zmienić."
+msgid "Missing a kind of entry?"
+msgstr "Brakuje rodzaju wpisu?"
 
-msgid "Every setting is in the admin"
-msgstr "Wszystkie ustawienia są w panelu administracyjnym"
+msgid "Add a type in Structure"
+msgstr "Dodaj rodzaj w Strukturze"
 
-msgid "The type is created."
-msgstr "Rodzaj został utworzony."
+msgid "Drafts to finish"
+msgstr "Szkice do dokończenia"
 
-msgid "Add its first entry"
-msgstr "Dodaj pierwszy wpis"
+msgid "No drafts. Everything you wrote is on the site."
+msgstr "Nie ma szkiców. Wszystko, co napisano, jest na stronie."
 
-msgid "The type is changed."
-msgstr "Rodzaj został zmieniony."
+msgid "Changed lately"
+msgstr "Ostatnio zmienione"
 
 #, python-format
-msgid "%(counter)s entry"
-msgid_plural "%(counter)s entries"
-msgstr[0] "%(counter)s wpis"
-msgstr[1] "%(counter)s wpisy"
-msgstr[2] "%(counter)s wpisów"
-msgstr[3] "%(counter)s wpisu"
+msgid "%(counter)s entry in all"
+msgid_plural "All %(counter)s entries"
+msgstr[0] "Wszystkie wpisy: %(counter)s"
+msgstr[1] "Wszystkie wpisy: %(counter)s"
+msgstr[2] "Wszystkie wpisy: %(counter)s"
+msgstr[3] "Wszystkie wpisy: %(counter)s"
 
-msgid "Part of:"
-msgstr "Część:"
+msgid "Nothing is published yet."
+msgstr "Nic jeszcze nie opublikowano."
 
-msgid "Holds:"
-msgstr "Zawiera:"
+msgid "Coming up"
+msgstr "Nadchodzące"
 
-msgid "Add an entry"
-msgstr "Dodaj wpis"
+msgid "On the site and in the calendar feed."
+msgstr "Na stronie i w kanale kalendarza."
 
-msgid "Change"
-msgstr "Zmień"
-
-msgid "Open in the admin"
-msgstr "Otwórz w panelu administracyjnym"
-
-msgid "No types yet."
-msgstr "Nie ma jeszcze rodzajów."
+msgid "No event is planned."
+msgstr "Nie ma zaplanowanych wydarzeń."
 
 msgid "Change type"
 msgstr "Zmiana rodzaju"
@@ -938,8 +965,8 @@ msgstr "Zmiana rodzaju:"
 msgid "Preview shows what a change does to the entries before anything is saved."
 msgstr "Podgląd pokazuje, co zmiana zrobi z wpisami, zanim cokolwiek zostanie zapisane."
 
-msgid "Back to the content panel"
-msgstr "Wróć do panelu treści"
+msgid "Back to Structure"
+msgstr "Wróć do Struktury"
 
 msgid "Fields"
 msgstr "Pola"
@@ -1027,6 +1054,61 @@ msgstr "Podgląd"
 msgid "Save"
 msgstr "Zapisz"
 
+#, python-format
+msgid "%(counter)s entry."
+msgid_plural "%(counter)s entries."
+msgstr[0] "%(counter)s wpis."
+msgstr[1] "%(counter)s wpisy."
+msgstr[2] "%(counter)s wpisów."
+msgstr[3] "%(counter)s wpisu."
+
+#, python-format
+msgid "%(counter)s draft is not on the site yet."
+msgid_plural "%(counter)s drafts are not on the site yet."
+msgstr[0] "%(counter)s szkicu nie ma jeszcze na stronie."
+msgstr[1] "%(counter)s szkiców nie ma jeszcze na stronie."
+msgstr[2] "%(counter)s szkiców nie ma jeszcze na stronie."
+msgstr[3] "%(counter)s szkicu nie ma jeszcze na stronie."
+
+msgid "Add an entry"
+msgstr "Dodaj wpis"
+
+msgid "Show one type"
+msgstr "Pokaż jeden rodzaj"
+
+msgid "Every type"
+msgstr "Każdy rodzaj"
+
+msgid "Show one status"
+msgstr "Pokaż jeden status"
+
+msgid "Drafts"
+msgstr "Szkice"
+
+msgid "Find by title"
+msgstr "Szukaj w tytułach"
+
+msgid "Find"
+msgstr "Szukaj"
+
+msgid "Title"
+msgstr "Tytuł"
+
+msgid "Type"
+msgstr "Rodzaj"
+
+msgid "Part of"
+msgstr "Część"
+
+msgid "Changed"
+msgstr "Zmieniono"
+
+msgid "No entry matches."
+msgstr "Żaden wpis nie pasuje."
+
+msgid "Show every entry"
+msgstr "Pokaż wszystkie wpisy"
+
 msgid "Entries that use the field:"
 msgstr "Wpisy, które używają pola:"
 
@@ -1057,6 +1139,62 @@ msgstr "Zmień nazwę pola albo wyczyść je, aby je pominąć."
 msgid "Create"
 msgstr "Utwórz"
 
+msgid "Who the site is about"
+msgstr "O kim jest ta strona"
+
+msgid "The about page, the author box under every entry and the footer read from here."
+msgstr "Stąd czytają: strona „O mnie”, ramka autora pod każdym wpisem i stopka."
+
+msgid "The profile is saved."
+msgstr "Profil zapisany."
+
+msgid "See the about page"
+msgstr "Zobacz stronę „O mnie”"
+
+msgid "Save the profile"
+msgstr "Zapisz profil"
+
+msgid "Structure"
+msgstr "Struktura"
+
+msgid "What this site is made of"
+msgstr "Z czego składa się ta strona"
+
+msgid "A type is a kind of entry. An activity holds projects, a project holds pieces of work, and every level is optional."
+msgstr "Rodzaj to typ wpisu. Aktywność mieści projekty, projekt mieści prace, a każdy poziom jest opcjonalny."
+
+msgid "The type is created."
+msgstr "Rodzaj został utworzony."
+
+msgid "Add its first entry"
+msgstr "Dodaj pierwszy wpis"
+
+msgid "The type is changed."
+msgstr "Rodzaj został zmieniony."
+
+msgid "Part of:"
+msgstr "Część:"
+
+msgid "Holds:"
+msgstr "Zawiera:"
+
+#, python-format
+msgid "%(counter)s entry"
+msgid_plural "%(counter)s entries"
+msgstr[0] "%(counter)s wpis"
+msgstr[1] "%(counter)s wpisy"
+msgstr[2] "%(counter)s wpisów"
+msgstr[3] "%(counter)s wpisu"
+
+msgid "No types yet."
+msgstr "Nie ma jeszcze rodzajów."
+
+msgid "New type for"
+msgstr "Nowy rodzaj dla"
+
+msgid "New:"
+msgstr "Nowy:"
+
 msgid "Search for"
 msgstr "Szukaj"
 
@@ -1085,6 +1223,21 @@ msgstr "linkiem"
 msgid "Follow by RSS"
 msgstr "Obserwuj przez RSS"
 
+msgid "panel"
+msgstr "panel"
+
+msgid "Panel menu"
+msgstr "Menu panelu"
+
+msgid "View the site"
+msgstr "Zobacz stronę"
+
+msgid "Admin"
+msgstr "Administracja"
+
+msgid "Log out"
+msgstr "Wyloguj"
+
 msgid "Download the recording"
 msgstr "Pobierz nagranie"
 
@@ -1096,6 +1249,18 @@ msgstr "ładuje się po kliknięciu"
 
 msgid "Play the video"
 msgstr "Odtwórz nagranie"
+
+#~ msgid "Pick a purpose to create a type, or a type to change it."
+#~ msgstr "Wybierz cel, aby utworzyć rodzaj, albo rodzaj, aby go zmienić."
+
+#~ msgid "Every setting is in the admin"
+#~ msgstr "Wszystkie ustawienia są w panelu administracyjnym"
+
+#~ msgid "Open in the admin"
+#~ msgstr "Otwórz w panelu administracyjnym"
+
+#~ msgid "Back to the content panel"
+#~ msgstr "Wróć do panelu treści"
 
 #~ msgid "layout"
 #~ msgstr "układ"

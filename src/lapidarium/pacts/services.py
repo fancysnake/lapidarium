@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     )
     from lapidarium.pacts.content import (
         ContentSummaryDTO,
+        EntryStatus,
         EntryTypeDTO,
         FirstBootDTO,
         LocalSetupDTO,
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
         TypeRole,
     )
     from lapidarium.pacts.db import DatabaseProbeProtocol
+    from lapidarium.pacts.editing import DeskDTO, EntryListDTO
     from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
     from lapidarium.pacts.outreach import ContactData
     from lapidarium.pacts.purposes import (
@@ -40,7 +42,7 @@ if TYPE_CHECKING:
         TypeChangeData,
         TypeChangeDTO,
     )
-    from lapidarium.pacts.site import FriendDTO, SiteDTO
+    from lapidarium.pacts.site import FriendDTO, ProfileTextData, SiteDTO
     from lapidarium.pacts.theme import ProblemDTO, SchemeColoursDTO, SiteThemeDTO
 
 
@@ -135,8 +137,24 @@ class FirstBootServiceProtocol(Protocol):
     def run(self, demo: str, *, username: str, password: str) -> FirstBootDTO: ...
 
 
+class EditingServiceProtocol(Protocol):
+    def desk(self) -> DeskDTO: ...
+
+    def entries(
+        self, *, type_key: str, status: EntryStatus | None, query: str, page: int
+    ) -> EntryListDTO:
+        """Return a page of the entries whose title holds `query`, ignoring case.
+
+        A blank `type_key` takes every type and `status=None` both statuses.
+        Raises `NotFoundError` for an unknown type or a page out of range.
+        """
+
+
 class ContentServicesProtocol(Protocol):
-    """Moving content in and out, and seeding a fresh site with it."""
+    """Moving content in and out, seeding a fresh site, listing entries to edit."""
+
+    @property
+    def editing(self) -> EditingServiceProtocol: ...
 
     @property
     def exporter(self) -> ContentExportServiceProtocol: ...
@@ -155,6 +173,9 @@ class SiteServiceProtocol(Protocol):
     def chrome(self) -> SiteDTO: ...
 
     def friends(self) -> tuple[FriendDTO, ...]: ...
+
+    def change_profile(self, data: ProfileTextData) -> None:
+        """Save the profile's texts, keep its photo and button, clear the pages."""
 
 
 class MaintenanceServiceProtocol(Protocol):

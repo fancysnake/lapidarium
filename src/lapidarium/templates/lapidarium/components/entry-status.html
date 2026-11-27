@@ -1,0 +1,2 @@
+{% load i18n %}
+<span class="entry-status{% if status == "draft" %} entry-status--draft{% endif %}">{% if status == "draft" %}{% translate "Draft" %}{% else %}{% translate "Published" %}{% endif %}</span>
