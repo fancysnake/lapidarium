@@ -83,8 +83,9 @@ description = "Build the documentation site into site/"
 depends = ["site:deps"]
 run = "mkdocs build"
 
-# Fonts come from the machine: a render without Bitstream Charter and
-# Liberation falls back to other faces.
+# Fonts come from the machine: the card needs the Liberation faces.
+# resvg 0.50.0's binary needs glibc 2.43; Debian 13 ships 2.41.
 ["site:card"]
 description = "Render the link-preview card PNG from its SVG source"
+tools = { resvg = "0.49.0" }
 run = "resvg docs/assets/lapidarium-card.svg docs/assets/lapidarium-card.png"
