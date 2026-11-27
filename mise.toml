@@ -11,6 +11,8 @@ enter = "poetry install"
 pipx = "1.18.4"
 "pipx:poetry" = "2.5.1"
 python = "3.14.7"
+# 0.50.0's binary needs glibc 2.43; Debian 13 ships 2.41.
+resvg = "0.49.0"
 
 [env]
 _.python.venv = { path = ".venv", create = true }

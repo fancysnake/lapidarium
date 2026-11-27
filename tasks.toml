@@ -82,3 +82,9 @@ run = "mkdocs serve --dev-addr localhost:8001"
 description = "Build the documentation site into site/"
 depends = ["site:deps"]
 run = "mkdocs build"
+
+# Fonts come from the machine: a render without Bitstream Charter and
+# Liberation falls back to other faces.
+["site:card"]
+description = "Render the link-preview card PNG from its SVG source"
+run = "resvg docs/assets/lapidarium-card.svg docs/assets/lapidarium-card.png"
