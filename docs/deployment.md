@@ -25,7 +25,7 @@ content is [Content](content.md).
 | Tag | Points at |
 |---|---|
 | `sha-<commit>` | one exact build; what to deploy |
-| `<version>` | a release, e.g. `0.1.0` |
+| `<version>` | a release, e.g. `0.2.0` |
 | `latest` | the newest build of `main` |
 
 Pin `sha-<commit>` or a version in production, so that a restart never

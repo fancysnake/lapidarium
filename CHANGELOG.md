@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-28
+
 ### Added
 
 - First boot needs no shell: `ADMIN_USERNAME` and `ADMIN_PASSWORD` create the
@@ -14,28 +16,28 @@ All notable changes to this project are documented here. The format follows
   with one line naming it.
 - `docker/compose/vps.yaml` self-hosts on one machine: the app, PostgreSQL and
   Caddy, which gets the TLS certificate for `DOMAIN` and serves uploads from a
-  volume, so no bucket is needed. `vps.env.example` lists every variable.
+  volume. `vps.env.example` lists every variable.
 - `docker/compose/coolify.yaml` is a Coolify service template: Coolify
   generates the secrets and assigns the domain, uploads stay in a volume, and
   only `ADMIN_PASSWORD` must be set.
-- `container_section` role: a container with no outcome and no dates, such as a wiki
-  section or a set of docs. Sections stay off the about-page timeline. The
-  demos' wiki section and doc set are now sections.
-- Content panel at `/panel/`, linked from the admin sidebar: staff see
-  the types grouped as pieces of work, events, projects, activities and
-  sections, each with its entry count, the types its entries are part of and
-  the types it holds.
+- `container_section` role: a container with no outcome and no dates, such as a
+  wiki section or a set of docs. Sections stay off the about-page timeline.
+- Content panel at `/panel/`, open to every staff account and linked from the
+  admin sidebar. No theme changes its look. Desk has a button for each type,
+  the drafts, the latest changes and the coming events. All entries lists every
+  entry, with filters by type and status and a search by title. Structure
+  groups the types as pieces of work, events, projects, activities and
+  sections. Site edits the profile's texts.
 - The content panel creates a type from a purpose: one form opens on the
-  purpose's suggested names, address and fields, previews the type, and keeps
-  rarely needed settings in an advanced section.
-- The content panel changes a type: the same form renames fields and adds one,
+  purpose's suggested names, address and fields, and previews the type.
+- The content panel changes a type: the form renames fields and adds one,
   lists how many entries a change moves, strips of a page or leaves unsavable,
   and saves only after the owner agrees to those effects.
 - The content panel removes a field and changes its kind. It refuses both
-  while entries hold a value for the field or link through it, says how many
-  do, and links to a page that lists them.
-- Import refuses a type whose required parts are not all allowed, as the admin
-  does.
+  while entries hold a value for the field or link through it, and links to a
+  page that lists them.
+- `import_content --demo ttrpg|dev` loads a bundled demo.
+- `mise run site:card` renders the social card PNG from its SVG.
 
 ### Changed
 
@@ -44,22 +46,18 @@ All notable changes to this project are documented here. The format follows
   otherwise. A type's list is a grid while every entry holds only images.
 - The export format is version 2. Version 1 files still import; their
   `layout` type setting is ignored.
-- Every staff account can use all of the content panel. No type can take the
-  route `panel`.
-- The content panel has its own look, which no theme changes, and four pages.
-  Desk has a button for each type, the drafts, the latest changes and the
-  coming events. All entries lists every entry, with filters by type and
-  status and a search by title. Structure holds the types by purpose, which
-  was the whole panel before. Site edits the profile's texts. A superuser
-  gets a link to the admin in the header.
-
+- No type can take the route `panel`.
 - An unknown demo name in `setup_local --demo` or `import_content --demo` fails
   with the list of bundled ones.
+- `--color-surface` must be `#rrggbb`, and a dark scheme keeps the light
+  surface unless it sets its own.
+- Themes declare `engine = "0.2"`; a theme built for `0.1` gets warning
+  `lapidarium.W002`.
 
 ### Removed
 
 - The layout setting of a type, in the admin and in export files.
-- `load_demo`: `import_content --demo ttrpg|dev` loads a bundled demo instead.
+- `load_demo`: use `import_content --demo ttrpg|dev`.
 - `.vekna.toml` and the cabinet dev dependency. vekna and cabinet are
   installed per user, and the rituals read `[projects.lapidarium.cabinet]`
   from the vekna user config.
@@ -69,16 +67,12 @@ All notable changes to this project are documented here. The format follows
 - A public page opens when a stored value no longer fits its field, for example
   a number left in a field changed to a url. Entry pages, lists and the home
   page leave such a value out; the admin still shows it for re-entry.
-- `/healthz/` answers `503` while the database is unreachable, so a container
-  that lost its database reports unhealthy. The image runs the check itself;
-  compose files no longer wire their own.
-- A type's role locks once it has entries, so changing it can no longer wipe
-  built-in fields on the next save or leave entries that won't save. The admin
-  shows the role read-only, and `import_content` refuses a bundle that changes
-  it.
+- `/healthz/` answers `503` while the database is unreachable. The image runs
+  the check itself; compose files no longer wire their own.
+- A type's role locks once it has entries. The admin shows the role read-only,
+  and `import_content` refuses a bundle that changes it.
 - `export_content` leaves out built-in fields an entry's role does not use, so
-  an export imports back even when a role change made before the lock left
-  such values behind. The stored values stay as they are.
+  the export imports back.
 - Saving an entry no longer turns a link into "part of" after its relation field
   is gone. The link shows its old role as no longer defined, and the entry saves
   once an editor picks another role or removes the link.
@@ -87,16 +81,16 @@ All notable changes to this project are documented here. The format follows
 - A content type can't take a route a fixed page, the admin, uploads or
   static files already use; the admin and `import_content` name the owner,
   and the type list flags types saved on one earlier.
-- `import_content` refuses a site or friend button that is not an 88×31 image,
-  as the admin does, and names the button.
-- Every import clears the cached pages once it commits. A bundle holding only
-  a profile could leave the About page stale until the cache expired.
-- Type colours are checked against `--color-surface` too: showcase links and
-  the video play button draw them there. The admin and `import_content` refuse
-  a colour under 4.5:1 on it, the dark scheme lightens colours until they read
-  on the dark surface, and the theme check covers `--color-type-default` on
-  it. `--color-surface` must now be `#rrggbb`, and a dark scheme keeps the
-  light surface unless it sets its own.
+- `import_content` refuses a site or friend button that is not an 88×31 image
+  and names the button.
+- `import_content` refuses a type whose required parts are not all allowed.
+- The admin refuses a type whose list filter names a field removed in the same
+  save.
+- Every import clears the cached pages once it commits.
+- Type colours are checked against `--color-surface` too. The admin and
+  `import_content` refuse a colour under 4.5:1 on it, the dark scheme lightens
+  colours until they read on the dark surface, and the theme check covers
+  `--color-type-default` on it.
 
 ## [0.1.0] - 2026-10-30
 
@@ -149,5 +143,6 @@ All notable changes to this project are documented here. The format follows
 - cabinet's pull request rituals (`refresh`, `cover`, `review`, `labels`) via
   `.vekna.toml`.
 
-[unreleased]: https://github.com/fancysnake/lapidarium/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/fancysnake/lapidarium/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/fancysnake/lapidarium/releases/tag/v0.2.0
 [0.1.0]: https://github.com/fancysnake/lapidarium/releases/tag/v0.1.0

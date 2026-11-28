@@ -34,7 +34,7 @@ themes/<name>/
 ```toml
 name = "Dusk"
 version = "1.0.0"
-engine = "0.1"        # the engine release the theme is built for
+engine = "0.2"        # the engine release the theme is built for
 fonts = ["https://fonts.googleapis.com/css2?family=Gabarito&display=swap"]
 ```
 
