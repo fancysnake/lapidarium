@@ -24,7 +24,7 @@ def layered_theme_fixture(tmp_path):
     theme = tmp_path / "themes" / "dusk"
     theme.mkdir(parents=True)
     (theme / "theme.toml").write_text(
-        'name = "Dusk"\nversion = "1.0.0"\nengine = "0.1"\n'
+        'name = "Dusk"\nversion = "1.0.0"\nengine = "0.2"\n'
         'fonts = ["https://fonts.googleapis.com/css2?family=Gabarito"]\n'
     )
     (theme / "tokens.css").write_text(

@@ -72,7 +72,8 @@ All notable changes to this project are documented here. The format follows
 - A type's role locks once it has entries. The admin shows the role read-only,
   and `import_content` refuses a bundle that changes it.
 - `export_content` leaves out built-in fields an entry's role does not use, so
-  the export imports back.
+  the export imports back even after a role change made before the lock. The
+  stored values stay as they are.
 - Saving an entry no longer turns a link into "part of" after its relation field
   is gone. The link shows its old role as no longer defined, and the entry saves
   once an editor picks another role or removes the link.
