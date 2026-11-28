@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 
 from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
+from django.core.files.base import ContentFile, File
 from django.core.files.storage import default_storage
 from django.db.models import Count, Prefetch, QuerySet
 
@@ -69,6 +69,7 @@ if TYPE_CHECKING:
         MetadataValue,
         RelationData,
         ShowcaseData,
+        UploadData,
     )
     from lapidarium.pacts.site import FriendData, LinkData, ProfileData, ProfileTextData
 
@@ -451,6 +452,25 @@ class MediaAssetRepository(MediaAssetRepositoryProtocol):
             default_storage.delete(name)
             msg = f"Storage saved {path!r} as {name!r}."
             raise OSError(msg)
+
+    @override
+    def list_all(self) -> list[MediaAssetDTO]:
+        # Files stored in the same instant, as an import does, keep one order.
+        assets = MediaAsset.objects.order_by("-created_at", "-pk")
+        return [asset_dto(asset) for asset in assets]
+
+    @override
+    def add(self, data: UploadData) -> MediaAssetDTO:
+        return asset_dto(
+            MediaAsset.objects.create(
+                file=File(data["content"], name=data["name"]), alt=data["alt"]
+            )
+        )
+
+    @override
+    def set_alt(self, path: str, alt: str) -> None:
+        if not MediaAsset.objects.filter(file=path).update(alt=alt):
+            raise NotFoundError(path)
 
 
 class ProfileRepository(ProfileRepositoryProtocol):

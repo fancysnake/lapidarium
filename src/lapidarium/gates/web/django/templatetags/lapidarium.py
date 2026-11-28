@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import mimetypes
 from pathlib import PurePosixPath
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
@@ -72,6 +73,12 @@ def file_name(path: str) -> str:
 @register.filter
 def file_kind(path: str) -> str:
     return PurePosixPath(path).suffix.removeprefix(".").upper()
+
+
+@register.filter
+def is_image(path: str) -> bool:
+    """Whether a browser shows the file as a picture, judged by its name."""
+    return (mimetypes.guess_type(path)[0] or "").startswith("image/")
 
 
 @register.filter

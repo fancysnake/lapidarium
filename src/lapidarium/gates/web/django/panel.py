@@ -5,7 +5,13 @@ from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from lapidarium.gates.web.django.forms import ChangeTypeForm, NewTypeForm, ProfileForm
+from lapidarium.gates.web.django.forms import (
+    AltForm,
+    ChangeTypeForm,
+    NewTypeForm,
+    ProfileForm,
+    UploadForm,
+)
 from lapidarium.gates.web.django.rendering import RootRequest, render_page
 from lapidarium.pacts.content import EntryStatus, NotFoundError
 from lapidarium.pacts.purposes import (
@@ -182,4 +188,48 @@ def panel_site(request: RootRequest) -> HttpResponse:
         "lapidarium/pages/panel_site.html",
         form=form,
         saved="saved" in request.GET,
+    )
+
+
+def _change_media(
+    request: RootRequest, *, upload: UploadForm, alt: AltForm
+) -> str | None:
+    """Apply the form that was posted; return where to go next, if it was valid."""
+    media = request.services.content.media
+    if upload.is_valid():
+        media.upload(upload.to_data())
+        return reverse("panel_media") + "?saved=file"
+    if not alt.is_valid():
+        return None
+    try:
+        media.describe(**alt.cleaned_data)
+    except NotFoundError as exc:
+        raise Http404 from exc
+    query = request.GET.copy()
+    query["saved"] = "alt"
+    return f"{request.path}?{query.urlencode()}"
+
+
+@staff_member_required
+@require_http_methods(["GET", "POST"])
+def panel_media(request: RootRequest) -> HttpResponse:
+    """Two forms: "Upload" adds a file, a row's "Save" changes its alt text."""
+    uploading = "upload" in request.POST
+    upload = UploadForm(*((request.POST, request.FILES) if uploading else ()))
+    alt = AltForm(request.POST if request.POST and not uploading else None)
+    if target := _change_media(request, upload=upload, alt=alt):
+        return HttpResponseRedirect(target)
+    try:
+        files = request.services.content.media.files(
+            page=int(request.GET.get("page", "1"))
+        )
+    except (ValueError, NotFoundError) as exc:
+        raise Http404 from exc
+    return render_page(
+        request,
+        "lapidarium/pages/panel_media.html",
+        files=files,
+        upload=upload,
+        alt=alt,
+        saved=request.GET.get("saved", ""),
     )

@@ -35,6 +35,10 @@
                {% if current_page == "panel_structure" %}aria-current="page"{% elif section == "structure" %}aria-current="true"{% endif %}>{% translate "Structure" %}</a>
           </li>
           <li>
+            <a href="{% url 'panel_media' %}"
+               {% if current_page == "panel_media" %}aria-current="page"{% endif %}>{% translate "Media" %}</a>
+          </li>
+          <li>
             <a href="{% url 'panel_site' %}"
                {% if current_page == "panel_site" %}aria-current="page"{% endif %}>{% translate "Site" %}</a>
           </li>

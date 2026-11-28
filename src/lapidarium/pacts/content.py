@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
     from pathlib import Path
+    from typing import IO
 
     from lapidarium.pacts.site import FriendData, LinkData, ProfileData
 
@@ -330,6 +331,14 @@ class AssetData(TypedDict):
     content: bytes
 
 
+class UploadData(TypedDict):
+    """A file as it arrives from a browser; the storage picks its path."""
+
+    name: str
+    content: IO[bytes]
+    alt: str
+
+
 class ShowcaseItemData(TypedDict):
     type: str
     slug: str
@@ -574,6 +583,15 @@ class MediaAssetRepositoryProtocol(Protocol):
 
     def write(self, path: str, *, content: bytes) -> None:
         """Store `content` under exactly `path`, replacing any file there."""
+
+    def list_all(self) -> list[MediaAssetDTO]:
+        """Return every asset, newest first."""
+
+    def add(self, data: UploadData) -> MediaAssetDTO:
+        """Store the file under a new path and create its row."""
+
+    def set_alt(self, path: str, alt: str) -> None:
+        """Change the alt text; `NotFoundError` when no asset has `path`."""
 
 
 class AccountRepositoryProtocol(Protocol):

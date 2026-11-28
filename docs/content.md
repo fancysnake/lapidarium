@@ -66,7 +66,7 @@ the admin sidebar. Types are data, so adding one needs no code and no
 migration.
 
 **The content panel** (`/panel/`) is open to every staff account. It has its
-own look, which no theme changes, and four pages:
+own look, which no theme changes, and five pages:
 
 - **Desk** has a button for each type, the drafts, the entries changed last
   and the coming events. A button opens the admin's form for a new entry of
@@ -78,6 +78,10 @@ own look, which no theme changes, and four pages:
   projects, activities and sections. Each type lists its address, the types
   its entries are part of, the types it holds, and its entry count, which
   opens the type's entries in the panel.
+- **Media** lists every uploaded file, newest first, with a thumbnail for
+  images. Upload a file there, or change a file's alt text in its row. An
+  upload lands in a folder named after the month. Deleting a file stays in
+  the admin.
 - **Site** holds the profile's texts: name, handle, tagline, bio, the e-mail
   behind the contact form, and the heading and intro of the friends section.
   The photo and the site's button change in the admin.
