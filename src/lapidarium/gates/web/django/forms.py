@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from django.http import QueryDict
     from django.utils.functional import _StrOrPromise
 
-    from lapidarium.pacts.content import EntryTypeDTO, SettingDefault
+    from lapidarium.pacts.content import EntryTypeDTO, SettingDefault, UploadData
     from lapidarium.pacts.purposes import (
         NewTypeData,
         PurposeDTO,
@@ -33,6 +33,8 @@ _MESSAGE_MAX_LENGTH = 5000
 # The longest address the profile column stores.
 _EMAIL_MAX_LENGTH = 254
 _NAME_MAX_LENGTH = 100
+# The longest alt text the media column stores.
+_ALT_MAX_LENGTH = LONG_LENGTH * 2
 _PART_CHOICES = enum_choices(PartKind)
 _FIELD = "field_"
 _KIND = "kind_"
@@ -311,3 +313,27 @@ class ChangeTypeForm(_TypeForm):
             "removed": [key for key, *_, remove in rows if data[remove.name]],
             "added": {"label": label, "kind": kind} if label else None,
         }
+
+
+class UploadForm(forms.Form):
+    file = forms.FileField(label=_("File"))
+    alt = forms.CharField(
+        label=_("Alt text"),
+        max_length=_ALT_MAX_LENGTH,
+        required=False,
+        help_text=_("Required for images; for memes, transcribe the text."),
+        widget=_text(),
+    )
+
+    def to_data(self) -> UploadData:
+        file = self.cleaned_data["file"]
+        return {"name": file.name, "content": file, "alt": self.cleaned_data["alt"]}
+
+
+class AltForm(forms.Form):
+    """The alt text of the file at `path`, as one row of the media list posts it."""
+
+    path = forms.CharField(label=_("File"))
+    alt = forms.CharField(
+        label=_("Alt text"), max_length=_ALT_MAX_LENGTH, required=False
+    )

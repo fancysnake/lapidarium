@@ -1,0 +1,86 @@
+{% extends "lapidarium/panel_base.html" %}
+{% load i18n lapidarium %}
+{% block title %}{% translate "Media" %} · {{ site_name }}{% endblock title %}
+{% block main %}
+  <main class="panel-main">
+    <div>
+      <h1 class="panel-title">{% translate "Media" %}</h1>
+      <p class="panel-lead">
+        {% blocktranslate count counter=files.total trimmed %}
+          {{ counter }} file.
+        {% plural %}
+          {{ counter }} files.
+        {% endblocktranslate %}
+        {% translate "Covers, parts, the profile photo and buttons pick their files from here." %}
+      </p>
+    </div>
+    {% if saved == "file" %}
+      <p class="notice" role="status">{% translate "The file is uploaded." %}</p>
+    {% elif saved == "alt" %}
+      <p class="notice" role="status">{% translate "The alt text is saved." %}</p>
+    {% endif %}
+    <form class="form panel-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% include "lapidarium/components/form-errors.html" with errors=upload.non_field_errors %}
+      {% for field in upload %}
+        {% include "lapidarium/components/form-field.html" %}
+      {% endfor %}
+      <div class="panel-form__actions">
+        <button class="btn btn--primary" type="submit" name="upload">{% translate "Upload the file" %}</button>
+      </div>
+    </form>
+    {% for field in alt %}
+      {% include "lapidarium/components/form-errors.html" with errors=field.errors %}
+    {% endfor %}
+    {% if files.rows %}
+      <div class="panel-table">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{% translate "Preview" %}</th>
+              <th scope="col">{% translate "File" %}</th>
+              <th scope="col">{% translate "Alt text" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in files.rows %}
+              <tr>
+                <td>
+                  {% if row.path|is_image %}
+                    <img class="media-thumb" src="{{ row.url }}" alt="" loading="lazy">
+                  {% else %}
+                    <span class="media-thumb">{{ row.path|file_kind }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a class="panel-list__title" href="{{ row.url }}">{{ row.path|file_name }}</a>
+                </td>
+                <td>
+                  <form class="media-alt" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="path" value="{{ row.path }}">
+                    <label class="visually-hidden" for="alt-{{ forloop.counter }}">
+                      {% blocktranslate with name=row.path|file_name trimmed %}
+                        Alt text of {{ name }}
+                      {% endblocktranslate %}
+                    </label>
+                    <input class="input"
+                           id="alt-{{ forloop.counter }}"
+                           type="text"
+                           name="alt"
+                           value="{{ row.alt }}"
+                           maxlength="{{ alt.fields.alt.max_length }}">
+                    <button class="btn" type="submit">{% translate "Save" %}</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "lapidarium/components/pagination.html" with listing=files %}
+    {% else %}
+      <p class="panel-empty">{% translate "No file yet. Upload the first one above." %}</p>
+    {% endif %}
+  </main>
+{% endblock main %}

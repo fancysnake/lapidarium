@@ -2,6 +2,7 @@
 
 import pytest
 import yaml
+from django.contrib.auth import get_user_model
 from django.core.cache import caches
 
 from lapidarium.inits import Services
@@ -37,6 +38,21 @@ def test_pages_are_served_from_the_cache_until_content_changes(
         Entry.objects.filter(slug="bal-w-zamku").get().save()
 
     assert cached_site.get("/sesje/bal-w-zamku/").context is not None
+
+
+def test_alt_text_saved_in_the_panel_reaches_the_cached_pages(cached_site):
+    entry = Entry.objects.exclude(cover=None).filter(status="published")[0]
+    page = f"/{entry.type.route}/"
+    cached_site.get(page)
+    cached_site.force_login(
+        get_user_model().objects.create_user("helper", password="pw", is_staff=True)
+    )
+    cached_site.post(
+        "/panel/media/", {"path": entry.cover.file.name, "alt": "New words"}
+    )
+    cached_site.logout()
+
+    assert "New words" in cached_site.get(page).text
 
 
 @pytest.mark.parametrize(

@@ -29,10 +29,12 @@ if TYPE_CHECKING:
         PartKind,
         RelationEndDTO,
         TypeRole,
+        UploadData,
     )
     from lapidarium.pacts.db import DatabaseProbeProtocol
     from lapidarium.pacts.editing import DeskDTO, EntryListDTO
     from lapidarium.pacts.maintenance import MaintenanceNoticeDTO
+    from lapidarium.pacts.media import MediaListDTO
     from lapidarium.pacts.outreach import ContactData
     from lapidarium.pacts.purposes import (
         FieldUseDTO,
@@ -157,6 +159,9 @@ class ContentServicesProtocol(Protocol):
     def editing(self) -> EditingServiceProtocol: ...
 
     @property
+    def media(self) -> MediaServiceProtocol: ...
+
+    @property
     def exporter(self) -> ContentExportServiceProtocol: ...
 
     @property
@@ -176,6 +181,16 @@ class SiteServiceProtocol(Protocol):
 
     def change_profile(self, data: ProfileTextData) -> None:
         """Save the profile's texts, keep its photo and button, clear the pages."""
+
+
+class MediaServiceProtocol(Protocol):
+    def files(self, *, page: int) -> MediaListDTO:
+        """Return one page of files; `NotFoundError` for a page there is not."""
+
+    def upload(self, data: UploadData) -> None: ...
+
+    def describe(self, path: str, alt: str) -> None:
+        """Change a file's alt text; `NotFoundError` when no file has `path`."""
 
 
 class MaintenanceServiceProtocol(Protocol):

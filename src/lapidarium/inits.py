@@ -39,6 +39,7 @@ from lapidarium.mills.content import (
 )
 from lapidarium.mills.editing import EditingService
 from lapidarium.mills.maintenance import MaintenanceService
+from lapidarium.mills.media import MediaService
 from lapidarium.mills.metadata import MetadataService
 from lapidarium.mills.outreach import OutreachService
 from lapidarium.mills.purposes import PurposeService
@@ -181,6 +182,12 @@ class ContentServices(ContentServicesProtocol):
     def editing(self) -> EditingService:
         repos = self._repositories
         return EditingService(types=repos.entry_types, entries=repos.entries)
+
+    @cached_property
+    def media(self) -> MediaService:
+        return MediaService(
+            assets=self._repositories.media_assets, pages=caches[PAGE_CACHE]
+        )
 
     @cached_property
     def local_setup(self) -> LocalSetupService:

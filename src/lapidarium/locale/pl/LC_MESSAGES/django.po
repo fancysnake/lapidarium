@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 18:15+0100\n"
+"POT-Creation-Date: 2026-11-28 14:05+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: Polish\n"
@@ -107,56 +107,20 @@ msgstr "Rodzaj pola „%(field)s”"
 msgid "Remove “%(field)s”"
 msgstr "Usuń „%(field)s”"
 
+msgid "File"
+msgstr "Plik"
+
+msgid "Alt text"
+msgstr "Tekst alternatywny"
+
+msgid "Required for images; for memes, transcribe the text."
+msgstr "Wymagany dla obrazów; dla memów przepisz tekst."
+
 msgid "That was a lot of tries in a short time. Please wait a while and try again."
 msgstr "To dużo prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie."
 
 msgid "Something went wrong on the way. Please try again later."
 msgstr "Coś poszło nie tak po drodze. Spróbuj ponownie później."
-
-msgid "Content"
-msgstr "Treści"
-
-msgid "All entries"
-msgstr "Wszystkie wpisy"
-
-msgid "Library"
-msgstr "Biblioteka"
-
-msgid "Media"
-msgstr "Pliki"
-
-msgid "Tags"
-msgstr "Tagi"
-
-msgid "External items"
-msgstr "Pozycje z zewnątrz"
-
-msgid "Site"
-msgstr "Strona"
-
-msgid "Content types"
-msgstr "Rodzaje treści"
-
-msgid "Profile"
-msgstr "Profil"
-
-msgid "Maintenance"
-msgstr "Przerwa techniczna"
-
-msgid "Links"
-msgstr "Linki"
-
-msgid "Friends"
-msgstr "Przyjaciele"
-
-msgid "Showcases"
-msgstr "Wyróżnienia"
-
-msgid "Content panel"
-msgstr "Panel treści"
-
-msgid "Theme preview"
-msgstr "Podgląd motywu"
 
 msgid "choices"
 msgstr "wartości do wyboru"
@@ -307,9 +271,6 @@ msgstr "plik"
 
 msgid "alt text"
 msgstr "tekst alternatywny"
-
-msgid "Required for images; for memes, transcribe the text."
-msgstr "Wymagany dla obrazów; dla memów przepisz tekst."
 
 msgid "media asset"
 msgstr "plik"
@@ -611,6 +572,51 @@ msgstr "pozycja z zewnątrz"
 
 msgid "external items"
 msgstr "pozycje z zewnątrz"
+
+msgid "Content"
+msgstr "Treści"
+
+msgid "All entries"
+msgstr "Wszystkie wpisy"
+
+msgid "Library"
+msgstr "Biblioteka"
+
+msgid "Media"
+msgstr "Pliki"
+
+msgid "Tags"
+msgstr "Tagi"
+
+msgid "External items"
+msgstr "Pozycje z zewnątrz"
+
+msgid "Site"
+msgstr "Strona"
+
+msgid "Content types"
+msgstr "Rodzaje treści"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "Maintenance"
+msgstr "Przerwa techniczna"
+
+msgid "Links"
+msgstr "Linki"
+
+msgid "Friends"
+msgstr "Przyjaciele"
+
+msgid "Showcases"
+msgstr "Wyróżnienia"
+
+msgid "Content panel"
+msgstr "Panel treści"
+
+msgid "Theme preview"
+msgstr "Podgląd motywu"
 
 msgid "Required parts must be allowed."
 msgstr "Wymagane części muszą być dozwolone."
@@ -1126,6 +1132,33 @@ msgstr "szkic"
 
 msgid "No entry uses this field. It can be removed or change its kind."
 msgstr "Żaden wpis nie używa tego pola. Można je usunąć albo zmienić jego rodzaj."
+
+#, python-format
+msgid "%(counter)s file."
+msgid_plural "%(counter)s files."
+msgstr[0] "%(counter)s plik."
+msgstr[1] "%(counter)s pliki."
+msgstr[2] "%(counter)s plików."
+msgstr[3] "%(counter)s pliku."
+
+msgid "Covers, parts, the profile photo and buttons pick their files from here."
+msgstr "Okładki, części, zdjęcie profilowe i przyciski biorą pliki stąd."
+
+msgid "The file is uploaded."
+msgstr "Plik przesłany."
+
+msgid "The alt text is saved."
+msgstr "Tekst alternatywny zapisany."
+
+msgid "Upload the file"
+msgstr "Prześlij plik"
+
+#, python-format
+msgid "Alt text of %(name)s"
+msgstr "Tekst alternatywny pliku %(name)s"
+
+msgid "No file yet. Upload the first one above."
+msgstr "Nie ma jeszcze plików. Prześlij pierwszy powyżej."
 
 msgid "New type"
 msgstr "Nowy rodzaj"

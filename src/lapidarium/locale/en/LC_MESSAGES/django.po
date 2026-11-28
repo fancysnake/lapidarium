@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lapidarium\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 18:15+0100\n"
+"POT-Creation-Date: 2026-11-28 14:05+0100\n"
 "PO-Revision-Date: 2026-10-14 12:00+0200\n"
 "Last-Translator: lapidarium\n"
 "Language-Team: English\n"
@@ -107,55 +107,19 @@ msgstr ""
 msgid "Remove “%(field)s”"
 msgstr ""
 
+msgid "File"
+msgstr ""
+
+msgid "Alt text"
+msgstr ""
+
+msgid "Required for images; for memes, transcribe the text."
+msgstr ""
+
 msgid "That was a lot of tries in a short time. Please wait a while and try again."
 msgstr ""
 
 msgid "Something went wrong on the way. Please try again later."
-msgstr ""
-
-msgid "Content"
-msgstr ""
-
-msgid "All entries"
-msgstr ""
-
-msgid "Library"
-msgstr ""
-
-msgid "Media"
-msgstr ""
-
-msgid "Tags"
-msgstr ""
-
-msgid "External items"
-msgstr ""
-
-msgid "Site"
-msgstr ""
-
-msgid "Content types"
-msgstr ""
-
-msgid "Profile"
-msgstr ""
-
-msgid "Maintenance"
-msgstr ""
-
-msgid "Links"
-msgstr ""
-
-msgid "Friends"
-msgstr ""
-
-msgid "Showcases"
-msgstr ""
-
-msgid "Content panel"
-msgstr ""
-
-msgid "Theme preview"
 msgstr ""
 
 msgid "choices"
@@ -302,9 +266,6 @@ msgid "file"
 msgstr ""
 
 msgid "alt text"
-msgstr ""
-
-msgid "Required for images; for memes, transcribe the text."
 msgstr ""
 
 msgid "media asset"
@@ -606,6 +567,51 @@ msgid "external item"
 msgstr ""
 
 msgid "external items"
+msgstr ""
+
+msgid "Content"
+msgstr ""
+
+msgid "All entries"
+msgstr ""
+
+msgid "Library"
+msgstr ""
+
+msgid "Media"
+msgstr ""
+
+msgid "Tags"
+msgstr ""
+
+msgid "External items"
+msgstr ""
+
+msgid "Site"
+msgstr ""
+
+msgid "Content types"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Maintenance"
+msgstr ""
+
+msgid "Links"
+msgstr ""
+
+msgid "Friends"
+msgstr ""
+
+msgid "Showcases"
+msgstr ""
+
+msgid "Content panel"
+msgstr ""
+
+msgid "Theme preview"
 msgstr ""
 
 msgid "Required parts must be allowed."
@@ -1101,6 +1107,31 @@ msgid "draft"
 msgstr ""
 
 msgid "No entry uses this field. It can be removed or change its kind."
+msgstr ""
+
+#, python-format
+msgid "%(counter)s file."
+msgid_plural "%(counter)s files."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Covers, parts, the profile photo and buttons pick their files from here."
+msgstr ""
+
+msgid "The file is uploaded."
+msgstr ""
+
+msgid "The alt text is saved."
+msgstr ""
+
+msgid "Upload the file"
+msgstr ""
+
+#, python-format
+msgid "Alt text of %(name)s"
+msgstr ""
+
+msgid "No file yet. Upload the first one above."
 msgstr ""
 
 msgid "New type"
