@@ -5,7 +5,7 @@
 
   <!-- The text block. -->
   <rect x="80" y="150" width="64" height="6" fill="#00b8d4"/>
-  <text x="76" y="270" font-family="Bitstream Charter, Liberation Serif, serif" font-size="104" font-weight="bold" fill="#ffffff">lapidarium</text>
+  <text x="76" y="270" font-family="Liberation Serif, serif" font-size="104" font-weight="bold" fill="#ffffff">lapidarium</text>
   <text x="80" y="340" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">A home base for</text>
   <text x="80" y="388" font-family="Liberation Sans, FreeSans, sans-serif" font-size="38" fill="#4dd0e1">multi-format creators</text>
   <text x="80" y="470" font-family="Liberation Sans, FreeSans, sans-serif" font-size="26" fill="#c9d6d9">Every piece of work at its own address</text>

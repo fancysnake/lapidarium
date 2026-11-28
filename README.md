@@ -53,7 +53,8 @@ content from nothing in [Content](https://lapidarium.fancysnake.dev/content/).
 
 `docs/` is the manual's source. `mise run site:dev` serves it with live reload;
 `mise run site:build` builds it into `site/` and fails on any broken link or
-anchor.
+anchor. After an edit to `docs/assets/lapidarium-card.svg`, `mise run site:card`
+renders the link-preview PNG from it.
 
 ## Rituals
 

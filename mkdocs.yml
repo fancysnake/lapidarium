@@ -14,6 +14,10 @@ strict: true
 validation:
   anchors: warn
 
+# Source of lapidarium-card.png; no page links it.
+exclude_docs: |
+  assets/lapidarium-card.svg
+
 theme:
   name: material
   custom_dir: overrides
