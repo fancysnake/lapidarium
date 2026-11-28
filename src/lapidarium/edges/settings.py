@@ -180,7 +180,8 @@ GS_LOCATION = env("GS_LOCATION")
 # Media goes to GCS when a bucket is named, the filesystem otherwise. The client
 # finds credentials itself (GOOGLE_APPLICATION_CREDENTIALS, or the attached
 # service account on GCP). The bucket serves objects publicly, so URLs carry no
-# signature.
+# signature. An upload whose name is taken gets a random suffix; the library's
+# default would replace the stored file.
 STORAGES = {
     "default": (
         {
@@ -189,6 +190,7 @@ STORAGES = {
                 "bucket_name": GS_BUCKET_NAME,
                 "location": GS_LOCATION,
                 "default_acl": None,
+                "file_overwrite": False,
                 "querystring_auth": False,
             },
         }
