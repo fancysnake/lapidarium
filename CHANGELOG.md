@@ -36,6 +36,9 @@ All notable changes to this project are documented here. The format follows
   do, and links to a page that lists them.
 - Import refuses a type whose required parts are not all allowed, as the admin
   does.
+- The content panel has a Media page: staff list every uploaded file, newest
+  first, with thumbnails for images, upload a file, and change a file's alt
+  text, without opening the admin.
 
 ### Changed
 
@@ -97,6 +100,8 @@ All notable changes to this project are documented here. The format follows
   on the dark surface, and the theme check covers `--color-type-default` on
   it. `--color-surface` must now be `#rrggbb`, and a dark scheme keeps the
   light surface unless it sets its own.
+- An upload to a Google Cloud Storage bucket whose name is taken gets a random
+  suffix. Before, it replaced the stored file.
 
 ## [0.1.0] - 2026-10-30
 
